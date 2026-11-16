@@ -26,7 +26,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.reactive.server.WebTestClient;
-import org.springframework.test.web.servlet.client.MockMvcWebTestClient;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -38,6 +37,7 @@ import static org.mockito.Mockito.when;
  *
  * @author Dimitar Proynov
  */
+@org.junit.jupiter.api.extension.ExtendWith(Spring5RouterFunctionTestSupport.class)
 class WebMvcSseServerTransportProviderTests {
 
 	private static final String TOOL_CALL_REQUEST = """
@@ -58,7 +58,8 @@ class WebMvcSseServerTransportProviderTests {
 				"sessions");
 		sessions.put("test-session", session);
 
-		WebTestClient client = MockMvcWebTestClient.bindToRouterFunction(provider.getRouterFunction()).build();
+		WebTestClient client = Spring5RouterFunctionTestSupport.bindToRouterFunction(provider.getRouterFunction())
+			.build();
 
 		client.post()
 			.uri(uriBuilder -> uriBuilder.path("/mcp/message").queryParam("sessionId", "test-session").build())

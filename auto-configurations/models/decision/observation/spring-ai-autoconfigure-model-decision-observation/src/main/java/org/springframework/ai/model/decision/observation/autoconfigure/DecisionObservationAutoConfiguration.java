@@ -34,7 +34,7 @@ import org.springframework.context.annotation.Bean;
  * @since 2.1.0
  */
 @AutoConfiguration(
-		afterName = "org.springframework.boot.micrometer.metrics.autoconfigure.CompositeMeterRegistryAutoConfiguration")
+		afterName = "org.springframework.boot.actuate.autoconfigure.metrics.CompositeMeterRegistryAutoConfiguration")
 @ConditionalOnClass(DecisionModel.class)
 public class DecisionObservationAutoConfiguration {
 

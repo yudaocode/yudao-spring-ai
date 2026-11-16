@@ -19,7 +19,6 @@ package org.springframework.ai.chat.cache.semantic;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.HexFormat;
 import java.util.List;
 import java.util.Optional;
 
@@ -300,7 +299,7 @@ class SemanticCacheAdvisorTests {
 
 		MessageDigest digest = MessageDigest.getInstance("SHA-256");
 		byte[] expectedHash = digest.digest(systemPromptText.getBytes(StandardCharsets.UTF_8));
-		String expectedHex = HexFormat.of().formatHex(expectedHash);
+		String expectedHex = org.springframework.ai.util.Java8Platform.hexString(expectedHash);
 
 		assertThat(hashCaptor.getValue()).isEqualTo(expectedHex);
 		assertThat(hashCaptor.getValue()).matches("^[0-9a-f]{64}$");

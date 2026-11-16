@@ -60,7 +60,7 @@ class Neo4jVectorStoreAutoConfigurationTests {
 	@BeforeEach
 	void existingIndexOfSize768() {
 		when(this.driver.session(any(SessionConfig.class))).thenReturn(this.session);
-		when(this.session.executeRead(any())).thenReturn(List.of(Values.value(768)));
+		when(this.session.readTransaction(any())).thenReturn(List.of(Values.value(768)));
 	}
 
 	@Test
@@ -80,7 +80,7 @@ class Neo4jVectorStoreAutoConfigurationTests {
 			Neo4jVectorStore store = context.getBean(Neo4jVectorStore.class);
 
 			assertThat(store.createObservationContextBuilder("query").build().getDimensions()).isEqualTo(384);
-			verify(this.session, never()).executeRead(any());
+			verify(this.session, never()).readTransaction(any());
 			verifyNoInteractions(this.embeddingModel);
 		});
 	}

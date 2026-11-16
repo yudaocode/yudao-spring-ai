@@ -16,14 +16,14 @@
 
 package org.springframework.ai.model.chat.memory.redis.autoconfigure;
 
-import org.apache.commons.pool2.PooledObjectFactory;
 import org.junit.jupiter.api.Test;
-import redis.clients.jedis.ConnectionFactory;
-import redis.clients.jedis.JedisClientConfig;
-import redis.clients.jedis.RedisClient;
-import redis.clients.jedis.providers.PooledConnectionProvider;
-import redis.clients.jedis.util.Pool;
+import redis.clients.jedis.JedisPooled;
 
+import org.springframework.ai.compat.jedis.internal.ConnectionFactory;
+import org.springframework.ai.compat.jedis.internal.JedisClientConfig;
+import org.springframework.ai.compat.jedis.internal.providers.PooledConnectionProvider;
+import org.springframework.ai.compat.jedis.internal.util.Pool;
+import org.springframework.ai.compat.jedis.pool.PooledObjectFactory;
 import org.springframework.ai.model.chat.memory.repository.redis.autoconfigure.RedisChatMemoryRepositoryAutoConfiguration;
 import org.springframework.ai.model.chat.memory.repository.redis.autoconfigure.RedisChatMemoryRepositoryProperties;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
@@ -41,16 +41,12 @@ class RedisChatMemoryAutoConfigurationTests {
 
 	@Test
 	void propertiesWithOldPrefix() {
-		this.contextRunner.withPropertyValues(
-		// @formatter:off
-				"spring.ai.chat.memory.redis.host=10.0.0.1",
-						"spring.ai.chat.memory.redis.port=6380",
-						"spring.ai.chat.memory.redis.initialize-schema=false")
-				// @formatter:on
+		this.contextRunner
+			.withPropertyValues("spring.ai.chat.memory.redis.host=10.0.0.1", "spring.ai.chat.memory.redis.port=6380",
+					"spring.ai.chat.memory.redis.initialize-schema=false")
 			.run(context -> {
 				assertThat(context).hasSingleBean(RedisChatMemoryRepositoryProperties.class);
 				var chatProperties = context.getBean(RedisChatMemoryRepositoryProperties.class);
-
 				assertThat(chatProperties.getHost()).isEqualTo("10.0.0.1");
 				assertThat(chatProperties.getPort()).isEqualTo(6380);
 				assertThat(chatProperties.getInitializeSchema()).isEqualTo(false);
@@ -59,16 +55,13 @@ class RedisChatMemoryAutoConfigurationTests {
 
 	@Test
 	void propertiesWithNewPrefix() {
-		this.contextRunner.withPropertyValues(
-		// @formatter:off
-						"spring.ai.chat.memory.repository.redis.host=10.0.0.1",
-						"spring.ai.chat.memory.repository.redis.port=6380",
-						"spring.ai.chat.memory.repository.redis.initialize-schema=false")
-				// @formatter:on
+		this.contextRunner
+			.withPropertyValues("spring.ai.chat.memory.repository.redis.host=10.0.0.1",
+					"spring.ai.chat.memory.repository.redis.port=6380",
+					"spring.ai.chat.memory.repository.redis.initialize-schema=false")
 			.run(context -> {
 				assertThat(context).hasSingleBean(RedisChatMemoryRepositoryProperties.class);
 				var chatProperties = context.getBean(RedisChatMemoryRepositoryProperties.class);
-
 				assertThat(chatProperties.getHost()).isEqualTo("10.0.0.1");
 				assertThat(chatProperties.getPort()).isEqualTo(6380);
 				assertThat(chatProperties.getInitializeSchema()).isEqualTo(false);
@@ -86,8 +79,7 @@ class RedisChatMemoryAutoConfigurationTests {
 					.getBean(RedisChatMemoryRepositoryProperties.class);
 				assertThat(properties.getUsername()).isEqualTo("app-user");
 				assertThat(properties.getPassword()).isEqualTo("secret");
-
-				JedisClientConfig clientConfig = extractJedisClientConfig(context.getBean(RedisClient.class));
+				JedisClientConfig clientConfig = extractJedisClientConfig(context.getBean(JedisPooled.class));
 				assertThat(clientConfig.getUser()).isEqualTo("app-user");
 				assertThat(clientConfig.getPassword()).isEqualTo("secret");
 			});
@@ -106,8 +98,7 @@ class RedisChatMemoryAutoConfigurationTests {
 					.getBean(RedisChatMemoryRepositoryProperties.class);
 				assertThat(properties.getUsername()).isEqualTo("app-user");
 				assertThat(properties.getPassword()).isEqualTo("secret");
-
-				JedisClientConfig clientConfig = extractJedisClientConfig(context.getBean(RedisClient.class));
+				JedisClientConfig clientConfig = extractJedisClientConfig(context.getBean(JedisPooled.class));
 				assertThat(clientConfig.getUser()).isEqualTo("app-user");
 				assertThat(clientConfig.getPassword()).isEqualTo("secret");
 			});
@@ -122,7 +113,7 @@ class RedisChatMemoryAutoConfigurationTests {
 			.run(context -> {
 				assertThat(context.getBean(RedisChatMemoryRepositoryProperties.class).getPassword())
 					.isEqualTo("secret");
-				assertThat(extractJedisClientConfig(context.getBean(RedisClient.class)).getPassword())
+				assertThat(extractJedisClientConfig(context.getBean(JedisPooled.class)).getPassword())
 					.isEqualTo("secret");
 			});
 	}
@@ -137,7 +128,7 @@ class RedisChatMemoryAutoConfigurationTests {
 			.run(context -> {
 				assertThat(context.getBean(RedisChatMemoryRepositoryProperties.class).getPassword())
 					.isEqualTo("secret");
-				assertThat(extractJedisClientConfig(context.getBean(RedisClient.class)).getPassword())
+				assertThat(extractJedisClientConfig(context.getBean(JedisPooled.class)).getPassword())
 					.isEqualTo("secret");
 			});
 	}
@@ -153,14 +144,13 @@ class RedisChatMemoryAutoConfigurationTests {
 					.getBean(RedisChatMemoryRepositoryProperties.class);
 				assertThat(properties.getUsername()).isNull();
 				assertThat(properties.getPassword()).isNull();
-
-				JedisClientConfig clientConfig = extractJedisClientConfig(context.getBean(RedisClient.class));
+				JedisClientConfig clientConfig = extractJedisClientConfig(context.getBean(JedisPooled.class));
 				assertThat(clientConfig.getUser()).isNull();
 				assertThat(clientConfig.getPassword()).isNull();
 			});
 	}
 
-	private static JedisClientConfig extractJedisClientConfig(RedisClient redisClient) {
+	private static JedisClientConfig extractJedisClientConfig(JedisPooled redisClient) {
 		Object provider = ReflectionTestUtils.getField(redisClient, "provider");
 		assertThat(provider).isInstanceOf(PooledConnectionProvider.class);
 		Pool<?> pool = ((PooledConnectionProvider) provider).getPool();

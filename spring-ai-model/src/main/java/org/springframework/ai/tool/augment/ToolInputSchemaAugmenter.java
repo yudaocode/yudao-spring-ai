@@ -20,8 +20,8 @@ import java.lang.reflect.Type;
 import java.util.Arrays;
 import java.util.List;
 
-import tools.jackson.databind.node.ArrayNode;
-import tools.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import org.springframework.ai.tool.annotation.ToolParam;
 import org.springframework.ai.util.JacksonUtils;
@@ -48,25 +48,20 @@ public final class ToolInputSchemaAugmenter {
 	 * @return A list of {@link AugmentedArgumentType} representing the tool input
 	 * argument types.
 	 */
-	public static <T extends Record> List<AugmentedArgumentType> toAugmentedArgumentTypes(Class<T> recordClass) {
+	public static <T> List<AugmentedArgumentType> toAugmentedArgumentTypes(Class<T> recordClass) {
+		org.springframework.util.Assert.isTrue(!org.springframework.beans.BeanUtils.isSimpleValueType(recordClass)
+				&& !recordClass.isArray() && !recordClass.isInterface(), "Argument type must be a structured DTO");
 		try {
 
-			return Arrays.stream(recordClass.getRecordComponents()).map(c -> {
-				// Get the annotation from the corresponding field, not the record
-				// component
-				ToolParam toolParam = null;
-				try {
-					var field = recordClass.getDeclaredField(c.getName());
-					toolParam = field.getAnnotation(ToolParam.class);
-				}
-				catch (NoSuchFieldException e) {
-					// Field not found, toolParam remains null
-				}
-
-				return new AugmentedArgumentType(c.getName(), c.getGenericType(),
-						toolParam != null ? toolParam.description() : "no description",
-						toolParam != null ? toolParam.required() : false);
-			}).toList();
+			return Arrays.stream(recordClass.getDeclaredFields())
+				.filter(field -> !java.lang.reflect.Modifier.isStatic(field.getModifiers()) && !field.isSynthetic())
+				.map(field -> {
+					ToolParam toolParam = field.getAnnotation(ToolParam.class);
+					return new AugmentedArgumentType(field.getName(), field.getGenericType(),
+							toolParam != null ? toolParam.description() : "no description",
+							toolParam != null && toolParam.required());
+				})
+				.toList();
 
 		}
 		catch (Exception e) {

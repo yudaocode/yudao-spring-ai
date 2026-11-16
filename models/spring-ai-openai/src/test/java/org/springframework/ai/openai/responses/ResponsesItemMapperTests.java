@@ -57,7 +57,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  */
 class ResponsesItemMapperTests {
 
-	private static List<String> itemTypes(List<ResponseInputItem> items) {
+	private static List<String> itemTypes(List<ResponseInputItem> items) throws Exception {
 		return items.stream().map(item -> {
 			try {
 				return ObjectMappers.jsonMapper()
@@ -71,7 +71,7 @@ class ResponsesItemMapperTests {
 		}).toList();
 	}
 
-	private static String toJson(ResponseInputItem item) {
+	private static String toJson(ResponseInputItem item) throws Exception {
 		try {
 			return ObjectMappers.jsonMapper().writeValueAsString(item);
 		}
@@ -81,7 +81,7 @@ class ResponsesItemMapperTests {
 	}
 
 	@Test
-	void firstSystemMessageBecomesInstructionsAndFurtherOnesBecomeItems() {
+	void firstSystemMessageBecomesInstructionsAndFurtherOnesBecomeItems() throws Exception {
 		var input = ResponsesItemMapper.toInput(List.of(new SystemMessage("Be terse."),
 				new SystemMessage("Answer in English."), new UserMessage("Hi")));
 
@@ -96,7 +96,7 @@ class ResponsesItemMapperTests {
 	 * must keep that order on the wire. Flattening to text-then-media would reverse it.
 	 */
 	@Test
-	void userMessagePartsAreEmittedInPartOrderWhenMediaComesFirst() {
+	void userMessagePartsAreEmittedInPartOrderWhenMediaComesFirst() throws Exception {
 		var image = Media.builder()
 			.mimeType(MimeTypeUtils.IMAGE_PNG)
 			.data(URI.create("https://example.com/cat.png"))
@@ -114,7 +114,7 @@ class ResponsesItemMapperTests {
 	 * every media item.
 	 */
 	@Test
-	void userMessagePartsPreserveInterleavedTextAndMediaOrder() {
+	void userMessagePartsPreserveInterleavedTextAndMediaOrder() throws Exception {
 		var image = Media.builder()
 			.mimeType(MimeTypeUtils.IMAGE_PNG)
 			.data(URI.create("https://example.com/diagram.png"))
@@ -137,7 +137,7 @@ class ResponsesItemMapperTests {
 	 * Legacy builders still produce text then media, and that order must keep working.
 	 */
 	@Test
-	void legacyTextThenMediaUserMessageKeepsTextBeforeMedia() {
+	void legacyTextThenMediaUserMessageKeepsTextBeforeMedia() throws Exception {
 		var message = UserMessage.builder()
 			.text("What is this?")
 			.media(List.of(Media.builder()
@@ -151,7 +151,7 @@ class ResponsesItemMapperTests {
 	}
 
 	@Test
-	void mediaOnlyUserMessageBecomesSingleInputImagePart() {
+	void mediaOnlyUserMessageBecomesSingleInputImagePart() throws Exception {
 		var message = UserMessage.builder()
 			.part(MediaPart.of(Media.builder()
 				.mimeType(MimeTypeUtils.IMAGE_PNG)
@@ -169,7 +169,7 @@ class ResponsesItemMapperTests {
 	 * Whitespace-only text is kept next to media, as the text-only path keeps it.
 	 */
 	@Test
-	void whitespaceOnlyTextPartIsKeptNextToMedia() {
+	void whitespaceOnlyTextPartIsKeptNextToMedia() throws Exception {
 		var message = UserMessage.builder()
 			.part(TextPart.of(" "))
 			.part(MediaPart.of(Media.builder()
@@ -187,7 +187,7 @@ class ResponsesItemMapperTests {
 	 * persisted conversations holding them still replay.
 	 */
 	@Test
-	void unsupportedUserMessagePartsAreSkipped() {
+	void unsupportedUserMessagePartsAreSkipped() throws Exception {
 		var image = Media.builder()
 			.mimeType(MimeTypeUtils.IMAGE_PNG)
 			.data(URI.create("https://example.com/cat.png"))
@@ -205,7 +205,7 @@ class ResponsesItemMapperTests {
 	}
 
 	@Test
-	void userMessageWithImageUrlBecomesInputImagePart() {
+	void userMessageWithImageUrlBecomesInputImagePart() throws Exception {
 		var message = UserMessage.builder()
 			.text("What is this?")
 			.media(List.of(Media.builder()
@@ -223,7 +223,7 @@ class ResponsesItemMapperTests {
 	}
 
 	@Test
-	void userMessageWithImageBytesBecomesDataUri() {
+	void userMessageWithImageBytesBecomesDataUri() throws Exception {
 		var message = UserMessage.builder()
 			.text("What is this?")
 			.media(List.of(Media.builder().mimeType(MimeTypeUtils.IMAGE_PNG).data(new byte[] { 1, 2, 3 }).build()))
@@ -238,7 +238,7 @@ class ResponsesItemMapperTests {
 	 * default name does not have one.
 	 */
 	@Test
-	void pdfInputBecomesAnInputFileWithAnExtensionOnItsFilename() {
+	void pdfInputBecomesAnInputFileWithAnExtensionOnItsFilename() throws Exception {
 		var message = UserMessage.builder()
 			.text("Summarize this")
 			.media(List.of(Media.builder()
@@ -305,7 +305,7 @@ class ResponsesItemMapperTests {
 	}
 
 	@Test
-	void anExplicitFilenameThatAlreadyHasTheExtensionIsLeftAlone() {
+	void anExplicitFilenameThatAlreadyHasTheExtensionIsLeftAlone() throws Exception {
 		var message = UserMessage.builder()
 			.text("Summarize this")
 			.media(List.of(Media.builder()
@@ -338,7 +338,7 @@ class ResponsesItemMapperTests {
 	 * encrypted content intact, and the tool result has to reference the call id.
 	 */
 	@Test
-	void assistantTurnIsReplayedInOriginalOrderWithItsEncryptedReasoning() {
+	void assistantTurnIsReplayedInOriginalOrderWithItsEncryptedReasoning() throws Exception {
 		Generation generation = ResponsesItemMapper.toGeneration(fixture("reasoning-with-function-call.json"));
 		AssistantMessage assistant = generation.getOutput();
 
@@ -386,7 +386,7 @@ class ResponsesItemMapperTests {
 	 * update, so it has to survive onto the part and back onto the replayed item.
 	 */
 	@Test
-	void theMessageItemsIdStatusAndPhaseTravelOnThePartAndAreReplayed() {
+	void theMessageItemsIdStatusAndPhaseTravelOnThePartAndAreReplayed() throws Exception {
 		Generation generation = ResponsesItemMapper.toGeneration(fixture("text-with-reasoning-summary.json"));
 
 		TextPart text = (TextPart) generation.getOutput().getParts().get(1);
@@ -407,7 +407,7 @@ class ResponsesItemMapperTests {
 	 * dropped rather than sent.
 	 */
 	@Test
-	void reasoningFromAnotherProviderIsSkippedOnReplay() {
+	void reasoningFromAnotherProviderIsSkippedOnReplay() throws Exception {
 		AssistantMessage foreign = AssistantMessage.builder()
 			.part(new ReasoningPart("Let me think", null, new OpaquePayload("anthropic", "signature", "EqQBCkYIBBgC"),
 					Map.of()))
@@ -425,7 +425,7 @@ class ResponsesItemMapperTests {
 	 * the parts of the chunks replays only the complete call.
 	 */
 	@Test
-	void toolCallArgumentDeltaIsNotReplayed() {
+	void toolCallArgumentDeltaIsNotReplayed() throws Exception {
 		AssistantMessage assistant = AssistantMessage.builder()
 			.part(StreamingParts.partial(
 					ToolCallPart.of(new AssistantMessage.ToolCall("call_1", "function", "getWeather", "{\"city\":")),
@@ -447,7 +447,7 @@ class ResponsesItemMapperTests {
 	 * preserve one cannot be replayed either, and must not fail the turn.
 	 */
 	@Test
-	void reasoningWithoutAPayloadIsSkippedOnReplay() {
+	void reasoningWithoutAPayloadIsSkippedOnReplay() throws Exception {
 		AssistantMessage withoutPayload = AssistantMessage.builder()
 			.reasoning(ReasoningPart.of("Let me think"))
 			.content("Hello")
@@ -461,7 +461,7 @@ class ResponsesItemMapperTests {
 	 * not take the item without it.
 	 */
 	@Test
-	void reasoningWithoutAnItemIdIsSkippedOnReplay() {
+	void reasoningWithoutAnItemIdIsSkippedOnReplay() throws Exception {
 		AssistantMessage withoutItemId = AssistantMessage.builder()
 			.part(new ReasoningPart(null, "Thought about it",
 					new OpaquePayload(OpenAiResponsesMetadata.PROVIDER, OpenAiResponsesMetadata.ENCRYPTED_CONTENT_KIND,
@@ -479,7 +479,7 @@ class ResponsesItemMapperTests {
 	 * context, so it is not handed back to the model.
 	 */
 	@Test
-	void aGeneratedImageBecomesMediaAndIsNotReplayed() {
+	void aGeneratedImageBecomesMediaAndIsNotReplayed() throws Exception {
 		Generation generation = ResponsesItemMapper.toGeneration(fixture("image-generation-then-message.json"));
 		AssistantMessage assistant = generation.getOutput();
 
@@ -509,7 +509,7 @@ class ResponsesItemMapperTests {
 	 * Replay must not fail a turn over one item it cannot parse.
 	 */
 	@Test
-	void anUnparseableHostedToolItemIsDroppedRatherThanFailingTheTurn() {
+	void anUnparseableHostedToolItemIsDroppedRatherThanFailingTheTurn() throws Exception {
 		AssistantMessage broken = AssistantMessage.builder()
 			.part(new UnknownPart(OpenAiResponsesMetadata.PROVIDER, "web_search_call", "not json", null, Map.of()))
 			.content("Hello")
@@ -539,7 +539,7 @@ class ResponsesItemMapperTests {
 	 * ours.
 	 */
 	@Test
-	void anUnknownPartFromAnotherProviderIsSkippedOnReplay() {
+	void anUnknownPartFromAnotherProviderIsSkippedOnReplay() throws Exception {
 		AssistantMessage foreign = AssistantMessage.builder()
 			.part(new UnknownPart("anthropic", "server_tool_use", "{\"type\":\"server_tool_use\"}", null, Map.of()))
 			.content("Hello")
@@ -549,7 +549,7 @@ class ResponsesItemMapperTests {
 	}
 
 	@Test
-	void plainAssistantMessageIsSynthesizedFromTextAndToolCalls() {
+	void plainAssistantMessageIsSynthesizedFromTextAndToolCalls() throws Exception {
 		AssistantMessage plain = AssistantMessage.builder()
 			.content("Let me check.")
 			.toolCalls(List.of(new ToolCall("call_1", "function", "getCurrentWeather", "{\"location\":\"Rome\"}")))
@@ -562,7 +562,7 @@ class ResponsesItemMapperTests {
 	}
 
 	@Test
-	void parallelToolResponsesBecomeOneOutputItemEach() {
+	void parallelToolResponsesBecomeOneOutputItemEach() throws Exception {
 		var toolResponses = ToolResponseMessage.builder()
 			.responses(List.of(new ToolResponseMessage.ToolResponse("call_1", "weather", "18C"),
 					new ToolResponseMessage.ToolResponse("call_2", "weather", "25C")))
@@ -628,7 +628,7 @@ class ResponsesItemMapperTests {
 	}
 
 	@Test
-	void hostedToolItemsStillRoundTripOnReplay() {
+	void hostedToolItemsStillRoundTripOnReplay() throws Exception {
 		Generation generation = ResponsesItemMapper.toGeneration(fixture("web-search-then-message.json"));
 
 		var input = ResponsesItemMapper.toInput(List.of(generation.getOutput()));
@@ -680,7 +680,8 @@ class ResponsesItemMapperTests {
 	@ParameterizedTest
 	@CsvSource({ "input_tokens, inputTokens, 2147483648", "output_tokens, outputTokens, 2147483648",
 			"total_tokens, totalTokens, 2147483648", "input_tokens, inputTokens, -2147483649" })
-	void usageCountsOutsideIntRangeFailNamingTheFieldAndValue(String jsonField, String fieldName, long value) {
+	void usageCountsOutsideIntRangeFailNamingTheFieldAndValue(String jsonField, String fieldName, long value)
+			throws Exception {
 		Response response = fixtureWithUsage("reasoning-with-function-call.json", jsonField, value);
 
 		assertThatThrownBy(() -> ResponsesItemMapper.toUsage(response)).isInstanceOf(IllegalStateException.class)
@@ -690,7 +691,7 @@ class ResponsesItemMapperTests {
 	}
 
 	@Test
-	void usageCountsAtTheEdgeOfIntRangeAreMappedUnchanged() {
+	void usageCountsAtTheEdgeOfIntRangeAreMappedUnchanged() throws Exception {
 		Response response = fixtureWithUsage("reasoning-with-function-call.json", "total_tokens", Integer.MAX_VALUE);
 
 		assertThat(ResponsesItemMapper.toUsage(response).getTotalTokens()).isEqualTo(Integer.MAX_VALUE);
@@ -718,7 +719,7 @@ class ResponsesItemMapperTests {
 			.get(1);
 	}
 
-	private static List<String> contentTypes(ResponseInputItem item) {
+	private static List<String> contentTypes(ResponseInputItem item) throws Exception {
 		try {
 			var content = ObjectMappers.jsonMapper().readTree(toJson(item)).path("content");
 			if (content.isTextual()) {
@@ -733,7 +734,7 @@ class ResponsesItemMapperTests {
 		}
 	}
 
-	private static String filenameIn(String itemJson) {
+	private static String filenameIn(String itemJson) throws Exception {
 		try {
 			return ObjectMappers.jsonMapper().readTree(itemJson).findValue("filename").asText();
 		}
@@ -746,7 +747,7 @@ class ResponsesItemMapperTests {
 		return ResponsesTestFixtures.response(name);
 	}
 
-	private static Response fixtureWithUsage(String name, String usageField, long value) {
+	private static Response fixtureWithUsage(String name, String usageField, long value) throws Exception {
 		try {
 			ObjectNode json = (ObjectNode) ObjectMappers.jsonMapper().readTree(ResponsesTestFixtures.json(name));
 			((ObjectNode) json.path("usage")).put(usageField, value);

@@ -19,6 +19,7 @@ package org.springframework.ai.vectorstore.chroma.autoconfigure;
 import java.util.List;
 import java.util.Map;
 
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import io.micrometer.observation.tck.TestObservationRegistry;
 import io.micrometer.observation.tck.TestObservationRegistryAssert;
 import org.junit.jupiter.api.Disabled;
@@ -26,7 +27,6 @@ import org.junit.jupiter.api.Test;
 import org.testcontainers.chromadb.ChromaDBContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import tools.jackson.databind.json.JsonMapper;
 
 import org.springframework.ai.chat.client.ChatClientRequest;
 import org.springframework.ai.chat.client.ChatClientResponse;

@@ -113,7 +113,7 @@ public class MilvusVectorStoreAutoConfiguration {
 			.withAuthorization(clientProperties.getUsername(), clientProperties.getPassword());
 
 		if (clientProperties.isSecure()) {
-			PropertyMapper mapper = PropertyMapper.get();
+			PropertyMapper mapper = PropertyMapper.get().alwaysApplyingWhenNonNull();
 			mapper.from(clientProperties::getUri).whenHasText().to(builder::withUri);
 			mapper.from(clientProperties::getToken).whenHasText().to(builder::withToken);
 			mapper.from(clientProperties::getClientKeyPath).whenHasText().to(builder::withClientKeyPath);

@@ -37,7 +37,7 @@ import org.springframework.util.Assert;
  *
  * @author Christian Tzolov
  */
-public class AugmentedToolCallback<T extends Record> implements ToolCallback {
+public class AugmentedToolCallback<T> implements ToolCallback {
 
 	private static final JsonHelper jsonHelper = new JsonHelper();
 
@@ -78,9 +78,12 @@ public class AugmentedToolCallback<T extends Record> implements ToolCallback {
 			boolean removeExtraArgumentsAfterProcessing) {
 		Assert.notNull(delegate, "Delegate ToolCallback must not be null");
 		Assert.notNull(augmentedArgumentsClass, "Argument types must not be null");
-		Assert.isTrue(augmentedArgumentsClass.isRecord(), "Argument types must be a Record type");
-		Assert.isTrue(augmentedArgumentsClass.getRecordComponents().length > 0,
-				"Argument types must have at least one field");
+		Assert.isTrue(
+				!org.springframework.beans.BeanUtils.isSimpleValueType(augmentedArgumentsClass)
+						&& !augmentedArgumentsClass.isArray() && !augmentedArgumentsClass.isInterface(),
+				"Argument type must be a structured DTO");
+		Assert.isTrue(!ToolInputSchemaAugmenter.toAugmentedArgumentTypes(augmentedArgumentsClass).isEmpty(),
+				"Argument types must have at least one instance field");
 
 		this.delegate = delegate;
 		this.augmentedArgumentTypes = ToolInputSchemaAugmenter.toAugmentedArgumentTypes(augmentedArgumentsClass);

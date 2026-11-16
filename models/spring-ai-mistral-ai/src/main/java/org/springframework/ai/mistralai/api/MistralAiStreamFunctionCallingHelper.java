@@ -83,7 +83,7 @@ public class MistralAiStreamFunctionCallingHelper {
 					.map(ToolCall::id)
 					.filter(Objects::nonNull)
 					.findFirst();
-				if (id.isEmpty()) {
+				if (!id.isPresent()) {
 					var newId = UUID.randomUUID().toString();
 
 					var toolCallsWithID = current.delta()

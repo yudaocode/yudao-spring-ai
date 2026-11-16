@@ -240,7 +240,7 @@ public class SemanticCacheAdvisor implements BaseChatMemoryAdvisor {
 		try {
 			java.security.MessageDigest digest = java.security.MessageDigest.getInstance("SHA-256");
 			byte[] hash = digest.digest(text.getBytes(java.nio.charset.StandardCharsets.UTF_8));
-			return java.util.HexFormat.of().formatHex(hash);
+			return org.springframework.ai.util.Java8Platform.hexString(hash);
 		}
 		catch (java.security.NoSuchAlgorithmException e) {
 			// possible only on a broken/tampered with java.security provider

@@ -38,7 +38,7 @@ import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.ai.vectorstore.neo4j.Neo4jVectorStore;
 import org.springframework.ai.vectorstore.observation.VectorStoreObservationContext;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
-import org.springframework.boot.neo4j.autoconfigure.Neo4jAutoConfiguration;
+import org.springframework.boot.autoconfigure.neo4j.Neo4jAutoConfiguration;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -81,36 +81,27 @@ public class Neo4jVectorStoreAutoConfigurationIT {
 				assertThat(properties.getLabel()).isEqualTo("my_test_label");
 				assertThat(properties.getEmbeddingDimension()).isEqualTo(384);
 				assertThat(properties.getIndexName()).isEqualTo("customIndexName");
-
 				VectorStore vectorStore = context.getBean(VectorStore.class);
 				TestObservationRegistry observationRegistry = context.getBean(TestObservationRegistry.class);
-
 				vectorStore.add(this.documents);
-
 				ObservationTestUtil.assertObservationRegistry(observationRegistry, VectorStoreProvider.NEO4J,
 						VectorStoreObservationContext.Operation.ADD);
 				observationRegistry.clear();
-
 				List<Document> results = vectorStore
 					.similaritySearch(SearchRequest.builder().query("Spring").topK(1).build());
-
 				assertThat(results).hasSize(1);
 				Document resultDoc = results.get(0);
 				assertThat(resultDoc.getId()).isEqualTo(this.documents.get(0).getId());
 				assertThat(resultDoc.getText()).contains(
 						"Spring AI provides abstractions that serve as the foundation for developing AI applications.");
-
 				ObservationTestUtil.assertObservationRegistry(observationRegistry, VectorStoreProvider.NEO4J,
 						VectorStoreObservationContext.Operation.QUERY);
 				observationRegistry.clear();
-
 				// Remove all documents from the store
 				vectorStore.delete(this.documents.stream().map(doc -> doc.getId()).toList());
-
 				ObservationTestUtil.assertObservationRegistry(observationRegistry, VectorStoreProvider.NEO4J,
 						VectorStoreObservationContext.Operation.DELETE);
 				observationRegistry.clear();
-
 				results = vectorStore.similaritySearch(SearchRequest.builder().query("Spring").topK(1).build());
 				assertThat(results).isEmpty();
 			});
@@ -124,16 +115,11 @@ public class Neo4jVectorStoreAutoConfigurationIT {
 					"spring.ai.vectorstore.neo4j.index-name=modelSizedIndex")
 			.run(context -> {
 				assertThat(context.getBean(Neo4jVectorStoreProperties.class).getEmbeddingDimension()).isNull();
-
 				// The index is created with the size of the model (384 for the
 				// transformers model)
-				var dimensions = context.getBean(Driver.class)
-					.executableQuery("""
-							SHOW VECTOR INDEXES YIELD name, options WHERE name = 'modelSizedIndex'
-							RETURN options['indexConfig']['vector.dimensions'] AS dimensions""")
-					.execute()
-					.records()
-					.get(0)
+				var dimensions = eagerQuery(context.getBean(Driver.class), """
+						SHOW VECTOR INDEXES YIELD name, options WHERE name = 'modelSizedIndex'
+						RETURN options['indexConfig']['vector.dimensions'] AS dimensions""").get(0)
 					.get("dimensions")
 					.asInt();
 				assertThat(dimensions).isEqualTo(context.getBean(EmbeddingModel.class).dimensions());
@@ -166,6 +152,12 @@ public class Neo4jVectorStoreAutoConfigurationIT {
 			assertThat(context.getBeansOfType(VectorStore.class)).isNotEmpty();
 			assertThat(context.getBean(VectorStore.class)).isInstanceOf(Neo4jVectorStore.class);
 		});
+	}
+
+	private static java.util.List<org.neo4j.driver.Record> eagerQuery(org.neo4j.driver.Driver driver, String query) {
+		try (org.neo4j.driver.Session session = driver.session()) {
+			return session.writeTransaction(transaction -> transaction.run(query).list());
+		}
 	}
 
 	@Configuration(proxyBeanMethods = false)

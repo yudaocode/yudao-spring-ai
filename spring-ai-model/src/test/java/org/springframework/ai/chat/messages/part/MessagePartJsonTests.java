@@ -20,8 +20,8 @@ import java.net.URL;
 import java.util.List;
 import java.util.Map;
 
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import org.junit.jupiter.api.Test;
-import tools.jackson.databind.json.JsonMapper;
 
 import org.springframework.ai.chat.messages.AssistantMessage.ToolCall;
 import org.springframework.ai.content.Media;
@@ -41,7 +41,7 @@ class MessagePartJsonTests {
 	private final JsonMapper mapper = JacksonUtils.getDefaultJsonMapper();
 
 	@Test
-	void textPartRoundTripsWithTypeDiscriminator() {
+	void textPartRoundTripsWithTypeDiscriminator() throws Exception {
 		TextPart part = new TextPart("hello", null, Map.of("partIndex", "0"));
 
 		String json = this.mapper.writeValueAsString(part);
@@ -52,7 +52,7 @@ class MessagePartJsonTests {
 	}
 
 	@Test
-	void reasoningPartRoundTripsWithPayload() {
+	void reasoningPartRoundTripsWithPayload() throws Exception {
 		ReasoningPart part = new ReasoningPart("The user wants the weather", "summary",
 				new OpaquePayload("anthropic", "signature", "EqQBCkYIBBgC"), Map.of());
 
@@ -66,7 +66,7 @@ class MessagePartJsonTests {
 	}
 
 	@Test
-	void toolCallPartRoundTripsWithGeminiSignatureOnTheCall() {
+	void toolCallPartRoundTripsWithGeminiSignatureOnTheCall() throws Exception {
 		ToolCallPart part = new ToolCallPart(
 				new ToolCall("call_7", "function", "getWeather", "{\"city\":\"Amsterdam\"}"),
 				new OpaquePayload("google", "thought_signature", "CkQBAgME"), Map.of());
@@ -79,7 +79,7 @@ class MessagePartJsonTests {
 	}
 
 	@Test
-	void toolResultPartWithoutIdNameOrContentRoundTrips() {
+	void toolResultPartWithoutIdNameOrContentRoundTrips() throws Exception {
 		// What a null tool response (Ollama call without id, tool without text) becomes
 		ToolResultPart part = new ToolResultPart(null, null, List.of(), false, null, Map.of());
 
@@ -92,7 +92,7 @@ class MessagePartJsonTests {
 	}
 
 	@Test
-	void toolResultPartRoundTripsWithNestedContent() {
+	void toolResultPartRoundTripsWithNestedContent() throws Exception {
 		ToolResultPart part = new ToolResultPart("call_7", "getWeather",
 				List.of(TextPart.of("{\"tempC\":18}"), ReasoningPart.of("nested")), true, null, Map.of());
 
@@ -104,7 +104,7 @@ class MessagePartJsonTests {
 	}
 
 	@Test
-	void mediaPartWithBytesRoundTrips() {
+	void mediaPartWithBytesRoundTrips() throws Exception {
 		Media media = Media.builder()
 			.id("m1")
 			.name("photo")
@@ -123,7 +123,7 @@ class MessagePartJsonTests {
 	}
 
 	@Test
-	void mediaPartWithBase64StringIsNotMistakenForUri() {
+	void mediaPartWithBase64StringIsNotMistakenForUri() throws Exception {
 		Media media = Media.builder().mimeType(MimeTypeUtils.IMAGE_PNG).data("aGVsbG8=").build();
 
 		MediaPart back = (MediaPart) this.mapper.readValue(this.mapper.writeValueAsString(MediaPart.of(media)),
@@ -133,7 +133,7 @@ class MessagePartJsonTests {
 	}
 
 	@Test
-	void mediaPartWithUriStringRoundTrips() {
+	void mediaPartWithUriStringRoundTrips() throws Exception {
 		Media media = Media.builder().mimeType(MimeTypeUtils.IMAGE_PNG).data("https://example.com/a.png").build();
 
 		MediaPart back = (MediaPart) this.mapper.readValue(this.mapper.writeValueAsString(MediaPart.of(media)),
@@ -157,7 +157,7 @@ class MessagePartJsonTests {
 	}
 
 	@Test
-	void unknownPartWrittenByUsReadsBackUnchanged() {
+	void unknownPartWrittenByUsReadsBackUnchanged() throws Exception {
 		UnknownPart part = new UnknownPart("anthropic", "server_tool_use",
 				"{\"type\":\"server_tool_use\",\"id\":\"srvtoolu_01\"}", null, Map.of("k", "v"));
 
@@ -169,7 +169,7 @@ class MessagePartJsonTests {
 	}
 
 	@Test
-	void foreignTypeBecomesUnknownPartWrappingTheWholeNode() {
+	void foreignTypeBecomesUnknownPartWrappingTheWholeNode() throws Exception {
 		String json = "{\"type\":\"citation\",\"url\":\"https://example.com\",\"attributes\":{}}";
 
 		MessagePart back = this.mapper.readValue(json, MessagePart.class);
@@ -183,7 +183,7 @@ class MessagePartJsonTests {
 	}
 
 	@Test
-	void mixedPartListRoundTripsInOrder() {
+	void mixedPartListRoundTripsInOrder() throws Exception {
 		List<MessagePart> parts = List.of(
 				new ReasoningPart("think", null, new OpaquePayload("anthropic", "signature", "s"), Map.of()),
 				ToolCallPart.of(new ToolCall("toolu_01", "function", "getWeather", "{}")), TextPart.of("Let me check."),

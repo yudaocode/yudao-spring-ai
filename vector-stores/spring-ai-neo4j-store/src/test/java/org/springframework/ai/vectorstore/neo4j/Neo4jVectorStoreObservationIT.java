@@ -27,7 +27,6 @@ import io.micrometer.observation.tck.TestObservationRegistryAssert;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
-import org.neo4j.cypherdsl.support.schema_name.SchemaNames;
 import org.neo4j.driver.AuthTokens;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.GraphDatabase;
@@ -45,6 +44,7 @@ import org.springframework.ai.openai.OpenAiEmbeddingModel;
 import org.springframework.ai.openai.OpenAiEmbeddingOptions;
 import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
+import org.springframework.ai.vectorstore.neo4j.compat.SchemaNames;
 import org.springframework.ai.vectorstore.observation.DefaultVectorStoreObservationConvention;
 import org.springframework.ai.vectorstore.observation.VectorStoreObservationDocumentation.HighCardinalityKeyNames;
 import org.springframework.ai.vectorstore.observation.VectorStoreObservationDocumentation.LowCardinalityKeyNames;
@@ -86,21 +86,17 @@ public class Neo4jVectorStoreObservationIT {
 
 	@BeforeEach
 	void cleanDatabase() {
-		this.contextRunner
-			.run(context -> context.getBean(Driver.class).executableQuery("MATCH (n) DETACH DELETE n").execute());
+		this.contextRunner.run(context -> Neo4jDriverQueries
+			.executableQuery(context.getBean(Driver.class), "MATCH (n) DETACH DELETE n")
+			.execute());
 	}
 
 	@Test
 	void observationVectorStoreAddAndQueryOperations() {
-
 		this.contextRunner.run(context -> {
-
 			VectorStore vectorStore = context.getBean(VectorStore.class);
-
 			TestObservationRegistry observationRegistry = context.getBean(TestObservationRegistry.class);
-
 			vectorStore.add(this.documents);
-
 			TestObservationRegistryAssert.assertThat(observationRegistry)
 				.doesNotHaveAnyRemainingCurrentObservation()
 				.hasObservationWithNameEqualTo(DefaultVectorStoreObservationConvention.DEFAULT_NAME)
@@ -122,17 +118,12 @@ public class Neo4jVectorStoreObservationIT {
 				.doesNotHaveHighCardinalityKeyValueWithKey(HighCardinalityKeyNames.DB_VECTOR_QUERY_TOP_K.asString())
 				.doesNotHaveHighCardinalityKeyValueWithKey(
 						HighCardinalityKeyNames.DB_VECTOR_QUERY_SIMILARITY_THRESHOLD.asString())
-
 				.hasBeenStarted()
 				.hasBeenStopped();
-
 			observationRegistry.clear();
-
 			List<Document> results = vectorStore
 				.similaritySearch(SearchRequest.builder().query("What is Great Depression").topK(1).build());
-
 			assertThat(results).isNotEmpty();
-
 			TestObservationRegistryAssert.assertThat(observationRegistry)
 				.doesNotHaveAnyRemainingCurrentObservation()
 				.hasObservationWithNameEqualTo(DefaultVectorStoreObservationConvention.DEFAULT_NAME)
@@ -143,7 +134,6 @@ public class Neo4jVectorStoreObservationIT {
 						VectorStoreProvider.NEO4J.value())
 				.hasLowCardinalityKeyValue(LowCardinalityKeyNames.SPRING_AI_KIND.asString(),
 						SpringAiKind.VECTOR_STORE.value())
-
 				.hasHighCardinalityKeyValue(HighCardinalityKeyNames.DB_VECTOR_QUERY_CONTENT.asString(),
 						"What is Great Depression")
 				.hasHighCardinalityKeyValue(HighCardinalityKeyNames.DB_VECTOR_DIMENSION_COUNT.asString(), "1536")
@@ -156,10 +146,8 @@ public class Neo4jVectorStoreObservationIT {
 				.hasHighCardinalityKeyValue(HighCardinalityKeyNames.DB_VECTOR_QUERY_TOP_K.asString(), "1")
 				.hasHighCardinalityKeyValue(HighCardinalityKeyNames.DB_VECTOR_QUERY_SIMILARITY_THRESHOLD.asString(),
 						"0.0")
-
 				.hasBeenStarted()
 				.hasBeenStopped();
-
 		});
 	}
 
@@ -174,7 +162,6 @@ public class Neo4jVectorStoreObservationIT {
 		@Bean
 		public VectorStore vectorStore(Driver driver, EmbeddingModel embeddingModel,
 				ObservationRegistry observationRegistry) {
-
 			return Neo4jVectorStore.builder(driver, embeddingModel)
 				.initializeSchema(true)
 				.observationRegistry(observationRegistry)

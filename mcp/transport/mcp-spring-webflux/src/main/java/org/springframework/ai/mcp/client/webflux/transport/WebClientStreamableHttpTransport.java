@@ -284,7 +284,9 @@ public final class WebClientStreamableHttpTransport implements McpClientTranspor
 						}
 					}
 					else {
-						return response.<McpSchema.JSONRPCMessage>createError()
+						return response
+							.createException().<McpSchema
+									.JSONRPCMessage>flatMap(Mono::error)
 							.doOnError(e -> logger.info("Opening an SSE stream failed. This can be safely ignored.", e))
 							.flux();
 					}
@@ -369,7 +371,7 @@ public final class WebClientStreamableHttpTransport implements McpClientTranspor
 						long contentLength = response.headers().contentLength().orElse(-1);
 						// Existing SDKs consume notifications with no response body nor
 						// content type
-						if (contentType.isEmpty() || contentLength == 0
+						if (!contentType.isPresent() || contentLength == 0
 								|| response.statusCode().equals(HttpStatus.ACCEPTED)) {
 							if (logger.isTraceEnabled()) {
 								logger.trace(
@@ -446,7 +448,7 @@ public final class WebClientStreamableHttpTransport implements McpClientTranspor
 	}
 
 	private Flux<McpSchema.JSONRPCMessage> extractError(ClientResponse response, String sessionRepresentation) {
-		return response.<McpSchema.JSONRPCMessage>createError().onErrorResume(e -> {
+		return response.createException().<McpSchema.JSONRPCMessage>flatMap(Mono::error).onErrorResume(e -> {
 			WebClientResponseException responseException = (WebClientResponseException) e;
 			byte[] body = responseException.getResponseBodyAsByteArray();
 			McpSchema.JSONRPCResponse.JSONRPCError jsonRpcError = null;
@@ -470,7 +472,7 @@ public final class WebClientStreamableHttpTransport implements McpClientTranspor
 			// session id that it doesn't know about, so we will
 			// invalidate the session
 			// https://github.com/modelcontextprotocol/typescript-sdk/issues/389
-			if (responseException.getStatusCode().isSameCodeAs(HttpStatus.BAD_REQUEST)) {
+			if (responseException.getRawStatusCode() == HttpStatus.BAD_REQUEST.value()) {
 				if (!sessionRepresentation.equals(MISSING_SESSION_ID)) {
 					return Mono.error(new McpTransportSessionNotFoundException(sessionRepresentation, toPropagate));
 				}
@@ -494,11 +496,11 @@ public final class WebClientStreamableHttpTransport implements McpClientTranspor
 	}
 
 	private static boolean isNotFound(ClientResponse response) {
-		return response.statusCode().isSameCodeAs(HttpStatus.NOT_FOUND);
+		return response.rawStatusCode() == HttpStatus.NOT_FOUND.value();
 	}
 
 	private static boolean isNotAllowed(ClientResponse response) {
-		return response.statusCode().isSameCodeAs(HttpStatus.METHOD_NOT_ALLOWED);
+		return response.rawStatusCode() == HttpStatus.METHOD_NOT_ALLOWED.value();
 	}
 
 	private static boolean isEventStream(ClientResponse response) {

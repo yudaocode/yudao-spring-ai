@@ -30,11 +30,12 @@ import org.springframework.ai.embedding.EmbeddingResponse;
 import org.springframework.ai.postgresml.PostgresMlEmbeddingModel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
-import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
-import org.springframework.boot.jdbc.test.autoconfigure.JdbcTest;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
-import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -48,7 +49,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class PostgresMlEmbeddingAutoConfigurationIT {
 
 	@Container
-	@ServiceConnection
 	static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>(
 			DockerImageName.parse("ghcr.io/postgresml/postgresml:2.8.1").asCompatibleSubstituteFor("postgres"))
 		.withCommand("sleep", "infinity")
@@ -67,7 +67,6 @@ public class PostgresMlEmbeddingAutoConfigurationIT {
 			.withConfiguration(AutoConfigurations.of(PostgresMlEmbeddingAutoConfiguration.class));
 		contextRunner.run(context -> {
 			PostgresMlEmbeddingModel embeddingModel = context.getBean(PostgresMlEmbeddingModel.class);
-
 			EmbeddingResponse embeddingResponse = embeddingModel
 				.embedForResponse(List.of("Hello World", "World is big and salvation is near"));
 			assertThat(embeddingResponse.getResults()).hasSize(2);
@@ -75,7 +74,6 @@ public class PostgresMlEmbeddingAutoConfigurationIT {
 			assertThat(embeddingResponse.getResults().get(0).getIndex()).isZero();
 			assertThat(embeddingResponse.getResults().get(1).getOutput()).isNotEmpty();
 			assertThat(embeddingResponse.getResults().get(1).getIndex()).isEqualTo(1);
-
 			assertThat(embeddingModel.dimensions()).isEqualTo(768);
 		});
 	}
@@ -89,21 +87,26 @@ public class PostgresMlEmbeddingAutoConfigurationIT {
 				assertThat(context.getBeansOfType(PostgresMlEmbeddingProperties.class)).isEmpty();
 				assertThat(context.getBeansOfType(PostgresMlEmbeddingModel.class)).isEmpty();
 			});
-
 		new ApplicationContextRunner().withBean(JdbcTemplate.class, () -> this.jdbcTemplate)
 			.withPropertyValues("spring.ai.model.embedding=postgresml")
 			.run(context -> {
 				assertThat(context.getBeansOfType(PostgresMlEmbeddingProperties.class)).isNotEmpty();
 				assertThat(context.getBeansOfType(PostgresMlEmbeddingModel.class)).isNotEmpty();
 			});
-
 		new ApplicationContextRunner().withBean(JdbcTemplate.class, () -> this.jdbcTemplate)
 			.withConfiguration(AutoConfigurations.of(PostgresMlEmbeddingAutoConfiguration.class))
 			.run(context -> {
 				assertThat(context.getBeansOfType(PostgresMlEmbeddingProperties.class)).isNotEmpty();
 				assertThat(context.getBeansOfType(PostgresMlEmbeddingModel.class)).isNotEmpty();
 			});
+	}
 
+	@DynamicPropertySource
+	static void datasourceProperties(DynamicPropertyRegistry registry) {
+		registry.add("spring.datasource.url", postgres::getJdbcUrl);
+		registry.add("spring.datasource.username", postgres::getUsername);
+		registry.add("spring.datasource.password", postgres::getPassword);
+		registry.add("spring.datasource.driver-class-name", postgres::getDriverClassName);
 	}
 
 }

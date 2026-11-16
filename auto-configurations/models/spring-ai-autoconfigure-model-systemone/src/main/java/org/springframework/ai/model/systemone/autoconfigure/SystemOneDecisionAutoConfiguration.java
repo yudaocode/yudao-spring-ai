@@ -32,8 +32,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.boot.http.client.ClientHttpRequestFactoryBuilder;
-import org.springframework.boot.http.client.HttpClientSettings;
+import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -59,16 +58,16 @@ import org.springframework.web.client.RestClient;
  * <p>
  * The client sends through the {@link RestClient.Builder} of the application when there
  * is one, so that customizers, proxies and SSL bundles apply. A configured read timeout
- * is applied on top of the application's {@link HttpClientSettings}; unset, the
- * application's transport is used as is. Applying it builds the request factory again,
- * which replaces one that a customizer installed on the builder. Without a builder, the
- * client builds its own transport.
+ * is applied on top of the application's {@link ClientHttpRequestFactorySettings}; unset,
+ * the application's transport is used as is. Applying it builds the request factory
+ * again, which replaces one that a customizer installed on the builder. Without a
+ * builder, the client builds its own transport.
  *
  * @author Christian Tzolov
  * @since 2.1.0
  */
 @AutoConfiguration
-@ConditionalOnClass({ SystemOneDecisionModel.class, RestClient.class, ClientHttpRequestFactoryBuilder.class })
+@ConditionalOnClass({ SystemOneDecisionModel.class, RestClient.class, RestTemplateBuilder.class })
 @ConditionalOnProperty(name = SpringAIModelProperties.DECISION_MODEL, havingValue = SpringAIModels.SYSTEMONE,
 		matchIfMissing = true)
 @EnableConfigurationProperties({ SystemOneConnectionProperties.class, SystemOneDecisionProperties.class })
@@ -82,8 +81,7 @@ public class SystemOneDecisionAutoConfiguration {
 	@ConditionalOnProperty(prefix = SystemOneConnectionProperties.CONFIG_PREFIX, name = "api-key")
 	public SystemOneClient systemOneClient(SystemOneConnectionProperties connectionProperties,
 			SystemOneDecisionProperties decisionProperties, ObjectProvider<RestClient.Builder> restClientBuilder,
-			ObjectProvider<ClientHttpRequestFactoryBuilder<?>> requestFactoryBuilder,
-			ObjectProvider<HttpClientSettings> httpClientSettings) {
+			ObjectProvider<RestTemplateBuilder> requestFactoryBuilder) {
 		// The property is there, or this bean would not be; it may still be blank.
 		String apiKey = connectionProperties.getApiKey();
 		Assert.state(StringUtils.hasText(apiKey), NO_API_KEY);
@@ -109,16 +107,10 @@ public class SystemOneDecisionAutoConfiguration {
 		}
 		transport = transport.clone();
 		if (timeout != null) {
-			// Asked for explicitly: rebuild the request factory the way Boot does, with
-			// the read timeout on top, so the SSL bundle and the other HTTP client
-			// settings stay in force. A request factory that a customizer installed on
-			// the builder is replaced, since a timeout cannot be added to it from here.
-			// Unset, the application's transport is used as is.
-			ClientHttpRequestFactoryBuilder<?> factoryBuilder = requestFactoryBuilder
-				.getIfAvailable(() -> ClientHttpRequestFactoryBuilder.detect());
-			HttpClientSettings settings = httpClientSettings.getIfAvailable(HttpClientSettings::defaults)
-				.withReadTimeout(timeout);
-			transport.requestFactory(factoryBuilder.build(settings));
+			// Use Boot2's builder so its configured HTTP client and customizers remain
+			// active while applying the explicit timeout through the native settings.
+			RestTemplateBuilder factoryBuilder = requestFactoryBuilder.getIfAvailable(RestTemplateBuilder::new);
+			transport.requestFactory(factoryBuilder.setReadTimeout(timeout).build().getRequestFactory());
 		}
 		return clientBuilder.restClientBuilder(transport).build();
 	}

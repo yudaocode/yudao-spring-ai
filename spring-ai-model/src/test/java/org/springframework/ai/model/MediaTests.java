@@ -154,7 +154,7 @@ class MediaTests {
 		Resource failingResource = new ByteArrayResource(new byte[] { 1, 2, 3 }) {
 			// Implement other methods...
 			@Override
-			public byte[] getContentAsByteArray() throws IOException {
+			public java.io.InputStream getInputStream() throws IOException {
 				throw new IOException("Simulated failure");
 			}
 		};
@@ -266,7 +266,7 @@ class MediaTests {
 	void testMediaConstructorWithFailingResource() {
 		Resource failingResource = new ByteArrayResource(new byte[] { 1, 2, 3 }) {
 			@Override
-			public byte[] getContentAsByteArray() throws IOException {
+			public java.io.InputStream getInputStream() throws IOException {
 				throw new IOException("Simulated failure");
 			}
 		};
@@ -280,7 +280,7 @@ class MediaTests {
 	void testMediaConstructorWithFailingResourceAndId() {
 		Resource failingResource = new ByteArrayResource(new byte[] { 1, 2, 3 }) {
 			@Override
-			public byte[] getContentAsByteArray() throws IOException {
+			public java.io.InputStream getInputStream() throws IOException {
 				throw new IOException("Simulated failure");
 			}
 		};
@@ -368,7 +368,7 @@ class MediaTests {
 		MimeType mimeType = MimeType.valueOf("image/png");
 		Resource failingResource = new ByteArrayResource(new byte[] { 1, 2, 3 }) {
 			@Override
-			public byte[] getContentAsByteArray() throws IOException {
+			public java.io.InputStream getInputStream() throws IOException {
 				throw new IOException("Simulated failure");
 			}
 		};

@@ -183,8 +183,9 @@ public class ConverseChatResponseStream implements ConverseStreamResponseHandler
 		}
 		else if (delta.redactedContent() != null) {
 			// Buffered until the block stops, for the same reason.
+			byte[] redacted = delta.redactedContent().asByteArray();
 			this.redactedContentMap.computeIfAbsent(index, key -> new ByteArrayOutputStream())
-				.writeBytes(delta.redactedContent().asByteArray());
+				.write(redacted, 0, redacted.length);
 		}
 	}
 

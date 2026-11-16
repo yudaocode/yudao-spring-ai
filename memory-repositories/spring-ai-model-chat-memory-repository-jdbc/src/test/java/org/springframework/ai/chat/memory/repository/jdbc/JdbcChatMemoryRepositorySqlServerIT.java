@@ -17,7 +17,7 @@
 package org.springframework.ai.chat.memory.repository.jdbc;
 
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.jdbc.Sql;
+import org.springframework.test.context.TestPropertySource;
 
 /**
  * Integration tests for {@link JdbcChatMemoryRepository} with SQL Server.
@@ -29,8 +29,8 @@ import org.springframework.test.context.jdbc.Sql;
  * @author Eddú Meléndez
  */
 @SpringBootTest(properties = "spring.datasource.url=jdbc:tc:sqlserver:2022-latest:///")
-@Sql(scripts = "classpath:org/springframework/ai/chat/memory/repository/jdbc/schema-sqlserver.sql",
-		executionPhase = Sql.ExecutionPhase.BEFORE_TEST_CLASS)
+@TestPropertySource(properties = { "spring.sql.init.mode=always",
+		"spring.sql.init.schema-locations=classpath:org/springframework/ai/chat/memory/repository/jdbc/schema-sqlserver.sql" })
 class JdbcChatMemoryRepositorySqlServerIT extends AbstractJdbcChatMemoryRepositoryIT {
 
 }

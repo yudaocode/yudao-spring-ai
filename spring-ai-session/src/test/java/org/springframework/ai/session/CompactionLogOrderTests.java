@@ -81,7 +81,7 @@ class CompactionLogOrderTests {
 		this.service.compact(id, request -> true, strategy);
 
 		List<String> logAfterPass2 = labels(this.service.getEvents(id));
-		assertThat(logAfterPass2).startsWith(logAfterPass1.toArray(String[]::new))
+		assertThat(logAfterPass2).startsWith(logAfterPass1.toArray(new String[0]))
 			.endsWith("u6", "a6", "u7", "a7", "⊥", "Σ?", "Σ:summary 2");
 		assertThat(labels(this.service.getEvents(id, EventFilter.active()))).containsExactly("sys-1", "Σ?",
 				"Σ:summary 2", "u6", "a6", "u7", "a7");
@@ -93,7 +93,7 @@ class CompactionLogOrderTests {
 		this.service.compact(id, request -> true, strategy);
 
 		List<SessionEvent> log = this.service.getEvents(id);
-		assertThat(labels(log)).startsWith(logAfterPass2.toArray(String[]::new))
+		assertThat(labels(log)).startsWith(logAfterPass2.toArray(new String[0]))
 			.endsWith("u8", "sys-2", "a8", "u9", "sys-3", "a9", "⊥", "Σ?", "Σ:summary 3");
 		assertThat(labels(this.service.getEvents(id, EventFilter.active()))).containsExactly("sys-3", "Σ?",
 				"Σ:summary 3", "u8", "a8", "u9", "a9");

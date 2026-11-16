@@ -19,8 +19,6 @@ package org.springframework.ai.vectorstore.mongodb.autoconfigure;
 import java.util.Arrays;
 import java.util.List;
 
-import com.mongodb.MongoDriverInformation;
-import com.mongodb.client.MongoClient;
 import io.micrometer.observation.ObservationRegistry;
 
 import org.springframework.ai.embedding.BatchingStrategy;
@@ -30,7 +28,6 @@ import org.springframework.ai.vectorstore.SpringAIVectorStoreTypes;
 import org.springframework.ai.vectorstore.mongodb.atlas.MongoDBAtlasVectorStore;
 import org.springframework.ai.vectorstore.observation.VectorStoreObservationConvention;
 import org.springframework.beans.factory.ObjectProvider;
-import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -66,22 +63,6 @@ public class MongoDBAtlasVectorStoreAutoConfiguration {
 		return new TokenCountBatchingStrategy();
 	}
 
-	/**
-	 * Appends the {@code spring-ai} framework name to the {@link MongoClient} driver
-	 * metadata so that Spring AI traffic can be identified in MongoDB Atlas. This is done
-	 * in a {@link SmartInitializingSingleton} rather than in the {@code vectorStore} bean
-	 * method so that the metadata is still appended when the user provides a custom
-	 * {@link MongoDBAtlasVectorStore} bean (which would suppress the auto-configured
-	 * one).
-	 * @param mongoClientProvider provider for the optional {@link MongoClient} bean
-	 * @return the initializer that appends the driver metadata
-	 */
-	@Bean
-	SmartInitializingSingleton mongoDriverMetadataInitializer(ObjectProvider<MongoClient> mongoClientProvider) {
-		return () -> mongoClientProvider.ifAvailable(mongoClient -> mongoClient
-			.appendMetadata(MongoDriverInformation.builder().driverName("spring-ai").build()));
-	}
-
 	@Bean
 	@ConditionalOnMissingBean
 	MongoDBAtlasVectorStore vectorStore(MongoTemplate mongoTemplate, EmbeddingModel embeddingModel,
@@ -94,7 +75,7 @@ public class MongoDBAtlasVectorStoreAutoConfiguration {
 			.customObservationConvention(customObservationConvention.getIfAvailable())
 			.batchingStrategy(batchingStrategy);
 
-		PropertyMapper mapper = PropertyMapper.get();
+		PropertyMapper mapper = PropertyMapper.get().alwaysApplyingWhenNonNull();
 		mapper.from(properties::getCollectionName).whenHasText().to(builder::collectionName);
 		mapper.from(properties::getPathName).whenHasText().to(builder::pathName);
 		mapper.from(properties::getIndexName).whenHasText().to(builder::vectorIndexName);

@@ -1,18 +1,13 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<?xml version='1.0' encoding='UTF-8'?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-
 	<groupId>org.springframework.ai</groupId>
 	<artifactId>spring-ai-parent</artifactId>
-	<version>2.1.0-SNAPSHOT</version>
-
+	<version>2.1.0-boot2-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<url>https://github.com/spring-projects/spring-ai</url>
-
 	<name>Spring AI Parent</name>
 	<description>Building AI applications with Spring Boot</description>
-
 	<modules>
 		<module>spring-ai-bom</module>
 		<module>spring-ai-client-chat</module>
@@ -24,28 +19,21 @@
 		<module>spring-ai-retry</module>
 		<module>spring-ai-session</module>
 		<module>session-repositories/spring-ai-session-jdbc</module>
-		<module>spring-ai-spring-boot-docker-compose</module>
-		<module>spring-ai-spring-boot-testcontainers</module>
 		<module>spring-ai-template-st</module>
 		<module>spring-ai-test</module>
 		<module>spring-ai-tool-search-tool</module>
 		<module>spring-ai-vector-store</module>
-
 		<module>advisors/spring-ai-session-advisor</module>
 		<module>advisors/spring-ai-tool-search-advisor</module>
 		<module>advisors/spring-ai-vector-store-advisor</module>
-
 		<module>auto-configurations/advisors/spring-ai-autoconfigure-tool-search-advisor</module>
-
 		<module>auto-configurations/common/spring-ai-autoconfigure-retry</module>
-
 		<module>auto-configurations/mcp/spring-ai-autoconfigure-mcp-client-common</module>
 		<module>auto-configurations/mcp/spring-ai-autoconfigure-mcp-client-httpclient</module>
 		<module>auto-configurations/mcp/spring-ai-autoconfigure-mcp-client-webflux</module>
 		<module>auto-configurations/mcp/spring-ai-autoconfigure-mcp-server-common</module>
 		<module>auto-configurations/mcp/spring-ai-autoconfigure-mcp-server-webflux</module>
 		<module>auto-configurations/mcp/spring-ai-autoconfigure-mcp-server-webmvc</module>
-
 		<module>auto-configurations/models/chat/client/spring-ai-autoconfigure-model-chat-client</module>
 		<module>auto-configurations/models/chat/memory/repository/spring-ai-autoconfigure-model-chat-memory-repository-cassandra</module>
 		<module>auto-configurations/models/chat/memory/repository/spring-ai-autoconfigure-model-chat-memory-repository-jdbc</module>
@@ -76,7 +64,6 @@
 		<module>auto-configurations/models/spring-ai-autoconfigure-model-transformers</module>
 		<module>auto-configurations/models/spring-ai-autoconfigure-model-vertex-ai</module>
 		<module>auto-configurations/models/tool/spring-ai-autoconfigure-model-tool</module>
-
 		<module>auto-configurations/vector-stores/spring-ai-autoconfigure-vector-store-azure</module>
 		<module>auto-configurations/vector-stores/spring-ai-autoconfigure-vector-store-bedrock-knowledgebase</module>
 		<module>auto-configurations/vector-stores/spring-ai-autoconfigure-vector-store-cassandra</module>
@@ -99,23 +86,19 @@
 		<module>auto-configurations/vector-stores/spring-ai-autoconfigure-vector-store-s3</module>
 		<module>auto-configurations/vector-stores/spring-ai-autoconfigure-vector-store-typesense</module>
 		<module>auto-configurations/vector-stores/spring-ai-autoconfigure-vector-store-weaviate</module>
-
 		<module>document-readers/spring-ai-jsoup-document-reader</module>
 		<module>document-readers/spring-ai-markdown-document-reader</module>
 		<module>document-readers/spring-ai-pdf-document-reader</module>
 		<module>document-readers/spring-ai-tika-document-reader</module>
-
 		<module>mcp/common</module>
 		<module>mcp/mcp-annotations</module>
 		<module>mcp/transport/mcp-spring-webflux</module>
 		<module>mcp/transport/mcp-spring-webmvc</module>
-
 		<module>memory-repositories/spring-ai-model-chat-memory-repository-cassandra</module>
 		<module>memory-repositories/spring-ai-model-chat-memory-repository-jdbc</module>
 		<module>memory-repositories/spring-ai-model-chat-memory-repository-mongodb</module>
 		<module>memory-repositories/spring-ai-model-chat-memory-repository-neo4j</module>
 		<module>memory-repositories/spring-ai-model-chat-memory-repository-redis</module>
-
 		<module>models/spring-ai-anthropic</module>
 		<module>models/spring-ai-bedrock</module>
 		<module>models/spring-ai-bedrock-converse</module>
@@ -134,13 +117,11 @@
 		<module>models/spring-ai-systemone</module>
 		<module>models/spring-ai-transformers</module>
 		<module>models/spring-ai-vertex-ai-embedding</module>
-
 		<module>starters/spring-ai-starter-mcp-client</module>
 		<module>starters/spring-ai-starter-mcp-client-webflux</module>
 		<module>starters/spring-ai-starter-mcp-server</module>
 		<module>starters/spring-ai-starter-mcp-server-webflux</module>
 		<module>starters/spring-ai-starter-mcp-server-webmvc</module>
-
 		<module>starters/spring-ai-starter-model-anthropic</module>
 		<module>starters/spring-ai-starter-model-bedrock</module>
 		<module>starters/spring-ai-starter-model-bedrock-converse</module>
@@ -166,9 +147,7 @@
 		<module>starters/spring-ai-starter-model-systemone</module>
 		<module>starters/spring-ai-starter-model-transformers</module>
 		<module>starters/spring-ai-starter-model-vertex-ai-embedding</module>
-
 		<module>starters/spring-ai-starter-tool-search-advisor</module>
-
 		<module>starters/spring-ai-starter-vector-store-aws-opensearch</module>
 		<module>starters/spring-ai-starter-vector-store-azure</module>
 		<module>starters/spring-ai-starter-vector-store-bedrock-knowledgebase</module>
@@ -190,13 +169,11 @@
 		<module>starters/spring-ai-starter-vector-store-s3</module>
 		<module>starters/spring-ai-starter-vector-store-typesense</module>
 		<module>starters/spring-ai-starter-vector-store-weaviate</module>
-
 		<module>vector-stores/spring-ai-azure-store</module>
 		<module>vector-stores/spring-ai-bedrock-knowledgebase-store</module>
 		<module>vector-stores/spring-ai-cassandra-store</module>
 		<module>vector-stores/spring-ai-chroma-store</module>
-		<module>vector-stores/spring-ai-coherence-store</module>
-		<module>vector-stores/spring-ai-couchbase-store</module>
+		<!-- Coherence 24.09 AI/HNSW SDK requires Java 17; excluded from the Java 8 distribution. See compatibility/java8/README.md. --><module>vector-stores/spring-ai-couchbase-store</module>
 		<module>vector-stores/spring-ai-elasticsearch-store</module>
 		<module>vector-stores/spring-ai-gemfire-store</module>
 		<module>vector-stores/spring-ai-mariadb-store</module>
@@ -213,8 +190,15 @@
 		<module>vector-stores/spring-ai-s3-vector-store</module>
 		<module>vector-stores/spring-ai-typesense-store</module>
 		<module>vector-stores/spring-ai-weaviate-store</module>
-	</modules>
-
+		<module>compatibility/jspecify</module>
+		<module>compatibility/spring-web</module>
+		<module>compatibility/jdk-http</module>
+		<module>compatibility/mcp-core</module>
+		<module>compatibility/mcp-json-jackson2</module>
+		<module>compatibility/mcp-test</module>
+		<module>compatibility/jedis-runtime</module>
+		<module>compatibility/jedis</module>
+	<module>auto-configurations/common/spring-ai-autoconfigure-observation-compat</module></modules>
 	<organization>
 		<name>Broadcom Inc.</name>
 		<url>https://spring.io</url>
@@ -248,28 +232,25 @@
 			<distribution>repo</distribution>
 		</license>
 	</licenses>
-
 	<properties>
-
 		<!-- Language runtime -->
-		<java.version>17</java.version>
+		<java.version>8</java.version>
 		<maven.compiler.source>${java.version}</maven.compiler.source>
 		<maven.compiler.target>${java.version}</maven.compiler.target>
 		<!-- The version (range) of the JDK we want to use to compile -->
 		<compiler.jdk.version>[17.0.19,)</compiler.jdk.version>
-		<kotlin.version>2.4.21</kotlin.version>
-		<kotlin.compiler.jvmTarget>${java.version}</kotlin.compiler.jvmTarget>
+		<kotlin.version>2.1.21</kotlin.version>
+		<kotlin.compiler.jvmTarget>1.8</kotlin.compiler.jvmTarget>
 		<kotlin.compiler.daemon>false</kotlin.compiler.daemon>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.build.outputTimestamp>1980-02-01T00:00:00Z</project.build.outputTimestamp>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-
 		<!-- Spring Boot -->
-		<spring-boot.version>4.2.0-SNAPSHOT</spring-boot.version>
-
+		<spring-boot.version>2.7.18</spring-boot.version>
+		<protobuf-java.version>3.25.8</protobuf-java.version>
+		<grpc.version>1.76.0</grpc.version>
 		<!-- MCP SDK -->
 		<mcp.sdk.version>2.2.0</mcp.sdk.version>
-
 		<!-- AI model SDKs -->
 		<anthropic-sdk.version>3.8.0</anthropic-sdk.version>
 		<openai-sdk.version>4.101.0</openai-sdk.version>
@@ -283,39 +264,34 @@
 		<com.google.cloud.version>26.83.0</com.google.cloud.version>
 		<com.google.genai.version>1.73.0</com.google.genai.version>
 		<djl.version>0.36.0</djl.version>
-
 		<!-- Vector store clients -->
 		<coherence.version>24.09</coherence.version>
 		<milvus.version>2.6.21</milvus.version>
 		<neo4j-cypher-dsl-bom.version>2024.5.1</neo4j-cypher-dsl-bom.version>
-		<opensearch-client.version>3.6.0</opensearch-client.version>
+		<opensearch-client.version>2.23.0</opensearch-client.version>
 		<pgvector.version>0.1.6</pgvector.version>
 		<pinecone.version>6.2.0</pinecone.version>
 		<qdrant.version>1.18.0</qdrant.version>
 		<typesense.version>1.3.0</typesense.version>
 		<weaviate-client.version>5.3.0</weaviate-client.version>
-
 		<!-- Document processing -->
-		<commonmark.version>0.22.0</commonmark.version>
+		<commonmark.version>0.21.0</commonmark.version>
 		<jsoup.version>1.22.2</jsoup.version>
 		<pdfbox.version>3.0.7</pdfbox.version>
-
 		<!-- Utilities -->
-		<jsonschema.version>5.0.0</jsonschema.version>
+		<jsonschema.version>4.38.0</jsonschema.version>
 		<jtokkit.version>1.1.0</jtokkit.version>
-		<lucene.version>9.12.3</lucene.version>
+		<lucene.version>8.11.4</lucene.version>
 		<okhttp3.version>4.12.0</okhttp3.version>
 		<ST4.version>4.3.4</ST4.version>
 		<swagger-annotations.version>2.2.38</swagger-annotations.version>
-
 		<!-- Testing -->
-		<gemfire.testcontainers.version>2.3.3</gemfire.testcontainers.version>
-		<json-schema-validator.version>3.0.1</json-schema-validator.version>
-		<json-unit-assertj.version>5.1.0</json-unit-assertj.version>
+		<gemfire.testcontainers.version>2.3.0</gemfire.testcontainers.version>
+		<json-schema-validator.version>2.0.8</json-schema-validator.version>
+		<json-unit-assertj.version>2.40.1</json-unit-assertj.version>
 		<mockk-jvm.version>1.13.13</mockk-jvm.version>
-		<opensearch-testcontainers.version>4.1.0</opensearch-testcontainers.version>
+		<opensearch-testcontainers.version>1.0.0</opensearch-testcontainers.version>
 		<rest-assured-bom.version>5.5.6</rest-assured-bom.version>
-
 		<!-- Build plugins -->
 		<antlr.version>4.13.1</antlr.version>
 		<antora-maven-plugin.version>1.0.0-alpha.5</antora-maven-plugin.version>
@@ -335,15 +311,16 @@
 		<puppycrawl-tools-checkstyle.version>9.3</puppycrawl-tools-checkstyle.version>
 		<spring-javaformat-checkstyle.version>0.0.47</spring-javaformat-checkstyle.version>
 		<spring-javaformat-maven-plugin.version>0.0.47</spring-javaformat-maven-plugin.version>
-
 		<!-- Code quality -->
 		<disable.checks>false</disable.checks>
 		<error-prone.version>2.42.0</error-prone.version>
 		<nullaway.version>0.13.4</nullaway.version>
-
+		<mongodb.version>4.11.5</mongodb.version>
+		<tika.version>2.9.4</tika.version>
 	</properties>
-
 	<build>
+		<sourceDirectory>${project.build.directory}/generated-sources/java8</sourceDirectory>
+		<testSourceDirectory>${project.build.directory}/generated-test-sources/java8</testSourceDirectory>
 		<pluginManagement>
 			<plugins>
 				<plugin>
@@ -366,10 +343,10 @@
 					<artifactId>kotlin-maven-plugin</artifactId>
 					<version>${kotlin.version}</version>
 					<configuration>
-						<jvmTarget>${java.version}</jvmTarget>
+						<jvmTarget>1.8</jvmTarget>
 						<javaParameters>true</javaParameters>
-						<apiVersion>2.2</apiVersion>
-						<languageVersion>2.2</languageVersion>
+						<apiVersion>2.1</apiVersion>
+						<languageVersion>2.1</languageVersion>
 					</configuration>
 					<executions>
 						<execution>
@@ -402,10 +379,126 @@
 		</pluginManagement>
 		<plugins>
 			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>exec-maven-plugin</artifactId>
+				<version>3.6.3</version>
+				<dependencies>
+					<dependency>
+						<groupId>com.github.javaparser</groupId>
+						<artifactId>javaparser-core</artifactId>
+						<version>3.28.2</version>
+					</dependency>
+					<dependency>
+						<groupId>com.github.javaparser</groupId>
+						<artifactId>javaparser-symbol-solver-core</artifactId>
+						<version>3.28.2</version>
+					</dependency>
+				</dependencies>
+				<executions>
+					<execution>
+						<id>java8-main-sources</id>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>exec</goal>
+						</goals>
+						<configuration>
+							<executable>${java.home}/bin/java</executable>
+							<arguments>
+								<argument>--source</argument>
+								<argument>17</argument>
+								<argument>-cp</argument>
+								<classpath/>
+								<argument>${maven.multiModuleProjectDirectory}/compatibility/java8/Java8SourceGenerator.java</argument>
+								<argument>${project.basedir}/src/main/java</argument>
+								<argument>${project.build.directory}/generated-sources/java8</argument>
+							</arguments>
+						</configuration>
+					</execution>
+					<execution>
+						<id>java8-test-sources</id>
+						<phase>generate-test-sources</phase>
+						<goals>
+							<goal>exec</goal>
+						</goals>
+						<configuration>
+							<executable>${java.home}/bin/java</executable>
+							<arguments>
+								<argument>--source</argument>
+								<argument>17</argument>
+								<argument>-cp</argument>
+								<classpath/>
+								<argument>${maven.multiModuleProjectDirectory}/compatibility/java8/Java8SourceGenerator.java</argument>
+								<argument>${project.basedir}/src/test/java</argument>
+								<argument>${project.build.directory}/generated-test-sources/java8</argument>
+							</arguments>
+						<skip>${maven.test.skip}</skip></configuration>
+					</execution>
+				</executions>
+				<configuration>
+					<includePluginDependencies>true</includePluginDependencies>
+					<classpathScope>test</classpathScope>
+				</configuration>
+			</plugin>
+			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-enforcer-plugin</artifactId>
 				<version>${maven-enforcer-plugin.version}</version>
+				<dependencies>
+					<dependency>
+						<groupId>org.codehaus.mojo</groupId>
+						<artifactId>extra-enforcer-rules</artifactId>
+						<version>1.8.0</version>
+					</dependency>
+				</dependencies>
 				<executions>
+					<execution>
+						<id>boot2-compatibility</id>
+						<goals>
+							<goal>enforce</goal>
+						</goals>
+						<configuration>
+							<rules>
+								<bannedDependencies>
+									<searchTransitive>true</searchTransitive>
+									<excludes>
+										<exclude>org.springframework.boot:*:[3,)</exclude>
+										<exclude>org.springframework:*:[6,)</exclude>
+										<exclude>org.springframework.data:spring-data-commons:[3,)</exclude>
+										<exclude>org.springframework.data:spring-data-jpa:[3,)</exclude>
+										<exclude>org.springframework.data:spring-data-jdbc:[3,)</exclude>
+										<exclude>org.springframework.data:spring-data-r2dbc:[3,)</exclude>
+										<exclude>org.springframework.data:spring-data-redis:[3,)</exclude>
+										<exclude>org.springframework.data:spring-data-keyvalue:[3,)</exclude>
+										<exclude>org.springframework.data:spring-data-mongodb:[4,)</exclude>
+										<exclude>org.springframework.data:spring-data-cassandra:[4,)</exclude>
+										<exclude>org.springframework.data:spring-data-neo4j:[7,)</exclude>
+										<exclude>org.springframework.data:spring-data-elasticsearch:[5,)</exclude>
+										<exclude>org.springframework.data:spring-data-rest-core:[4,)</exclude>
+										<exclude>org.springframework.data:spring-data-rest-webmvc:[4,)</exclude>
+										<exclude>org.springframework.data:spring-data-couchbase:[5,)</exclude>
+										<exclude>org.springframework.data:spring-data-ldap:[3,)</exclude>
+										<exclude>tools.jackson.*:*</exclude>
+										<exclude>io.modelcontextprotocol.sdk:mcp-json-jackson3</exclude>
+										<exclude>org.testcontainers:*:[2,)</exclude>
+										<exclude>org.junit.jupiter:*:[6,)</exclude>
+										<exclude>jakarta.servlet:jakarta.servlet-api:[5,)</exclude>
+										<exclude>org.jspecify:jspecify</exclude>
+										<exclude>org.springframework.retry:spring-retry:[2,)</exclude>
+										<exclude>org.springframework.security:*:[6,)</exclude>
+										<exclude>jakarta.persistence:jakarta.persistence-api:[3,)</exclude>
+										<exclude>jakarta.validation:jakarta.validation-api:[3,)</exclude>
+										<exclude>jakarta.annotation:jakarta.annotation-api:[2,)</exclude>
+										<exclude>jakarta.transaction:jakarta.transaction-api:[2,)</exclude>
+										<exclude>io.modelcontextprotocol.sdk:*</exclude>
+									</excludes>
+									<message>Use only the Spring Boot 2 / Spring 5 / Jackson 2 / Java 8 runtime stack.</message>
+								</bannedDependencies>
+								<enforceBytecodeVersion>
+									<maxJdkVersion>8</maxJdkVersion>
+								</enforceBytecodeVersion>
+							</rules>
+						</configuration>
+					</execution>
 					<execution>
 						<id>maven-enforcer</id>
 						<goals>
@@ -421,12 +514,11 @@
 								<requireJavaVersion>
 									<version>${compiler.jdk.version}</version>
 								</requireJavaVersion>
-								<banDuplicatePomDependencyVersions />
+								<banDuplicatePomDependencyVersions/>
 								<!-- TODO <dependencyConvergence /> -->
 								<requireMavenVersion>
 									<version>[3.9.1,)</version>
 								</requireMavenVersion>
-
 								<bannedDependencies>
 									<!-- Spring AI should NOT depend on boot. There are only 4
 									exceptions to this: -->
@@ -462,77 +554,36 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.14.1</version>
 				<configuration>
-					<release>${java.version}</release>
+					<release>8</release>
 					<compilerArgs>
 						<arg>-parameters</arg>
+						<arg>-XDstringConcat=inline</arg>
 					</compilerArgs>
 					<annotationProcessorPaths>
 						<path>
-							<groupId>com.google.errorprone</groupId>
-							<artifactId>error_prone_core</artifactId>
-							<version>${error-prone.version}</version>
-						</path>
-						<path>
-							<groupId>com.uber.nullaway</groupId>
-							<artifactId>nullaway</artifactId>
-							<version>${nullaway.version}</version>
+							<groupId>com.github.bsideup.jabel</groupId>
+							<artifactId>jabel-javac-plugin</artifactId>
+							<version>1.0.0</version>
 						</path>
 						<path>
 							<groupId>org.springframework.boot</groupId>
 							<artifactId>spring-boot-configuration-processor</artifactId>
+							<version>${spring-boot.version}</version>
 						</path>
 						<path>
 							<groupId>org.springframework.boot</groupId>
 							<artifactId>spring-boot-autoconfigure-processor</artifactId>
+							<version>${spring-boot.version}</version>
 						</path>
 					</annotationProcessorPaths>
 				</configuration>
-				<executions>
-					<!-- Replacing default-compile as it is treated specially by Maven -->
-					<execution>
-						<id>default-compile</id>
-						<phase>none</phase>
-					</execution>
-					<!-- Replacing default-testCompile as it is treated specially by Maven -->
-					<execution>
-						<id>default-testCompile</id>
-						<phase>none</phase>
-					</execution>
-					<execution>
-						<id>java-compile</id>
-						<phase>compile</phase>
-						<goals>
-							<goal>compile</goal>
-						</goals>
-						<configuration>
-							<!-- combine.children="append" merges with, rather than
-								replaces, the plugin-level compilerArgs above (which carries
-								-parameters) - otherwise this execution-level list silently
-								overrides it and javac never receives -parameters. -->
-							<compilerArgs combine.children="append">
-								<arg>-XDcompilePolicy=simple</arg>
-								<!-- The following arg won't be necessary with JDK25+ -->
-								<arg>-XDaddTypeAnnotationsToSymbol=true</arg>
-								<arg>--should-stop=ifError=FLOW</arg>
-								<arg>-Xplugin:ErrorProne -XepDisableAllChecks -Xep:StringCaseLocaleUsage:ERROR -Xep:NullAway:ERROR
-									-XepOpt:NullAway:OnlyNullMarked
-									-XepOpt:NullAway:JSpecifyMode=true</arg>
-							</compilerArgs>
-						</configuration>
-					</execution>
-					<execution>
-						<id>java-test-compile</id>
-						<phase>test-compile</phase>
-						<goals>
-							<goal>testCompile</goal>
-						</goals>
-					</execution>
-				</executions>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
+				<version>3.5.4</version>
 				<configuration>
 					<argLine>${surefireArgLine}</argLine>
 					<useFile>false</useFile>
@@ -546,6 +597,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jar-plugin</artifactId>
+				<version>3.5.0</version>
 				<configuration>
 					<archive>
 						<manifestEntries>
@@ -604,6 +656,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-deploy-plugin</artifactId>
+				<version>3.1.4</version>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -624,10 +677,16 @@
 					</execution>
 				</executions>
 			</plugin>
-
 		</plugins>
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory>
+				<excludes>
+					<exclude>META-INF/spring/aot.factories</exclude>
+				</excludes>
+			</resource>
+		</resources>
 	</build>
-
 	<profiles>
 		<profile>
 			<id>format-check</id>
@@ -653,11 +712,17 @@
 								</goals>
 							</execution>
 						</executions>
+						<configuration>
+							<sourceDirectories>
+								<sourceDirectory>${project.basedir}/src/main/java</sourceDirectory>
+							</sourceDirectories>
+							<testSourceDirectories>
+								<testSourceDirectory>${project.basedir}/src/test/java</testSourceDirectory>
+							</testSourceDirectories>
+						<excludes><exclude>**/org/jspecify/**</exclude><exclude>**/org/springframework/web/**</exclude><exclude>**/org/springframework/http/**</exclude><exclude>**/org/springframework/boot/ssl/**</exclude><exclude>**/org/springframework/boot/actuate/autoconfigure/observation/**</exclude><exclude>**/org/springframework/ai/vectorstore/neo4j/compat/SchemaNames.java</exclude></excludes></configuration>
 					</plugin>
-
 				</plugins>
 			</build>
-
 		</profile>
 		<profile>
 			<id>format-apply</id>
@@ -682,11 +747,17 @@
 								</goals>
 							</execution>
 						</executions>
+						<configuration>
+							<sourceDirectories>
+								<sourceDirectory>${project.basedir}/src/main/java</sourceDirectory>
+							</sourceDirectories>
+							<testSourceDirectories>
+								<testSourceDirectory>${project.basedir}/src/test/java</testSourceDirectory>
+							</testSourceDirectories>
+						<excludes><exclude>**/org/jspecify/**</exclude><exclude>**/org/springframework/web/**</exclude><exclude>**/org/springframework/http/**</exclude><exclude>**/org/springframework/boot/ssl/**</exclude><exclude>**/org/springframework/boot/actuate/autoconfigure/observation/**</exclude><exclude>**/org/springframework/ai/vectorstore/neo4j/compat/SchemaNames.java</exclude></excludes></configuration>
 					</plugin>
-
 				</plugins>
 			</build>
-
 		</profile>
 		<profile>
 			<id>checkstyle-check</id>
@@ -734,6 +805,12 @@
 									<failOnViolation>
 										${maven-checkstyle-plugin.failOnViolation}
 									</failOnViolation>
+									<sourceDirectories>
+										<sourceDirectory>${project.basedir}/src/main/java</sourceDirectory>
+									</sourceDirectories>
+									<testSourceDirectories>
+										<testSourceDirectory>${project.basedir}/src/test/java</testSourceDirectory>
+									</testSourceDirectories>
 								</configuration>
 								<goals>
 									<goal>check</goal>
@@ -741,7 +818,6 @@
 							</execution>
 						</executions>
 					</plugin>
-
 				</plugins>
 			</build>
 		</profile>
@@ -831,7 +907,6 @@
 				</plugins>
 			</build>
 		</profile>
-
 		<profile>
 			<id>integration-tests</id>
 			<activation>
@@ -854,7 +929,6 @@
 				</plugins>
 			</build>
 		</profile>
-
 		<profile>
 			<id>ci-fast-integration-tests</id>
 			<activation>
@@ -869,11 +943,9 @@
 							<!-- <includes>
 								<include>org.springframework.ai.anthropic**/*IT.java</include>
 							</includes> -->
-
 							<excludes>
 								<!-- Chat Memory -->
 								<exclude>org.springframework.ai.chat.memory/**/*IT.java</exclude>
-
 								<!-- Models -->
 								<exclude>org.springframework.ai.anthropic/**/*IT.java</exclude>
 								<exclude>org.springframework.ai.azure.openai/**/*IT.java</exclude>
@@ -881,7 +953,8 @@
 								<exclude>org.springframework.ai.bedrock.converse/**/*IT.java</exclude>
 								<exclude>org.springframework.ai.elevenlabs/**/*IT.java</exclude>
 								<exclude>org.springframework.ai.mistralai/**/*IT.java</exclude>
-								<exclude>org.springframework.ai.ollama/**/*IT.java</exclude>								<!--
+								<exclude>org.springframework.ai.ollama/**/*IT.java</exclude>
+								<!--
 								<exclude>org.springframework.ai.openai/**/*IT.java</exclude> -->
 								<exclude>org.springframework.ai.openaisdk/**/*IT.java</exclude>
 								<exclude>org.springframework.ai.postgresml/**/*IT.java</exclude>
@@ -889,7 +962,6 @@
 								<exclude>org.springframework.ai.transformers/**/*IT.java</exclude>
 								<exclude>org.springframework.ai.vertexai.embedding/**/*IT.java</exclude>
 								<exclude>org.springframework.ai.vertexai.gemini/**/*IT.java</exclude>
-
 								<!-- Vector Stores -->
 								<exclude>org.springframework.ai.vectorstore.azure/**IT.java</exclude>
 								<exclude>org.springframework.ai.vectorstore**/Cassandra**IT.java</exclude>
@@ -913,54 +985,40 @@
 								<exclude>org.springframework.ai.vectorstore**/Redis**IT.java</exclude>
 								<exclude>org.springframework.ai.vectorstore**/Typesense**IT.java</exclude>
 								<exclude>org.springframework.ai.vectorstore**/Weaviate**IT.java</exclude>
-
 								<!-- Auto-configurations-->
-
 								<!--
 								<exclude>org.springframework.ai.autoconfigure/**/**IT.java</exclude> -->
-
 								<exclude>org.springframework.ai.autoconfigure.anthropic/**/**IT.java</exclude>
 								<exclude>org.springframework.ai.autoconfigure.azure/**/**IT.java</exclude>
 								<exclude>org.springframework.ai.autoconfigure.bedrock/**/**IT.java</exclude>
 								<exclude>
 									org.springframework.ai.autoconfigure.huggingface/**/**IT.java</exclude>
-
 								<exclude>org.springframework.ai.autoconfigure.chat/**/**IT.java</exclude>
 								<exclude>
 									org.springframework.ai.autoconfigure.elevenlabs/**/**IT.java</exclude>
 								<exclude>org.springframework.ai.autoconfigure.embedding/**/**IT.java</exclude>
 								<exclude>org.springframework.ai.autoconfigure.image/**/**IT.java</exclude>
-
-
 								<exclude>org.springframework.ai.autoconfigure.mistralai/**/**IT.java</exclude>
 								<exclude>org.springframework.ai.autoconfigure.ollama/**/**IT.java</exclude>
 								<!--
 								<exclude>org.springframework.ai.autoconfigure.openai/**/**IT.java</exclude> -->
 								<exclude>
 									org.springframework.ai.autoconfigure.postgresml/**/**IT.java</exclude>
-
 								<exclude>org.springframework.ai.autoconfigure.retry/**/**IT.java</exclude>
-
 								<exclude>
 									org.springframework.ai.autoconfigure.stabilityai/**/**IT.java</exclude>
 								<exclude>
 									org.springframework.ai.autoconfigure.transformers/**/**IT.java</exclude>
-
 								<exclude>
 									org.springframework.ai.autoconfigure.vectorstore/**/**IT.java</exclude>
-
 								<exclude>org.springframework.ai.autoconfigure.vertexai/**/**IT.java</exclude>
-
 								<!-- Test Containers -->
 								<exclude>org.springframework.ai.testcontainers/**/**IT.java</exclude>
-
 								<!-- Test Docker Compose -->
 								<exclude>org.springframework.ai.docker.compose/**/**IT.java</exclude>
-
 								<!-- AI Evaluation -->
 								<exclude>org.springframework.ai.integration.tests/**/**IT.java</exclude>
 							</excludes>
-
 							<!-- <includes>
 								<include>**/*IT.java</include>
 							</includes>
@@ -1011,10 +1069,114 @@
 				</repository>
 			</repositories>
 		</profile>
-	</profiles>
-
+	<profile><id>agent-utils-compat</id><modules><module>compatibility/agent-utils-common</module><module>compatibility/agent-utils</module></modules></profile></profiles>
+	<dependencies>
+		<dependency>
+			<groupId>org.springframework.ai</groupId>
+			<artifactId>spring-ai-jspecify-compat</artifactId>
+			<version>${project.version}</version>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-inline</artifactId>
+			<scope>test</scope>
+		</dependency>
+	<dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot</artifactId><version>${spring-boot.version}</version><scope>provided</scope><optional>true</optional></dependency></dependencies>
 	<dependencyManagement>
 		<dependencies>
+			<dependency><groupId>io.projectreactor</groupId><artifactId>reactor-bom</artifactId><version>2024.0.18</version><type>pom</type><scope>import</scope></dependency><dependency><groupId>io.netty</groupId><artifactId>netty-bom</artifactId><version>4.1.135.Final</version><type>pom</type><scope>import</scope></dependency><dependency>
+				<groupId>org.apache.httpcomponents.core5</groupId>
+				<artifactId>httpcore5-reactive</artifactId>
+				<version>5.3.6</version>
+			</dependency>
+			<dependency>
+				<groupId>org.springframework.ai</groupId>
+				<artifactId>spring-ai-mcp-json-jackson2-compat</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.springframework.ai</groupId>
+				<artifactId>spring-ai-mcp-core-compat</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.springframework.ai</groupId>
+				<artifactId>spring-ai-jdk-http-compat</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.slf4j</groupId>
+				<artifactId>slf4j-api</artifactId>
+				<version>1.7.36</version>
+			</dependency>
+			<dependency>
+				<groupId>org.mockito</groupId>
+				<artifactId>mockito-bom</artifactId>
+				<version>4.11.0</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+			<dependency>
+				<groupId>com.fasterxml.jackson</groupId>
+				<artifactId>jackson-bom</artifactId>
+				<version>2.21.4</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.springframework.retry</groupId>
+				<artifactId>spring-retry</artifactId>
+				<version>1.3.4</version>
+			</dependency>
+			<dependency>
+				<groupId>io.micrometer</groupId>
+				<artifactId>context-propagation</artifactId>
+				<version>1.1.3</version>
+			</dependency>
+			<dependency>
+				<groupId>io.micrometer</groupId>
+				<artifactId>micrometer-tracing-bom</artifactId>
+				<version>1.5.12</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+			<dependency>
+				<groupId>io.micrometer</groupId>
+				<artifactId>micrometer-bom</artifactId>
+				<version>1.15.12</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.jetbrains.kotlin</groupId>
+				<artifactId>kotlin-bom</artifactId>
+				<version>${kotlin.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+			<!-- JUnit 5 keeps Boot 3 compatible class-parameterized upstream tests. -->
+			<dependency>
+				<groupId>org.junit</groupId>
+				<artifactId>junit-bom</artifactId>
+				<version>5.13.4</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+			<dependency>
+				<groupId>com.google.protobuf</groupId>
+				<artifactId>protobuf-bom</artifactId>
+				<version>${protobuf-java.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+			<dependency>
+				<groupId>io.grpc</groupId>
+				<artifactId>grpc-bom</artifactId>
+				<version>${grpc.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
 			<dependency>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-dependencies</artifactId>
@@ -1041,9 +1203,121 @@
 				<artifactId>json-schema-validator</artifactId>
 				<version>${json-schema-validator.version}</version>
 			</dependency>
-		</dependencies>
+			<dependency>
+				<groupId>org.testcontainers</groupId>
+				<artifactId>testcontainers-bom</artifactId>
+				<version>1.21.4</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+			<dependency>
+				<groupId>co.elastic.clients</groupId>
+				<artifactId>elasticsearch-java</artifactId>
+				<version>8.18.8</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.cassandra</groupId>
+				<artifactId>java-driver-query-builder</artifactId>
+				<version>4.19.0</version>
+			</dependency>
+			<dependency>
+				<groupId>com.redis</groupId>
+				<artifactId>testcontainers-redis</artifactId>
+				<version>1.7.0</version>
+			</dependency>
+			<dependency>
+				<groupId>org.assertj</groupId>
+				<artifactId>assertj-core</artifactId>
+				<version>3.27.7</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.httpcomponents.client5</groupId>
+				<artifactId>httpclient5</artifactId>
+				<version>5.5.2</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.httpcomponents.client5</groupId>
+				<artifactId>httpclient5-cache</artifactId>
+				<version>5.5.2</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.httpcomponents.core5</groupId>
+				<artifactId>httpcore5</artifactId>
+				<version>5.3.6</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.httpcomponents.core5</groupId>
+				<artifactId>httpcore5-h2</artifactId>
+				<version>5.3.6</version>
+			</dependency>
+			<dependency>
+				<groupId>org.springframework.ai</groupId>
+				<artifactId>spring-ai-mcp-test-compat</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.springframework.ai</groupId>
+				<artifactId>spring-ai-jedis-runtime-compat</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.springframework.ai</groupId>
+				<artifactId>spring-ai-jedis-compat</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.mongodb</groupId>
+				<artifactId>mongodb-driver-core</artifactId>
+				<version>${mongodb.version}</version>
+				<exclusions>
+					<exclusion>
+						<groupId>org.mongodb</groupId>
+						<artifactId>bson-record-codec</artifactId>
+					</exclusion>
+				</exclusions>
+			</dependency>
+			<dependency>
+				<groupId>org.mongodb</groupId>
+				<artifactId>mongodb-driver-sync</artifactId>
+				<version>${mongodb.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.mongodb</groupId>
+				<artifactId>bson</artifactId>
+				<version>${mongodb.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.oracle.database.jdbc</groupId>
+				<artifactId>ojdbc8</artifactId>
+				<version>23.7.0.25.01</version>
+			</dependency>
+			<dependency>
+				<groupId>jakarta.json</groupId>
+				<artifactId>jakarta.json-api</artifactId>
+				<version>2.1.3</version>
+			</dependency>
+			<dependency>
+				<groupId>org.eclipse.parsson</groupId>
+				<artifactId>parsson</artifactId>
+				<version>1.1.9</version>
+			</dependency>
+			<dependency>
+				<groupId>com.couchbase.client</groupId>
+				<artifactId>java-client</artifactId>
+				<version>3.11.3</version>
+			<exclusions><exclusion><groupId>org.jspecify</groupId><artifactId>jspecify</artifactId></exclusion></exclusions></dependency>
+			<dependency>
+				<groupId>com.couchbase.client</groupId>
+				<artifactId>core-io</artifactId>
+				<version>3.11.3</version>
+			<exclusions><exclusion><groupId>org.jspecify</groupId><artifactId>jspecify</artifactId></exclusion></exclusions></dependency>
+			<dependency>
+				<groupId>org.mariadb.jdbc</groupId>
+				<artifactId>mariadb-java-client</artifactId>
+				<version>3.5.10</version>
+			</dependency>
+		<dependency><groupId>com.google.guava</groupId><artifactId>guava</artifactId><version>33.7.2-jre</version><exclusions><exclusion><groupId>org.jspecify</groupId><artifactId>jspecify</artifactId></exclusion></exclusions></dependency><dependency><groupId>com.google.genai</groupId><artifactId>google-genai</artifactId><version>1.73.0</version><exclusions><exclusion><groupId>org.jspecify</groupId><artifactId>jspecify</artifactId></exclusion></exclusions></dependency></dependencies>
 	</dependencyManagement>
-
 	<repositories>
 		<repository>
 			<name>Central Portal Snapshots</name>
@@ -1086,7 +1360,6 @@
 			</snapshots>
 		</repository>
 	</repositories>
-
 	<developers>
 		<developer>
 			<id>mpollack</id>

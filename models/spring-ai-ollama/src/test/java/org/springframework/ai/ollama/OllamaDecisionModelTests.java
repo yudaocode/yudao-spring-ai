@@ -20,6 +20,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import io.micrometer.observation.tck.TestObservationRegistry;
 import io.micrometer.observation.tck.TestObservationRegistryAssert;
 import net.javacrumbs.jsonunit.assertj.JsonAssertions;
@@ -30,7 +31,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import tools.jackson.databind.json.JsonMapper;
 
 import org.springframework.ai.decision.DecisionOptions;
 import org.springframework.ai.decision.DecisionPrompt;
@@ -126,7 +126,7 @@ class OllamaDecisionModelTests {
 	}
 
 	@Test
-	void sendsStateAndQuestions() {
+	void sendsStateAndQuestions() throws Exception {
 		given(this.systemOneClient.systemOne(this.systemOneRequestCaptor.capture()))
 			.willReturn(defectResponse(MODEL, 0.9));
 

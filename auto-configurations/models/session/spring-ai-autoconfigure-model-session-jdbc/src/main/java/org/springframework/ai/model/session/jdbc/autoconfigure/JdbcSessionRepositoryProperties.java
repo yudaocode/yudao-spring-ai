@@ -20,7 +20,7 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.jdbc.init.DatabaseInitializationProperties;
+import org.springframework.boot.sql.init.DatabaseInitializationMode;
 
 /**
  * The properties of the JDBC session repository, under {@code
@@ -31,7 +31,7 @@ import org.springframework.boot.jdbc.init.DatabaseInitializationProperties;
  * @since 2.1.0
  */
 @ConfigurationProperties(JdbcSessionRepositoryProperties.CONFIG_PREFIX)
-public class JdbcSessionRepositoryProperties extends DatabaseInitializationProperties {
+public class JdbcSessionRepositoryProperties {
 
 	public static final String CONFIG_PREFIX = "spring.ai.session.repository.jdbc";
 
@@ -51,9 +51,49 @@ public class JdbcSessionRepositoryProperties extends DatabaseInitializationPrope
 		this.indexedAttributes = indexedAttributes;
 	}
 
-	@Override
 	public String getDefaultSchemaLocation() {
 		return DEFAULT_SCHEMA_LOCATION;
+	}
+
+	/** Whether schema initialization should continue after a SQL error. */
+	private boolean continueOnError = true;
+
+	public boolean isContinueOnError() {
+		return this.continueOnError;
+	}
+
+	public void setContinueOnError(boolean continueOnError) {
+		this.continueOnError = continueOnError;
+	}
+
+	private DatabaseInitializationMode initializeSchema = DatabaseInitializationMode.EMBEDDED;
+
+	private String schema = DEFAULT_SCHEMA_LOCATION;
+
+	private String platform = "";
+
+	public DatabaseInitializationMode getInitializeSchema() {
+		return this.initializeSchema;
+	}
+
+	public void setInitializeSchema(DatabaseInitializationMode initializeSchema) {
+		this.initializeSchema = initializeSchema;
+	}
+
+	public String getSchema() {
+		return this.schema;
+	}
+
+	public void setSchema(String schema) {
+		this.schema = schema;
+	}
+
+	public String getPlatform() {
+		return this.platform;
+	}
+
+	public void setPlatform(String platform) {
+		this.platform = platform;
 	}
 
 }

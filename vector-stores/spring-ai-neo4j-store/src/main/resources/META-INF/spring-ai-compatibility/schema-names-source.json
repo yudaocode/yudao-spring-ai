@@ -1,0 +1,12 @@
+{
+  "sourceArtifact": "org.neo4j:neo4j-cypher-dsl-schema-name-support:2024.5.1:jar:sources",
+  "sourceJarSha256": "eaaf10219d63be93c0a4fc89b402638dc6144a74819450a71306e7ff10204fcc",
+  "originalFile": "org/neo4j/cypherdsl/support/schema_name/SchemaNames.java",
+  "originalFileSha256": "a8040755ea3030c4f29101c551fc5c7a524e75111cd3913b7c8651e0b15592f8",
+  "license": "Apache-2.0",
+  "changes": [
+    "Relocated to internal Spring AI compatibility package to avoid host Cypher DSL collisions",
+    "Matcher appendReplacement/appendTail use the Java 8 StringBuffer overload",
+    "Common Java 8 source generator lowers the record and collection factory"
+  ]
+}

@@ -133,7 +133,7 @@ public class WebFluxSseClientTransport implements McpClientTransport {
 	 * Subscription for the SSE connection handling inbound messages. Used for cleanup
 	 * during transport shutdown.
 	 */
-	private @Nullable Disposable inboundSubscription;
+	@Nullable private Disposable inboundSubscription;
 
 	/**
 	 * Flag indicating if the transport is in the process of shutting down. Used to
@@ -204,7 +204,6 @@ public class WebFluxSseClientTransport implements McpClientTransport {
 		Assert.notNull(webClientBuilder, "WebClient.Builder must not be null");
 		Assert.notNull(messageEndpointValidator, "messageEndpointValidator must not be null");
 		Assert.hasText(sseEndpoint, "SSE endpoint must not be null or empty");
-
 		this.jsonMapper = jsonMapper;
 		this.webClient = webClientBuilder.build();
 		this.sseEndpoint = sseEndpoint;
@@ -278,7 +277,6 @@ public class WebFluxSseClientTransport implements McpClientTransport {
 				s.complete();
 			}
 		}).transform(handler)).subscribe();
-
 		// The connection is established once the server sends the endpoint event
 		return this.messageEndpointSink.asMono().then();
 	}
@@ -327,7 +325,8 @@ public class WebFluxSseClientTransport implements McpClientTransport {
 				}
 				return Mono.empty();
 			}
-		}).then(); // TODO: Consider non-200-ok response
+		}).// TODO: Consider non-200-ok response
+			then();
 	}
 
 	/**
@@ -336,18 +335,19 @@ public class WebFluxSseClientTransport implements McpClientTransport {
 	 * Includes automatic retry logic for handling transient connection failures.
 	 */
 	// visible for tests
-	protected Flux<ServerSentEvent<String>> eventStream() { // @formatter:off
-		return this.webClient
+	protected Flux<ServerSentEvent<String>> eventStream() {
+		return this.webClient.mutate().filter((request, next) -> {
+			this.sseUri.set(request.url());
+			return next.exchange(request);
+		})
+			.build()
 			.get()
 			.uri(this.sseEndpoint)
 			.accept(MediaType.TEXT_EVENT_STREAM)
 			.header(HttpHeaders.PROTOCOL_VERSION, MCP_PROTOCOL_VERSION)
-			.exchangeToFlux(exchange -> {
-				this.sseUri.set(exchange.request().getURI());
-				return exchange.bodyToFlux(SSE_TYPE);
-			})
+			.exchangeToFlux(exchange -> exchange.bodyToFlux(SSE_TYPE))
 			.retryWhen(Retry.from(retrySignal -> retrySignal.handle(this.inboundRetryHandler)));
-	} // @formatter:on
+	}
 
 	/**
 	 * Retry handler for the inbound SSE stream. Implements the retry logic for handling
@@ -377,20 +377,15 @@ public class WebFluxSseClientTransport implements McpClientTransport {
 	 * @return a Mono that completes when shutdown is finished
 	 */
 	@Override
-	public Mono<Void> closeGracefully() { // @formatter:off
+	public Mono<Void> closeGracefully() {
 		return Mono.fromRunnable(() -> {
 			this.isClosing = true;
-
 			// Dispose of subscriptions
-
 			if (this.inboundSubscription != null) {
 				this.inboundSubscription.dispose();
 			}
-
-		})
-		.then()
-		.subscribeOn(Schedulers.boundedElastic());
-	} // @formatter:on
+		}).then().subscribeOn(Schedulers.boundedElastic());
+	}
 
 	/**
 	 * Unmarshalls data from a generic Object into the specified type using the configured
@@ -430,7 +425,7 @@ public class WebFluxSseClientTransport implements McpClientTransport {
 
 		private String sseEndpoint = DEFAULT_SSE_ENDPOINT;
 
-		private @Nullable McpJsonMapper jsonMapper;
+		@Nullable private McpJsonMapper jsonMapper;
 
 		private SseMessageEndpointValidator messageEndpointValidator = new DefaultSseMessageEndpointValidator();
 

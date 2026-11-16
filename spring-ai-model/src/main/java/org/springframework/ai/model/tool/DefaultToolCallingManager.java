@@ -222,7 +222,7 @@ public final class DefaultToolCallingManager implements ToolCallingManager {
 			.filter(g -> !CollectionUtils.isEmpty(g.getOutput().getToolCalls()))
 			.findFirst();
 
-		if (toolCallGeneration.isEmpty()) {
+		if (!toolCallGeneration.isPresent()) {
 			throw new IllegalStateException("No tool call requested by the chat model");
 		}
 

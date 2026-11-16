@@ -58,7 +58,6 @@ import reactor.core.scheduler.Schedulers;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.InvalidMediaTypeException;
 import org.springframework.http.MediaType;
 import org.springframework.util.Assert;
@@ -106,7 +105,7 @@ public final class WebMvcModernServerTransport {
 
 	private final ServerHttpHeaderValidator httpHeaderValidator;
 
-	private final @Nullable Duration keepAliveInterval;
+	@Nullable private final Duration keepAliveInterval;
 
 	private final Map<Integer, Integer> errorStatuses;
 
@@ -185,23 +184,20 @@ public final class WebMvcModernServerTransport {
 				.body("Unsupported Media Type: Content-Type must be application/json");
 		}
 		if (request.headers().asHttpHeaders().getContentLength() > this.requestMaxSize) {
-			return ServerResponse.status(HttpStatus.CONTENT_TOO_LARGE).build();
+			return ServerResponse.status(HttpStatus.PAYLOAD_TOO_LARGE).build();
 		}
-
 		McpTransportContext transportContext = this.contextExtractor.extract(request);
-
 		String body;
 		try {
 			body = readBody(request.servletRequest(), this.requestMaxSize);
 		}
 		catch (BodyTooLargeException e) {
-			return ServerResponse.status(HttpStatus.CONTENT_TOO_LARGE).build();
+			return ServerResponse.status(HttpStatus.PAYLOAD_TOO_LARGE).build();
 		}
 		catch (IOException | RuntimeException e) {
 			logger.debug("Failed to read request body: " + e.getMessage());
 			return ServerResponse.badRequest().build();
 		}
-
 		JSONRPCMessage message;
 		try {
 			message = JsonRpc.deserializeMessage(this.jsonMapper, body);
@@ -213,7 +209,6 @@ public final class WebMvcModernServerTransport {
 			return error(JSONRPCResponse.error(e.id(),
 					new JSONRPCError(ErrorCodes.INVALID_REQUEST, "Invalid JSON-RPC message")));
 		}
-
 		if (message instanceof JSONRPCNotification notification) {
 			try {
 				this.requestManager.handleNotification(transportContext, notification)
@@ -231,14 +226,12 @@ public final class WebMvcModernServerTransport {
 			return error(JSONRPCResponse.error(null, new JSONRPCError(ErrorCodes.INVALID_REQUEST,
 					"The server accepts either requests or notifications")));
 		}
-
 		String headerMismatch = ModernTransportSupport
 			.validateHeaders(name -> request.headers().asHttpHeaders().getFirst(name), jsonRpcRequest);
 		if (headerMismatch != null) {
 			return error(JSONRPCResponse.error(jsonRpcRequest.id(),
 					new JSONRPCError(ErrorCodes.HEADER_MISMATCH, headerMismatch)));
 		}
-
 		McpTransportContext requestContext = ModernTransportSupport.withHeaders(request, transportContext);
 		boolean listen = ModernTransportSupport.isListen(jsonRpcRequest);
 		Mono<McpTransportResponse> resolved = listen ? this.requestManager.handle(requestContext, jsonRpcRequest)
@@ -252,7 +245,6 @@ public final class WebMvcModernServerTransport {
 			return error(JSONRPCResponse.error(jsonRpcRequest.id(),
 					new JSONRPCError(ErrorCodes.INTERNAL_ERROR, "Internal error")));
 		}
-
 		if (transportResponse instanceof McpTransportResponse.Result result) {
 			return json(HttpStatus.OK.value(), result.response());
 		}
@@ -316,7 +308,7 @@ public final class WebMvcModernServerTransport {
 	private void writeFrame(SseBuilder sseBuilder, Object frame) {
 		try {
 			if (frame == ModernTransportSupport.KEEP_ALIVE) {
-				sseBuilder.comment("").send();
+				flushComment(sseBuilder);
 			}
 			else {
 				sseBuilder.event(ModernTransportSupport.SSE_EVENT_MESSAGE)
@@ -332,9 +324,15 @@ public final class WebMvcModernServerTransport {
 	 * Sends an empty comment so that the status line and headers reach the client before
 	 * the handler produces its first message.
 	 */
+	// Spring 5 has no no-argument send(). A newline-only String creates no data
+	// lines in its SSE writer, flushing just the comment and the event delimiter.
+	private static void flushComment(SseBuilder sseBuilder) throws IOException {
+		sseBuilder.comment(" ").data("\n");
+	}
+
 	private static void commitHeaders(SseBuilder sseBuilder) {
 		try {
-			sseBuilder.comment("").send();
+			flushComment(sseBuilder);
 		}
 		catch (IOException ex) {
 			throw new UncheckedIOException(ex);
@@ -387,7 +385,7 @@ public final class WebMvcModernServerTransport {
 
 		private final McpRequestManager requestManager;
 
-		private @Nullable McpJsonMapper jsonMapper;
+		@Nullable private McpJsonMapper jsonMapper;
 
 		private String mcpEndpoint = "/mcp";
 
@@ -398,7 +396,7 @@ public final class WebMvcModernServerTransport {
 		private ServerHttpHeaderValidator httpHeaderValidator = DefaultServerTransportSecurityValidator.builder()
 			.build();
 
-		private @Nullable Duration keepAliveInterval = DEFAULT_KEEP_ALIVE_INTERVAL;
+		@Nullable private Duration keepAliveInterval = DEFAULT_KEEP_ALIVE_INTERVAL;
 
 		private final Map<Integer, Integer> errorStatuses = new HashMap<>(
 				ModernTransportSupport.DEFAULT_ERROR_STATUSES);
@@ -505,8 +503,13 @@ public final class WebMvcModernServerTransport {
 		}
 
 		@Override
-		public HttpStatusCode statusCode() {
+		public HttpStatus statusCode() {
 			return this.delegate.statusCode();
+		}
+
+		@Override
+		public int rawStatusCode() {
+			return this.delegate.statusCode().value();
 		}
 
 		@Override
@@ -520,7 +523,7 @@ public final class WebMvcModernServerTransport {
 		}
 
 		@Override
-		public @Nullable ModelAndView writeTo(HttpServletRequest request, HttpServletResponse response, Context context)
+		@Nullable public ModelAndView writeTo(HttpServletRequest request, HttpServletResponse response, Context context)
 				throws ServletException, IOException {
 			response.setHeader("Cache-Control", "no-cache, no-transform");
 			response.setHeader("X-Accel-Buffering", "no");

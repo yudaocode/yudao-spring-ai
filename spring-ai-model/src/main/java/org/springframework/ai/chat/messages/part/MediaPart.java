@@ -21,10 +21,10 @@ import java.net.URL;
 import java.util.Base64;
 import java.util.Map;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.util.StdConverter;
 import org.jspecify.annotations.Nullable;
-import tools.jackson.databind.annotation.JsonDeserialize;
-import tools.jackson.databind.annotation.JsonSerialize;
-import tools.jackson.databind.util.StdConverter;
 
 import org.springframework.ai.content.Media;
 import org.springframework.util.Assert;

@@ -23,7 +23,6 @@ import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.jspecify.annotations.Nullable;
 
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -174,8 +173,7 @@ class PgVectorSchemaValidator {
 			// Include the schema name in the query to target the correct table
 			String query = "SELECT column_name, data_type FROM information_schema.columns "
 					+ "WHERE table_schema = ? AND table_name = ?";
-			List<Map<String, @Nullable Object>> columns = this.jdbcTemplate.queryForList(query,
-					new Object[] { schemaName, tableName });
+			var columns = this.jdbcTemplate.queryForList(query, new Object[] { schemaName, tableName });
 
 			if (columns.isEmpty()) {
 				throw new IllegalStateException("Error while validating table schema, Table " + tableName
@@ -184,7 +182,7 @@ class PgVectorSchemaValidator {
 
 			// Check each column against expected fields
 			List<String> availableColumns = new ArrayList<>();
-			for (Map<String, @Nullable Object> column : columns) {
+			for (Map<String, Object> column : columns) {
 				String columnName = (String) column.get("column_name");
 				availableColumns.add(columnName);
 

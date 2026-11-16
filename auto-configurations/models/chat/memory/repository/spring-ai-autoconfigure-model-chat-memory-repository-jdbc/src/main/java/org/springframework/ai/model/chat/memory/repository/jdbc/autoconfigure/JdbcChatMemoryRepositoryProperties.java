@@ -17,28 +17,77 @@
 package org.springframework.ai.model.chat.memory.repository.jdbc.autoconfigure;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.jdbc.init.DatabaseInitializationProperties;
+import org.springframework.boot.sql.init.DatabaseInitializationMode;
 
 /**
  * @author Jonathan Leijendekker
  * @author Thomas Vitale
  * @author Yanming Zhou
  * @since 1.0.0
- * @deprecated since 2.1.0, for removal in 3.0.0, in favor of
- * {@code JdbcSessionRepositoryProperties} in
- * {@code spring-ai-autoconfigure-model-session-jdbc}
  */
-@Deprecated(since = "2.1.0", forRemoval = true)
 @ConfigurationProperties(JdbcChatMemoryRepositoryProperties.CONFIG_PREFIX)
-public class JdbcChatMemoryRepositoryProperties extends DatabaseInitializationProperties {
+@Deprecated(since = "2.1.0", forRemoval = true)
+public class JdbcChatMemoryRepositoryProperties {
 
 	public static final String CONFIG_PREFIX = "spring.ai.chat.memory.repository.jdbc";
 
 	private static final String DEFAULT_SCHEMA_LOCATION = "classpath:org/springframework/ai/chat/memory/repository/jdbc/schema-@@platform@@.sql";
 
-	@Override
+	/**
+	 * Whether to initialize the schema on startup. Values: embedded, always, never.
+	 * Default is embedded.
+	 */
+	private DatabaseInitializationMode initializeSchema = DatabaseInitializationMode.EMBEDDED;
+
+	/**
+	 * Locations of schema (DDL) scripts. Supports comma-separated list. Default is
+	 * classpath:org/springframework/ai/chat/memory/repository/jdbc/schema-@@platform@@.sql
+	 */
+	private String schema = DEFAULT_SCHEMA_LOCATION;
+
+	/**
+	 * Platform to use in initialization scripts if the @@platform@@ placeholder is used.
+	 * Auto-detected by default.
+	 */
+	private String platform = "";
+
+	/** Whether initialization should continue after a schema script error. */
+	private boolean continueOnError = true;
+
+	public boolean isContinueOnError() {
+		return this.continueOnError;
+	}
+
+	public void setContinueOnError(boolean continueOnError) {
+		this.continueOnError = continueOnError;
+	}
+
 	public String getDefaultSchemaLocation() {
 		return DEFAULT_SCHEMA_LOCATION;
+	}
+
+	public DatabaseInitializationMode getInitializeSchema() {
+		return this.initializeSchema;
+	}
+
+	public void setInitializeSchema(DatabaseInitializationMode initializeSchema) {
+		this.initializeSchema = initializeSchema;
+	}
+
+	public String getPlatform() {
+		return this.platform;
+	}
+
+	public void setPlatform(String platform) {
+		this.platform = platform;
+	}
+
+	public String getSchema() {
+		return this.schema;
+	}
+
+	public void setSchema(String schema) {
+		this.schema = schema;
 	}
 
 }

@@ -1,0 +1,14 @@
+{
+  "repository": "https://github.com/modelcontextprotocol/java-sdk",
+  "tag": "v2.2.0",
+  "commit": "81aed210cea9b4d080d0300944b6ee128cf64424",
+  "sourceArchive": "mcp-json-jackson2-2.2.0-sources.jar",
+  "sha256": "55643282efb0154f11fba799411a987522113cee6d842e98fc436b13c3ba2e60",
+  "license": "MIT",
+  "adaptations": [
+    "Java 8 source generation",
+    "Spring AI Java 8 HTTP bridge",
+    "Servlet javax namespace",
+    "Spring 5 / Reactor 3.4 dependencies"
+  ]
+}

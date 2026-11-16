@@ -31,6 +31,9 @@ import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.google.genai.Client;
 import com.google.genai.ResponseStream;
 import com.google.genai.types.Blob;
@@ -60,9 +63,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jspecify.annotations.Nullable;
 import reactor.core.publisher.Flux;
-import tools.jackson.databind.DeserializationFeature;
-import tools.jackson.databind.annotation.JsonDeserialize;
-import tools.jackson.databind.json.JsonMapper;
 
 import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.messages.Message;
@@ -108,7 +108,7 @@ import org.springframework.ai.support.UsageCalculator;
 import org.springframework.ai.tool.definition.ToolDefinition;
 import org.springframework.ai.util.JacksonUtils;
 import org.springframework.beans.factory.DisposableBean;
-import org.springframework.core.retry.RetryTemplate;
+import org.springframework.retry.support.RetryTemplate;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.MimeTypeUtils;
@@ -635,7 +635,7 @@ public class GoogleGenAiChatModel implements ChatModel, DisposableBean {
 				});
 			});
 
-		return response;
+		return java.util.Objects.requireNonNull(response);
 
 	}
 
@@ -838,10 +838,10 @@ public class GoogleGenAiChatModel implements ChatModel, DisposableBean {
 	}
 
 	private static boolean isSignatureOnly(Part part) {
-		return part.thoughtSignature().isPresent() && part.functionCall().isEmpty() && part.inlineData().isEmpty()
-				&& part.fileData().isEmpty() && part.toolCall().isEmpty() && part.toolResponse().isEmpty()
-				&& part.executableCode().isEmpty() && part.codeExecutionResult().isEmpty()
-				&& part.functionResponse().isEmpty();
+		return part.thoughtSignature().isPresent() && !part.functionCall().isPresent() && !part.inlineData().isPresent()
+				&& !part.fileData().isPresent() && !part.toolCall().isPresent() && !part.toolResponse().isPresent()
+				&& !part.executableCode().isPresent() && !part.codeExecutionResult().isPresent()
+				&& !part.functionResponse().isPresent();
 	}
 
 	private static String unknownPartKind(Part part) {

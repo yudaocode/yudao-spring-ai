@@ -68,10 +68,10 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.reactivestreams.Publisher;
 import org.slf4j.LoggerFactory;
-import reactor.adapter.JdkFlowAdapter;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import org.springframework.ai.compat.jdkhttp.FlowAdapters;
 import org.springframework.ai.mcp.annotation.McpArg;
 import org.springframework.ai.mcp.annotation.McpClientCapability;
 import org.springframework.ai.mcp.annotation.McpComplete;
@@ -223,7 +223,6 @@ class AsyncModernAnnotationProvidersTests {
 		Map<String, Object> params = params("name", "plain");
 		Map<String, Object> result = result(send(server, McpSchema.METHOD_TOOLS_CALL, params));
 		assertThat(firstText(result)).startsWith("boundedElastic");
-
 		McpTransportResponse blocking = server
 			.handleBlocking(McpTransportContext.EMPTY, new JSONRPCRequest(McpSchema.METHOD_TOOLS_CALL, 1, params))
 			.block();
@@ -418,7 +417,6 @@ class AsyncModernAnnotationProvidersTests {
 		Map<String, Object> schema = tool(tools, "structured").definition().outputSchema();
 		assertThat((Map<String, Object>) schema.get("properties")).containsKeys("x", "y");
 		assertThat(tool(tools, "greet").definition().outputSchema()).isNull();
-
 		Map<String, Object> result = result(send(server(), McpSchema.METHOD_TOOLS_CALL, params("name", "structured")));
 		assertThat((Map<String, Object>) result.get("structuredContent")).containsEntry("x", 1).containsEntry("y", 2);
 	}
@@ -459,7 +457,6 @@ class AsyncModernAnnotationProvidersTests {
 		Map<String, Object> params = params("name", "progress", "arguments", Map.of("steps", 2));
 		((Map<String, Object>) params.get("_meta")).put(MetaKeys.PROGRESS_TOKEN, "tok");
 		McpTransportResponse response = send(server(), McpSchema.METHOD_TOOLS_CALL, params);
-
 		assertThat(response).isInstanceOf(McpTransportResponse.Streaming.class);
 		List<JSONRPCMessage> messages = ((McpTransportResponse.Streaming) response).messages().collectList().block();
 		assertThat(messages).hasSize(3);
@@ -479,7 +476,6 @@ class AsyncModernAnnotationProvidersTests {
 		assertThat(inputRequired.get("resultType")).isEqualTo("input_required");
 		assertThat((Map<String, Object>) inputRequired.get("inputRequests")).containsKey("user");
 		String sealedState = (String) inputRequired.get("requestState");
-
 		Map<String, Object> retry = params("name", "ask_name", "requestState", sealedState, "inputResponses",
 				Map.of("user", Map.of("action", "accept", "content", Map.of("name", "Ann"))));
 		assertThat(firstText(result(send(server, McpSchema.METHOD_TOOLS_CALL, retry)))).isEqualTo("Hi Ann state=asked");
@@ -497,7 +493,6 @@ class AsyncModernAnnotationProvidersTests {
 		Map<String, Object> params = params("name", "probe");
 		((Map<String, Object>) params.get("_meta")).put(MetaKeys.CLIENT_CAPABILITIES, Map.of());
 		JSONRPCResponse error = finalResponse(send(server(), McpSchema.METHOD_TOOLS_CALL, params));
-
 		assertThat(error.error()).isNotNull();
 		assertThat(error.error().code()).isEqualTo(McpSchema.ErrorCodes.MISSING_REQUIRED_CLIENT_CAPABILITY);
 		Map<String, Object> data = McpJsonDefaults.getMapper().convertValue(error.error().data(), Map.class);
@@ -512,11 +507,9 @@ class AsyncModernAnnotationProvidersTests {
 				send(server, McpSchema.METHOD_RESOURCES_READ, params("uri", "test://static")));
 		List<Map<String, Object>> contents = (List<Map<String, Object>>) read.get("contents");
 		assertThat(contents.get(0).get("text")).isEqualTo("static-body");
-
 		read = result(send(server, McpSchema.METHOD_RESOURCES_READ, params("uri", "test://items/7")));
 		contents = (List<Map<String, Object>>) read.get("contents");
 		assertThat(contents.get(0).get("text")).isEqualTo("item-7");
-
 		Map<String, Object> list = result(send(server, McpSchema.METHOD_RESOURCES_LIST, params()));
 		assertThat((List<?>) list.get("resources")).hasSize(5);
 		Map<String, Object> templates = result(send(server, McpSchema.METHOD_RESOURCES_TEMPLATES_LIST, params()));
@@ -532,12 +525,10 @@ class AsyncModernAnnotationProvidersTests {
 		assertThat(hinted.get("ttlMs")).isEqualTo(30000L);
 		assertThat(hinted.get("cacheScope")).isEqualTo("public");
 		assertThat(((List<Map<String, Object>>) hinted.get("contents")).get(0).get("text")).isEqualTo("hinted-body");
-
 		Map<String, Object> plain = result(
 				send(server, McpSchema.METHOD_RESOURCES_READ, params("uri", "test://static")));
 		assertThat(plain.get("ttlMs")).isEqualTo(0L);
 		assertThat(plain.get("cacheScope")).isEqualTo("private");
-
 		AsyncModernMcpResourceMethodCallback callback = (AsyncModernMcpResourceMethodCallback) AsyncMcpAnnotationProviders
 			.modernResources(List.of(new Resources()))
 			.stream()
@@ -559,11 +550,9 @@ class AsyncModernAnnotationProvidersTests {
 			.findFirst()
 			.orElseThrow();
 		assertThat(((AsyncModernMcpResourceMethodCallback) cached.handler().handler()).isStreaming()).isTrue();
-
 		Map<String, Object> params = params("uri", "test://cached");
 		((Map<String, Object>) params.get("_meta")).put(MetaKeys.PROGRESS_TOKEN, "tok");
 		McpTransportResponse response = send(server(), McpSchema.METHOD_RESOURCES_READ, params);
-
 		assertThat(response).isInstanceOf(McpTransportResponse.Streaming.class);
 		List<JSONRPCMessage> messages = ((McpTransportResponse.Streaming) response).messages().collectList().block();
 		assertThat(messages).hasSize(2);
@@ -583,7 +572,6 @@ class AsyncModernAnnotationProvidersTests {
 				send(server, McpSchema.METHOD_RESOURCES_READ, params("uri", "test://gated")));
 		assertThat(first.get("resultType")).isEqualTo("input_required");
 		String sealedState = (String) first.get("requestState");
-
 		Map<String, Object> second = result(send(server, McpSchema.METHOD_RESOURCES_READ, params("uri", "test://gated",
 				"requestState", sealedState, "inputResponses", Map.of("pin", Map.of("action", "accept")))));
 		List<Map<String, Object>> contents = (List<Map<String, Object>>) second.get("contents");
@@ -607,7 +595,6 @@ class AsyncModernAnnotationProvidersTests {
 				params("name", "greeting", "arguments", Map.of("name", "Zoe"))));
 		List<Map<String, Object>> messages = (List<Map<String, Object>>) prompt.get("messages");
 		assertThat(((Map<String, Object>) messages.get(0).get("content")).get("text")).isEqualTo("Hello Zoe");
-
 		Map<String, Object> completion = result(send(server, McpSchema.METHOD_COMPLETION_COMPLETE, params("ref",
 				Map.of("type", "ref/prompt", "name", "greeting"), "argument", Map.of("name", "name", "value", "Z"))));
 		Map<String, Object> values = (Map<String, Object>) completion.get("completion");
@@ -622,7 +609,6 @@ class AsyncModernAnnotationProvidersTests {
 				params("name", "confirm", "arguments", Map.of("topic", "x"))));
 		assertThat(first.get("resultType")).isEqualTo("input_required");
 		String sealedState = (String) first.get("requestState");
-
 		Map<String, Object> second = result(
 				send(server, McpSchema.METHOD_PROMPTS_GET, params("name", "confirm", "arguments", Map.of("topic", "x"),
 						"requestState", sealedState, "inputResponses", Map.of("ok", Map.of("action", "accept")))));
@@ -649,12 +635,10 @@ class AsyncModernAnnotationProvidersTests {
 		Map<String, Object> params = params("name", "gated_summary");
 		((Map<String, Object>) params.get("_meta")).put(MetaKeys.CLIENT_CAPABILITIES, Map.of());
 		McpTransportResponse response = send(server, McpSchema.METHOD_TOOLS_CALL, params);
-
 		assertThat(response).isInstanceOf(McpTransportResponse.Error.class);
 		JSONRPCResponse error = ((McpTransportResponse.Error) response).response();
 		assertThat(error.error().code()).isEqualTo(McpSchema.ErrorCodes.MISSING_REQUIRED_CLIENT_CAPABILITY);
 		assertThat(bean.calls).hasValue(0);
-
 		Map<String, Object> result = result(send(server, McpSchema.METHOD_TOOLS_CALL, params("name", "gated_summary")));
 		assertThat(result.get("resultType")).isEqualTo("input_required");
 		assertThat(bean.calls).hasValue(1);
@@ -682,7 +666,6 @@ class AsyncModernAnnotationProvidersTests {
 				.requiredCapabilities()).satisfies(required -> assertThat(required.supportsElicitationUrl()).isTrue());
 			assertThat(AsyncMcpAnnotationProviders.modernTools(List.of(new Tools())))
 				.allSatisfy(tool -> assertThat(tool.requiredCapabilities()).isEqualTo(ClientCapabilities.NONE));
-
 			// Mono<CallToolOutcome> can carry an InputRequiredResult: no warning.
 			assertThat(appender.list).noneSatisfy(
 					event -> assertThat(event.getFormattedMessage()).contains("cannot carry an InputRequiredResult"));
@@ -704,7 +687,6 @@ class AsyncModernAnnotationProvidersTests {
 		assertThat(AsyncMcpAnnotationProviders.modernPrompts(List.of(),
 				List.of(new ModernAnnotationProvidersTests.LegacyCompletions()), null))
 			.isEmpty();
-
 		assertThatThrownBy(() -> new AsyncModernMcpToolMethodCallback(ReturnMode.TEXT,
 				ModernAnnotationProvidersTests.LegacyTools.class.getDeclaredMethod("legacy",
 						McpSyncRequestContext.class),
@@ -720,7 +702,6 @@ class AsyncModernAnnotationProvidersTests {
 		assertThat(SyncMcpAnnotationProviders.modernTools(List.of(new AsyncNotifierTools()))).isEmpty();
 		assertThat(AsyncMcpAnnotationProviders.modernResources(List.of(new SyncNotifierTools()))).isEmpty();
 		assertThat(SyncMcpAnnotationProviders.modernResources(List.of(new AsyncNotifierTools()))).isEmpty();
-
 		assertThatThrownBy(() -> new AsyncModernMcpToolMethodCallback(ReturnMode.TEXT,
 				SyncNotifierTools.class.getDeclaredMethod("sync", McpSyncNotifier.class), new SyncNotifierTools()))
 			.isInstanceOf(IllegalArgumentException.class)
@@ -992,7 +973,7 @@ class AsyncModernAnnotationProvidersTests {
 
 		@McpTool(name = "flow_publisher", description = "d")
 		Flow.Publisher<String> flowPublisher() {
-			return JdkFlowAdapter.publisherToFlowPublisher(Mono.just("value"));
+			return FlowAdapters.publisherToFlowPublisher(Mono.just("value"));
 		}
 
 		@McpTool(name = "object_of_mono", description = "d")

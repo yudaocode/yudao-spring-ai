@@ -644,7 +644,7 @@ public abstract class AbstractSessionRepositoryContractTests {
 		assertThat(labels(this.repository.findEvents(id, EventFilter.active()))).containsExactly("Σ?", "Σ:summary 2",
 				"u4", "u5");
 		assertThat(labels(this.repository.findEvents(id, EventFilter.all())))
-			.startsWith(logAfterFirst.toArray(String[]::new))
+			.startsWith(logAfterFirst.toArray(new String[0]))
 			.endsWith("⊥", "Σ?", "Σ:summary 2", "u5");
 	}
 

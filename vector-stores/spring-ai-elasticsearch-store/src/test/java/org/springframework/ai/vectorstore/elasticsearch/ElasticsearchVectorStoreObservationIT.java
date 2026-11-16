@@ -27,15 +27,15 @@ import java.util.concurrent.TimeUnit;
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch.cat.indices.IndicesRecord;
 import co.elastic.clients.json.jackson.JacksonJsonpMapper;
-import co.elastic.clients.transport.rest5_client.Rest5ClientTransport;
-import co.elastic.clients.transport.rest5_client.low_level.Rest5Client;
+import co.elastic.clients.transport.rest_client.RestClientTransport;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.micrometer.observation.ObservationRegistry;
 import io.micrometer.observation.tck.TestObservationRegistry;
 import io.micrometer.observation.tck.TestObservationRegistryAssert;
-import org.apache.hc.core5.http.HttpHost;
+import org.apache.http.HttpHost;
 import org.awaitility.Awaitility;
+import org.elasticsearch.client.RestClient;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -110,7 +110,7 @@ public class ElasticsearchVectorStoreObservationIT {
 		getContextRunner().run(context -> {
 			// deleting indices and data before following tests
 			ElasticsearchClient elasticsearchClient = context.getBean(ElasticsearchClient.class);
-			List indices = elasticsearchClient.cat().indices().indices().stream().map(IndicesRecord::index).toList();
+			List indices = elasticsearchClient.cat().indices().valueBody().stream().map(IndicesRecord::index).toList();
 			if (!indices.isEmpty()) {
 				elasticsearchClient.indices().delete(del -> del.index(indices));
 			}
@@ -205,7 +205,7 @@ public class ElasticsearchVectorStoreObservationIT {
 		}
 
 		@Bean
-		public ElasticsearchVectorStore vectorStoreDefault(EmbeddingModel embeddingModel, Rest5Client restClient,
+		public ElasticsearchVectorStore vectorStoreDefault(EmbeddingModel embeddingModel, RestClient restClient,
 				ObservationRegistry observationRegistry) {
 			return ElasticsearchVectorStore.builder(restClient, embeddingModel)
 				.initializeSchema(true)
@@ -226,13 +226,13 @@ public class ElasticsearchVectorStoreObservationIT {
 		}
 
 		@Bean
-		Rest5Client restClient() throws URISyntaxException {
-			return Rest5Client.builder(HttpHost.create(elasticsearchContainer.getHttpHostAddress())).build();
+		RestClient restClient() throws URISyntaxException {
+			return RestClient.builder(HttpHost.create(elasticsearchContainer.getHttpHostAddress())).build();
 		}
 
 		@Bean
-		ElasticsearchClient elasticsearchClient(Rest5Client restClient) {
-			return new ElasticsearchClient(new Rest5ClientTransport(restClient, new JacksonJsonpMapper(
+		ElasticsearchClient elasticsearchClient(RestClient restClient) {
+			return new ElasticsearchClient(new RestClientTransport(restClient, new JacksonJsonpMapper(
 					new ObjectMapper().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES))));
 		}
 

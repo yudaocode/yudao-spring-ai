@@ -25,7 +25,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import redis.clients.jedis.RedisClient;
+import redis.clients.jedis.JedisPooled;
 
 import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.messages.UserMessage;
@@ -54,13 +54,11 @@ class RedisChatMemoryWithSchemaIT {
 
 	private RedisChatMemoryRepository chatMemory;
 
-	private RedisClient jedisClient;
+	private JedisPooled jedisClient;
 
 	@BeforeEach
 	void setUp() {
-		this.jedisClient = RedisClient.builder()
-			.hostAndPort(redisContainer.getHost(), redisContainer.getFirstMappedPort())
-			.build();
+		this.jedisClient = new JedisPooled(redisContainer.getHost(), redisContainer.getFirstMappedPort());
 
 		// Define metadata schema for proper indexing
 		List<Map<String, String>> metadataFields = List.of(Map.of("name", "priority", "type", "tag"),
@@ -198,9 +196,7 @@ class RedisChatMemoryWithSchemaIT {
 			String uniqueIndexName = "test-schema-app-" + System.currentTimeMillis();
 
 			return RedisChatMemoryRepository.builder()
-				.jedisClient(RedisClient.builder()
-					.hostAndPort(redisContainer.getHost(), redisContainer.getFirstMappedPort())
-					.build())
+				.jedisClient(new JedisPooled(redisContainer.getHost(), redisContainer.getFirstMappedPort()))
 				.indexName(uniqueIndexName)
 				.metadataFields(metadataFields)
 				.build();

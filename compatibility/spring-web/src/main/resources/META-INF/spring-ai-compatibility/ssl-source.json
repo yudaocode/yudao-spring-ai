@@ -1,0 +1,27 @@
+{
+  "upstream": "https://github.com/spring-projects/spring-boot",
+  "version": "3.5.15",
+  "sourceArtifact": "org.springframework.boot:spring-boot:3.5.15:jar:sources",
+  "sourceJarSha256": "34c22fa47b7c971a0c5a575afa9eb8e38af3be420b13d4b38518d0cbf2be8416",
+  "license": "Apache-2.0",
+  "scope": "Flat SSL bundle API and registry only; no Boot 3 auto-configuration, property loading or file watcher",
+  "changes": [
+    "Java 8 Provider double version constructor",
+    "Java 8 collection.toArray overload; other Java 8 lowering by the common generator"
+  ],
+  "originalFilesSha256": {
+    "org/springframework/boot/ssl/SslBundleKey.java": "3edb4656e1cd8a1a4ee878a2b8a6145971851440157b634be25d0c5d854806bf",
+    "org/springframework/boot/ssl/package-info.java": "cddd4b10617f54c6056f30f1b4c01cf72a0ba8b3615bdad0ce52a5c329d8e526",
+    "org/springframework/boot/ssl/DefaultSslBundleRegistry.java": "e23ae0d8bd9121de14c2fba26422772a3044534822d1668fa46feabef6a5e22e",
+    "org/springframework/boot/ssl/SslManagerBundle.java": "a630b4e25c88414acad100d831658b9ed2b9018596ad3e71a012e6e75296fb98",
+    "org/springframework/boot/ssl/SslBundles.java": "a21bcb5262c3d1e88fee33d458be442a91649b80c5ed77a529d00eb8ee077005",
+    "org/springframework/boot/ssl/FixedTrustManagerFactory.java": "9a9fbdeca4ea2c32df775eb2bdefff23caf7d2a265794745525b30021dd1475f",
+    "org/springframework/boot/ssl/SslBundleRegistry.java": "ee6635dd4103a3890a65f52f0f0f8dcf5b6de2badbf385f572ad60e41a567011",
+    "org/springframework/boot/ssl/SslBundle.java": "dd821959bee142d8f0e6e1fc7f38504ab81fb0a193d5c33841ad3a9a60302cf8",
+    "org/springframework/boot/ssl/SslStoreBundle.java": "f4ade91d3b51fa4fa51e4cab98fbfd8f1d15c13862d69e5c6c3c4e08a0c4f88f",
+    "org/springframework/boot/ssl/DefaultSslManagerBundle.java": "af7b820d29c662204985b3a5019a46bb66ac659922db94530c22728fcf8caf74",
+    "org/springframework/boot/ssl/NoSuchSslBundleException.java": "9e0b636dfc333f3ccb614e7b4ef3f37b738d69898389669dab93f72c31b162de",
+    "org/springframework/boot/ssl/AliasKeyManagerFactory.java": "2fa26acc4e5d525386fbfcc7a573fa45cda065a1f92f870efb103d7fef1faa76",
+    "org/springframework/boot/ssl/SslOptions.java": "529d56f8a9ae6150c73cbde5ff5dbf127ac1bb93d9aee01ff74456a0fc302335"
+  }
+}

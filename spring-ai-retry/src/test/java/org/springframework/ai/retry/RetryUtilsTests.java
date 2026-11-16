@@ -24,11 +24,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.jupiter.api.Test;
 
-import org.springframework.core.retry.RetryException;
-import org.springframework.core.retry.RetryTemplate;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpResponse;
+import org.springframework.retry.support.RetryTemplate;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -54,6 +53,7 @@ class RetryUtilsTests {
 			HttpMethod method = HttpMethod.POST;
 
 			when(response.getStatusCode()).thenReturn(HttpStatus.BAD_REQUEST);
+			when(response.getRawStatusCode()).thenReturn(400);
 			when(response.getBody())
 				.thenReturn(new ByteArrayInputStream("Bad request".getBytes(StandardCharsets.UTF_8)));
 
@@ -72,6 +72,7 @@ class RetryUtilsTests {
 			URI url = mock(URI.class);
 			HttpMethod method = HttpMethod.POST;
 			when(response.getStatusCode()).thenReturn(HttpStatus.INTERNAL_SERVER_ERROR);
+			when(response.getRawStatusCode()).thenReturn(500);
 			when(response.getBody())
 				.thenReturn(new ByteArrayInputStream("Server error".getBytes(StandardCharsets.UTF_8)));
 
@@ -88,6 +89,7 @@ class RetryUtilsTests {
 	void hasError() throws IOException {
 		try (ClientHttpResponse response = mock(ClientHttpResponse.class)) {
 			when(response.getStatusCode()).thenReturn(HttpStatus.OK);
+			when(response.getRawStatusCode()).thenReturn(200);
 			when(response.getBody()).thenReturn(new ByteArrayInputStream("success".getBytes(StandardCharsets.UTF_8)));
 
 			assertFalse(RetryUtils.DEFAULT_RESPONSE_ERROR_HANDLER.hasError(response));
@@ -99,7 +101,7 @@ class RetryUtilsTests {
 		AtomicInteger counter = new AtomicInteger(0);
 		RetryTemplate template = RetryUtils.SHORT_RETRY_TEMPLATE;
 
-		assertThrows(RetryException.class, () -> template.execute(() -> {
+		assertThrows(TransientAiException.class, () -> template.execute(context -> {
 			counter.incrementAndGet();
 			throw new TransientAiException("test fail");
 		}));
@@ -108,11 +110,11 @@ class RetryUtilsTests {
 	}
 
 	@Test
-	void shortRetryTemplateSucceedsBeforeMaxAttempts() throws RetryException {
+	void shortRetryTemplateSucceedsBeforeMaxAttempts() throws TransientAiException {
 		AtomicInteger counter = new AtomicInteger(0);
 		RetryTemplate template = RetryUtils.SHORT_RETRY_TEMPLATE;
 
-		String result = template.execute(() -> {
+		String result = template.execute(context -> {
 			if (counter.incrementAndGet() < 5) {
 				throw new TransientAiException("test fail");
 			}
@@ -121,6 +123,16 @@ class RetryUtilsTests {
 
 		assertEquals(5, counter.get());
 		assertEquals("success", result);
+	}
+
+	@Test
+	void unknownServerErrorUsesRawStatus() throws IOException {
+		org.springframework.mock.http.client.MockClientHttpResponse response = new org.springframework.mock.http.client.MockClientHttpResponse(
+				"temporary failure".getBytes(StandardCharsets.UTF_8), 599);
+		TransientAiException error = assertThrows(TransientAiException.class,
+				() -> RetryUtils.DEFAULT_RESPONSE_ERROR_HANDLER.handleError(URI.create("http://localhost"),
+						HttpMethod.POST, response));
+		org.junit.jupiter.api.Assertions.assertTrue(error.getMessage().contains("599 - temporary failure"));
 	}
 
 }

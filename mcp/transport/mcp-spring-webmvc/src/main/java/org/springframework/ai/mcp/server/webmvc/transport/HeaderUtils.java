@@ -37,7 +37,7 @@ final class HeaderUtils {
 	static Map<String, List<String>> collectHeaders(ServerRequest request) {
 		return request.headers()
 			.asHttpHeaders()
-			.headerSet()
+			.entrySet()
 			.stream()
 			.collect(Collectors.toUnmodifiableMap(e -> e.getKey().toLowerCase(Locale.ROOT), Map.Entry::getValue));
 	}

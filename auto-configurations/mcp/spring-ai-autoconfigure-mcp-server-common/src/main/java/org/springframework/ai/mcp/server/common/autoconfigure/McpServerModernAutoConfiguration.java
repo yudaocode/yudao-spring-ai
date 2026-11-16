@@ -20,9 +20,10 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Locale;
 
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import io.modelcontextprotocol.json.McpJsonDefaults;
 import io.modelcontextprotocol.json.McpJsonMapper;
-import io.modelcontextprotocol.json.jackson3.JacksonMcpJsonMapper;
+import io.modelcontextprotocol.json.jackson2.JacksonMcpJsonMapper;
 import io.modelcontextprotocol.modern.McpSchema.CacheScope;
 import io.modelcontextprotocol.modern.McpSchema.Implementation;
 import io.modelcontextprotocol.modern.server.HmacRequestStateCodec;
@@ -44,7 +45,6 @@ import io.modelcontextprotocol.modern.server.feature.ResourcesFeature;
 import io.modelcontextprotocol.modern.server.feature.ToolsFeature;
 import io.modelcontextprotocol.modern.server.transport.StdioMcpTransport;
 import org.jspecify.annotations.Nullable;
-import tools.jackson.databind.json.JsonMapper;
 
 import org.springframework.ai.mcp.customizer.McpServerCustomizer;
 import org.springframework.ai.mcp.modern.AsyncResourceRegistration;
@@ -120,10 +120,8 @@ public class McpServerModernAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean({ McpSyncToolRepository.class, McpAsyncToolRepository.class })
-	@ConditionalOnProperty(prefix = McpServerProperties.CONFIG_PREFIX, name = "type", havingValue = "SYNC",
-			matchIfMissing = true)
-	@ConditionalOnProperty(prefix = McpServerProperties.CONFIG_PREFIX, name = "capabilities.tool", havingValue = "true",
-			matchIfMissing = true)
+	@org.springframework.ai.mcp.server.common.autoconfigure.condition.ConditionalOnMcpServerTypeAndCapability(
+			type = "SYNC", capability = "tool")
 	public InMemorySyncToolRepository mcpModernToolRepository(ObjectProvider<List<McpSyncTool>> tools,
 			McpChangeFeed changeFeed, McpServerModernProperties modernProperties) {
 		List<McpSyncTool> all = tools.stream().flatMap(List::stream).toList();
@@ -137,10 +135,8 @@ public class McpServerModernAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean({ McpSyncResourceRepository.class, McpAsyncResourceRepository.class })
-	@ConditionalOnProperty(prefix = McpServerProperties.CONFIG_PREFIX, name = "type", havingValue = "SYNC",
-			matchIfMissing = true)
-	@ConditionalOnProperty(prefix = McpServerProperties.CONFIG_PREFIX, name = "capabilities.resource",
-			havingValue = "true", matchIfMissing = true)
+	@org.springframework.ai.mcp.server.common.autoconfigure.condition.ConditionalOnMcpServerTypeAndCapability(
+			type = "SYNC", capability = "resource")
 	public InMemorySyncResourceRepository mcpModernResourceRepository(
 			ObjectProvider<List<SyncResourceRegistration>> resources,
 			ObjectProvider<List<SyncResourceTemplateRegistration>> resourceTemplates, McpChangeFeed changeFeed,
@@ -161,10 +157,8 @@ public class McpServerModernAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean({ McpSyncPromptRepository.class, McpAsyncPromptRepository.class })
-	@ConditionalOnProperty(prefix = McpServerProperties.CONFIG_PREFIX, name = "type", havingValue = "SYNC",
-			matchIfMissing = true)
-	@ConditionalOnProperty(prefix = McpServerProperties.CONFIG_PREFIX, name = "capabilities.prompt",
-			havingValue = "true", matchIfMissing = true)
+	@org.springframework.ai.mcp.server.common.autoconfigure.condition.ConditionalOnMcpServerTypeAndCapability(
+			type = "SYNC", capability = "prompt")
 	public InMemorySyncPromptRepository mcpModernPromptRepository(ObjectProvider<List<McpSyncPrompt>> prompts,
 			McpChangeFeed changeFeed, McpServerProperties serverProperties,
 			McpServerModernProperties modernProperties) {
@@ -183,9 +177,8 @@ public class McpServerModernAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean({ McpSyncToolRepository.class, McpAsyncToolRepository.class })
-	@ConditionalOnProperty(prefix = McpServerProperties.CONFIG_PREFIX, name = "type", havingValue = "ASYNC")
-	@ConditionalOnProperty(prefix = McpServerProperties.CONFIG_PREFIX, name = "capabilities.tool", havingValue = "true",
-			matchIfMissing = true)
+	@org.springframework.ai.mcp.server.common.autoconfigure.condition.ConditionalOnMcpServerTypeAndCapability(
+			type = "ASYNC", capability = "tool")
 	public InMemoryAsyncToolRepository mcpModernAsyncToolRepository(ObjectProvider<List<McpAsyncTool>> tools,
 			McpChangeFeed changeFeed, McpServerModernProperties modernProperties) {
 		List<McpAsyncTool> all = tools.stream().flatMap(List::stream).toList();
@@ -199,9 +192,8 @@ public class McpServerModernAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean({ McpSyncResourceRepository.class, McpAsyncResourceRepository.class })
-	@ConditionalOnProperty(prefix = McpServerProperties.CONFIG_PREFIX, name = "type", havingValue = "ASYNC")
-	@ConditionalOnProperty(prefix = McpServerProperties.CONFIG_PREFIX, name = "capabilities.resource",
-			havingValue = "true", matchIfMissing = true)
+	@org.springframework.ai.mcp.server.common.autoconfigure.condition.ConditionalOnMcpServerTypeAndCapability(
+			type = "ASYNC", capability = "resource")
 	public InMemoryAsyncResourceRepository mcpModernAsyncResourceRepository(
 			ObjectProvider<List<AsyncResourceRegistration>> resources,
 			ObjectProvider<List<AsyncResourceTemplateRegistration>> resourceTemplates, McpChangeFeed changeFeed,
@@ -224,9 +216,8 @@ public class McpServerModernAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean({ McpSyncPromptRepository.class, McpAsyncPromptRepository.class })
-	@ConditionalOnProperty(prefix = McpServerProperties.CONFIG_PREFIX, name = "type", havingValue = "ASYNC")
-	@ConditionalOnProperty(prefix = McpServerProperties.CONFIG_PREFIX, name = "capabilities.prompt",
-			havingValue = "true", matchIfMissing = true)
+	@org.springframework.ai.mcp.server.common.autoconfigure.condition.ConditionalOnMcpServerTypeAndCapability(
+			type = "ASYNC", capability = "prompt")
 	public InMemoryAsyncPromptRepository mcpModernAsyncPromptRepository(ObjectProvider<List<McpAsyncPrompt>> prompts,
 			McpChangeFeed changeFeed, McpServerProperties serverProperties,
 			McpServerModernProperties modernProperties) {

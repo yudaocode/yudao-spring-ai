@@ -25,9 +25,9 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.testcontainers.containers.MSSQLServerContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.mssqlserver.MSSQLServerContainer;
 
 import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.ai.session.DefaultSessionService;
@@ -60,7 +60,8 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 class JdbcSessionRepositorySqlServerIT {
 
 	@Container
-	static final MSSQLServerContainer sqlServer = new MSSQLServerContainer("mcr.microsoft.com/mssql/server:2022-latest")
+	static final MSSQLServerContainer sqlServer = new MSSQLServerContainer<>(
+			"mcr.microsoft.com/mssql/server:2022-latest")
 		.acceptLicense();
 
 	/** SQL Server allows at most 2100 parameters in a statement. */

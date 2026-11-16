@@ -23,14 +23,14 @@ import java.util.List;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
-import tools.jackson.databind.DeserializationFeature;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.json.JsonMapper;
 
 import org.springframework.ai.tool.annotation.ToolParam;
 import org.springframework.ai.util.TextBlockAssertion;
@@ -177,13 +177,14 @@ class BeanOutputConverterTest {
 		}
 
 		@Test
-		void verifySchemaPropertyOrder() {
+		void verifySchemaPropertyOrder() throws Exception {
 			var converter = new BeanOutputConverter<>(TestClassWithJsonPropertyOrder.class);
 			String jsonSchema = converter.getJsonSchema();
 
-			JsonNode schemaNode = JsonMapper.shared().readTree(jsonSchema);
+			JsonNode schemaNode = JsonMapper.builder().findAndAddModules().build().readTree(jsonSchema);
 
-			List<String> actualOrder = new ArrayList<>(schemaNode.get("properties").propertyNames());
+			List<String> actualOrder = new ArrayList<>(
+					schemaNode.get("properties").properties().stream().map(java.util.Map.Entry::getKey).toList());
 
 			assertThat(actualOrder).containsExactly("string_property", "foo_property", "bar_property");
 		}
@@ -462,25 +463,25 @@ class BeanOutputConverterTest {
 		// @checkstyle:on RegexpSinglelineJavaCheck
 
 		@Test
-		void formatClassTypeWithToolParamAnnotations() {
+		void formatClassTypeWithToolParamAnnotations() throws Exception {
 			var converter = new BeanOutputConverter<>(TestClassWithToolParam.class);
 			String schema = converter.getJsonSchema();
-			JsonNode schemaNode = JsonMapper.shared().readTree(schema);
+			JsonNode schemaNode = JsonMapper.builder().findAndAddModules().build().readTree(schema);
 
 			assertThat(schemaNode.get("required").toString()).contains("requiredField");
 			assertThat(schemaNode.get("required").toString()).doesNotContain("optionalField");
 
-			assertThat(schemaNode.get("properties").get("requiredField").get("description").asString())
+			assertThat(schemaNode.get("properties").get("requiredField").get("description").asText())
 				.isEqualTo("A required field");
-			assertThat(schemaNode.get("properties").get("optionalField").get("description").asString())
+			assertThat(schemaNode.get("properties").get("optionalField").get("description").asText())
 				.isEqualTo("An optional field");
 		}
 
 		@Test
-		void formatClassTypeWithNullableAnnotation() {
+		void formatClassTypeWithNullableAnnotation() throws Exception {
 			var converter = new BeanOutputConverter<>(TestClassWithNullable.class);
 			String schema = converter.getJsonSchema();
-			JsonNode schemaNode = JsonMapper.shared().readTree(schema);
+			JsonNode schemaNode = JsonMapper.builder().findAndAddModules().build().readTree(schema);
 
 			assertThat(schemaNode.get("required").toString()).contains("requiredField");
 			assertThat(schemaNode.get("required").toString()).doesNotContain("optionalField");

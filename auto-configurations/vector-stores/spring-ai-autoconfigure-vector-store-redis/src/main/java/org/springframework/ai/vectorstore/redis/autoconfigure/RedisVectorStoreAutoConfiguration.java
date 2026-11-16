@@ -21,7 +21,7 @@ import java.util.List;
 import io.micrometer.observation.ObservationRegistry;
 import redis.clients.jedis.DefaultJedisClientConfig;
 import redis.clients.jedis.JedisClientConfig;
-import redis.clients.jedis.RedisClient;
+import redis.clients.jedis.JedisPooled;
 
 import org.springframework.ai.embedding.BatchingStrategy;
 import org.springframework.ai.embedding.EmbeddingModel;
@@ -34,6 +34,7 @@ import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.data.redis.RedisProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
@@ -49,8 +50,8 @@ import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
  * @author Yanming Zhou
  */
 @AutoConfiguration
-@ConditionalOnClass({ RedisClient.class, JedisConnectionFactory.class, RedisVectorStore.class, EmbeddingModel.class })
-@EnableConfigurationProperties(RedisVectorStoreProperties.class)
+@ConditionalOnClass({ JedisPooled.class, JedisConnectionFactory.class, RedisVectorStore.class, EmbeddingModel.class })
+@EnableConfigurationProperties({ RedisVectorStoreProperties.class, RedisProperties.class })
 @ConditionalOnProperty(name = SpringAIVectorStoreTypes.TYPE, havingValue = SpringAIVectorStoreTypes.REDIS,
 		matchIfMissing = true)
 public class RedisVectorStoreAutoConfiguration {
@@ -69,7 +70,8 @@ public class RedisVectorStoreAutoConfiguration {
 	 * Creates a Redis vector store.
 	 * @param embeddingModel the embedding model
 	 * @param properties the Redis vector store properties
-	 * @param jedisConnectionFactory the Jedis connection factory
+	 * @param jedisConnectionFactories the optional Jedis connection factories
+	 * @param redisProperties the native Boot Redis connection properties
 	 * @param observationRegistry the observation registry
 	 * @param convention the custom observation convention
 	 * @param metadataFields the custom metadata fields
@@ -79,13 +81,15 @@ public class RedisVectorStoreAutoConfiguration {
 	@Bean
 	@ConditionalOnMissingBean
 	public RedisVectorStore vectorStore(final EmbeddingModel embeddingModel,
-			final RedisVectorStoreProperties properties, final JedisConnectionFactory jedisConnectionFactory,
-			final ObjectProvider<ObservationRegistry> observationRegistry,
+			final RedisVectorStoreProperties properties,
+			final ObjectProvider<JedisConnectionFactory> jedisConnectionFactories,
+			final RedisProperties redisProperties, final ObjectProvider<ObservationRegistry> observationRegistry,
 			final ObjectProvider<VectorStoreObservationConvention> convention,
 			final ObjectProvider<List<RedisVectorStore.MetadataField>> metadataFields,
 			final BatchingStrategy batchingStrategy) {
 
-		RedisClient jedisClient = jedisClient(jedisConnectionFactory);
+		JedisConnectionFactory factory = jedisConnectionFactories.getIfAvailable();
+		JedisPooled jedisClient = factory != null ? jedisClient(factory) : jedisClient(redisProperties);
 		RedisVectorStore.Builder builder = RedisVectorStore.builder(jedisClient, embeddingModel)
 			.initializeSchema(properties.isInitializeSchema())
 			.observationRegistry(observationRegistry.getIfUnique(() -> ObservationRegistry.NOOP))
@@ -116,7 +120,7 @@ public class RedisVectorStoreAutoConfiguration {
 			.hnswEfRuntime(properties.getHnsw().getEfRuntime());
 	}
 
-	private RedisClient jedisClient(final JedisConnectionFactory jedisConnectionFactory) {
+	private JedisPooled jedisClient(final JedisConnectionFactory jedisConnectionFactory) {
 
 		String host = jedisConnectionFactory.getHostName();
 		int port = jedisConnectionFactory.getPort();
@@ -124,11 +128,47 @@ public class RedisVectorStoreAutoConfiguration {
 		JedisClientConfig clientConfig = DefaultJedisClientConfig.builder()
 			.ssl(jedisConnectionFactory.isUseSsl())
 			.clientName(jedisConnectionFactory.getClientName())
-			.timeoutMillis(jedisConnectionFactory.getTimeout())
+			.connectionTimeoutMillis(jedisConnectionFactory.getTimeout())
+			.socketTimeoutMillis(jedisConnectionFactory.getTimeout())
 			.password(jedisConnectionFactory.getPassword())
 			.build();
 
-		return RedisClient.builder().hostAndPort(host, port).clientConfig(clientConfig).build();
+		return new JedisPooled(new redis.clients.jedis.HostAndPort(host, port), clientConfig);
+	}
+
+	private JedisPooled jedisClient(final RedisProperties properties) {
+		if (properties.getCluster() != null || properties.getSentinel() != null) {
+			throw new IllegalArgumentException("Redis vector store standalone fallback does not support "
+					+ "Redis Cluster or Sentinel; configure a compatible Redis vector-store client explicitly");
+		}
+		String host = properties.getHost();
+		int port = properties.getPort();
+		String username = properties.getUsername();
+		String password = properties.getPassword();
+		boolean ssl = properties.isSsl();
+		if (org.springframework.util.StringUtils.hasText(properties.getUrl())) {
+			java.net.URI uri = java.net.URI.create(properties.getUrl());
+			host = uri.getHost();
+			port = uri.getPort() == -1 ? 6379 : uri.getPort();
+			ssl = "rediss".equalsIgnoreCase(uri.getScheme());
+			if (uri.getUserInfo() != null) {
+				String[] credentials = uri.getUserInfo().split(":", 2);
+				username = credentials.length == 2 ? credentials[0] : null;
+				password = credentials.length == 2 ? credentials[1] : credentials[0];
+			}
+		}
+		int timeout = properties.getTimeout() == null ? 2000 : Math.toIntExact(properties.getTimeout().toMillis());
+		// Redis Search indexes are supported on DB 0; application cache DBs are
+		// independent.
+		JedisClientConfig clientConfig = DefaultJedisClientConfig.builder()
+			.ssl(ssl)
+			.clientName(properties.getClientName())
+			.connectionTimeoutMillis(timeout)
+			.socketTimeoutMillis(timeout)
+			.user(username != null && !username.isEmpty() ? username : null)
+			.password(password != null && !password.isEmpty() ? password : null)
+			.build();
+		return new JedisPooled(new redis.clients.jedis.HostAndPort(host, port), clientConfig);
 	}
 
 }

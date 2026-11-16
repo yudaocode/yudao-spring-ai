@@ -23,14 +23,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
-import io.modelcontextprotocol.json.jackson3.JacksonMcpJsonMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
+import io.modelcontextprotocol.json.jackson2.JacksonMcpJsonMapper;
 import io.modelcontextprotocol.server.McpServerFeatures;
 import io.modelcontextprotocol.server.McpSyncServer;
 import io.modelcontextprotocol.spec.McpSchema;
 import org.junit.jupiter.api.Test;
 import reactor.netty.DisposableServer;
 import reactor.netty.http.server.HttpServer;
-import tools.jackson.databind.json.JsonMapper;
 
 import org.springframework.ai.mcp.SyncMcpToolCallbackProvider;
 import org.springframework.ai.mcp.client.common.autoconfigure.McpClientAutoConfiguration;
@@ -48,9 +48,9 @@ import org.springframework.ai.tool.ToolCallbackProvider;
 import org.springframework.ai.tool.definition.ToolDefinition;
 import org.springframework.ai.util.JsonHelper;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
-import org.springframework.boot.restclient.autoconfigure.RestClientAutoConfiguration;
+import org.springframework.boot.autoconfigure.web.client.RestClientAutoConfiguration;
+import org.springframework.boot.autoconfigure.web.reactive.function.client.WebClientAutoConfiguration;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
-import org.springframework.boot.webclient.autoconfigure.WebClientAutoConfiguration;
 import org.springframework.context.ApplicationContext;
 import org.springframework.http.server.reactive.HttpHandler;
 import org.springframework.http.server.reactive.ReactorHttpHandlerAdapter;

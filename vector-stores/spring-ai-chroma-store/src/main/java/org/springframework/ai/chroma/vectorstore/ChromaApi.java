@@ -26,9 +26,8 @@ import java.util.regex.Pattern;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import org.jspecify.annotations.Nullable;
-import tools.jackson.core.type.TypeReference;
-import tools.jackson.databind.json.JsonMapper;
 
 import org.springframework.ai.chroma.vectorstore.ChromaApi.QueryRequest.Include;
 import org.springframework.ai.chroma.vectorstore.common.ChromaApiConstants;
@@ -334,8 +333,7 @@ public class ChromaApi {
 
 	// Utils
 	public Map<String, Object> where(String text) {
-		return this.jsonMapper.readValue(text, new TypeReference<>() {
-		});
+		return new org.springframework.ai.util.JsonHelper(this.jsonMapper).fromJsonToMap(text);
 	}
 
 	private void httpHeaders(HttpHeaders headers) {

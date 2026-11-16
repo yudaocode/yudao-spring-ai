@@ -34,10 +34,10 @@ import org.springframework.ai.ollama.api.OllamaModel;
 import org.springframework.ai.retry.NonTransientAiException;
 import org.springframework.ai.retry.RetryUtils;
 import org.springframework.ai.retry.TransientAiException;
-import org.springframework.core.retry.RetryListener;
-import org.springframework.core.retry.RetryPolicy;
-import org.springframework.core.retry.RetryTemplate;
-import org.springframework.core.retry.Retryable;
+import org.springframework.retry.RetryCallback;
+import org.springframework.retry.RetryContext;
+import org.springframework.retry.RetryListener;
+import org.springframework.retry.support.RetryTemplate;
 import org.springframework.web.client.ResourceAccessException;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -71,7 +71,7 @@ class OllamaRetryTests {
 	public void beforeEach() {
 		this.retryTemplate = RetryUtils.SHORT_RETRY_TEMPLATE;
 		this.retryListener = new TestRetryListener();
-		this.retryTemplate.setRetryListener(this.retryListener);
+		this.retryTemplate.setListeners(new RetryListener[] { this.retryListener });
 
 		this.chatModel = OllamaChatModel.builder()
 			.ollamaApi(this.ollamaApi)
@@ -96,8 +96,8 @@ class OllamaRetryTests {
 
 		assertThat(result).isNotNull();
 		assertThat(result.getResult().getOutput().getText()).isEqualTo("Response");
-		assertThat(this.retryListener.onSuccessRetryCount).isEqualTo(1);
-		assertThat(this.retryListener.onErrorRetryCount).isEqualTo(2);
+		assertThat(this.retryListener.onSuccessCount).isEqualTo(1);
+		assertThat(this.retryListener.onErrorCount).isEqualTo(2);
 	}
 
 	@Test
@@ -113,8 +113,8 @@ class OllamaRetryTests {
 
 		assertThat(result).isNotNull();
 		assertThat(result.getResult().getOutput().getText()).isEqualTo("Quick response");
-		assertThat(this.retryListener.onSuccessRetryCount).isEqualTo(0);
-		assertThat(this.retryListener.onErrorRetryCount).isEqualTo(0);
+		assertThat(this.retryListener.onSuccessCount).isEqualTo(1);
+		assertThat(this.retryListener.onErrorCount).isEqualTo(0);
 		verify(this.ollamaApi, times(1)).chat(isA(OllamaApi.ChatRequest.class));
 	}
 
@@ -129,8 +129,8 @@ class OllamaRetryTests {
 			.isInstanceOf(NonTransientAiException.class)
 			.hasMessage("Model not found");
 
-		assertThat(this.retryListener.onSuccessRetryCount).isEqualTo(0);
-		assertThat(this.retryListener.onErrorRetryCount).isEqualTo(0);
+		assertThat(this.retryListener.onSuccessCount).isEqualTo(0);
+		assertThat(this.retryListener.onErrorCount).isEqualTo(1);
 		verify(this.ollamaApi, times(1)).chat(isA(OllamaApi.ChatRequest.class));
 	}
 
@@ -153,8 +153,8 @@ class OllamaRetryTests {
 
 		assertThat(result).isNotNull();
 		assertThat(result.getResult().getOutput().getText()).isEqualTo("AI is artificial intelligence...");
-		assertThat(this.retryListener.onSuccessRetryCount).isEqualTo(1);
-		assertThat(this.retryListener.onErrorRetryCount).isEqualTo(1);
+		assertThat(this.retryListener.onSuccessCount).isEqualTo(1);
+		assertThat(this.retryListener.onErrorCount).isEqualTo(1);
 	}
 
 	@Test
@@ -174,7 +174,7 @@ class OllamaRetryTests {
 
 		assertThat(result).isNotNull();
 		assertThat(result.getResult().getOutput().getText()).isEqualTo("Deterministic response");
-		assertThat(this.retryListener.onSuccessRetryCount).isEqualTo(1);
+		assertThat(this.retryListener.onSuccessCount).isEqualTo(1);
 	}
 
 	@Test
@@ -192,25 +192,29 @@ class OllamaRetryTests {
 
 		assertThat(result).isNotNull();
 		assertThat(result.getResult().getOutput().getText()).isEmpty();
-		assertThat(this.retryListener.onSuccessRetryCount).isEqualTo(1);
+		assertThat(this.retryListener.onSuccessCount).isEqualTo(1);
 	}
 
-	private static class TestRetryListener implements RetryListener {
+	private static class TestRetryListener extends org.springframework.retry.listener.RetryListenerSupport {
 
-		int onErrorRetryCount = 0;
+		int onErrorCount = 0;
 
-		int onSuccessRetryCount = 0;
+		int onSuccessCount = 0;
 
 		@Override
-		public void beforeRetry(final RetryPolicy retryPolicy, final Retryable<?> retryable) {
-			// Count each retry attempt
-			this.onErrorRetryCount++;
+		public <T, E extends Throwable> void onError(RetryContext context, RetryCallback<T, E> callback,
+				Throwable throwable) {
+			// Spring Retry reports every failed attempt, including terminal failures.
+			this.onErrorCount++;
 		}
 
 		@Override
-		public void onRetrySuccess(final RetryPolicy retryPolicy, final Retryable<?> retryable, final Object result) {
-			// Count successful retries - we increment when we succeed after a failure
-			this.onSuccessRetryCount++;
+		public <T, E extends Throwable> void close(RetryContext context, RetryCallback<T, E> callback,
+				Throwable throwable) {
+			if (throwable == null) {
+				// Spring Retry reports success even when the initial attempt succeeds.
+				this.onSuccessCount++;
+			}
 		}
 
 	}

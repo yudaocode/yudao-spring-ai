@@ -6,7 +6,7 @@
 	<parent>
 		<groupId>org.springframework.ai</groupId>
 		<artifactId>spring-ai-parent</artifactId>
-		<version>2.1.0-SNAPSHOT</version>
+		<version>2.1.0-boot2-SNAPSHOT</version>
 		<relativePath>../../../../pom.xml</relativePath>
 	</parent>
 	<artifactId>spring-ai-autoconfigure-model-session-jdbc</artifactId>
@@ -32,11 +32,7 @@
 			<artifactId>spring-boot-autoconfigure</artifactId>
 			<optional>true</optional>
 		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-jdbc</artifactId>
-			<optional>true</optional>
-		</dependency>
+
 		<!-- To recognize a JpaTransactionManager on the data source -->
 		<dependency>
 			<groupId>org.springframework</groupId>
@@ -97,17 +93,17 @@
 		</dependency>
 		<dependency>
 			<groupId>org.testcontainers</groupId>
-			<artifactId>testcontainers-junit-jupiter</artifactId>
+			<artifactId>junit-jupiter</artifactId>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.testcontainers</groupId>
-			<artifactId>testcontainers-postgresql</artifactId>
+			<artifactId>postgresql</artifactId>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.testcontainers</groupId>
-			<artifactId>testcontainers-mysql</artifactId>
+			<artifactId>mysql</artifactId>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -122,12 +118,12 @@
 		</dependency>
 		<dependency>
 			<groupId>org.testcontainers</groupId>
-			<artifactId>testcontainers-mariadb</artifactId>
+			<artifactId>mariadb</artifactId>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.testcontainers</groupId>
-			<artifactId>testcontainers-mssqlserver</artifactId>
+			<artifactId>mssqlserver</artifactId>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>

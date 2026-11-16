@@ -79,8 +79,9 @@ class EventTypeTests {
 	}
 
 	@Test
-	void typeIsJsonText() {
-		tools.jackson.databind.json.JsonMapper mapper = tools.jackson.databind.json.JsonMapper.builder().build();
+	void typeIsJsonText() throws Exception {
+		com.fasterxml.jackson.databind.json.JsonMapper mapper = com.fasterxml.jackson.databind.json.JsonMapper.builder()
+			.build();
 
 		assertThat(mapper.writeValueAsString(EventType.of("MY_APP.PROGRESS"))).isEqualTo("\"MY_APP.PROGRESS\"");
 		assertThat(mapper.readValue("\"STATUS\"", EventType.class)).isEqualTo(EventType.of("STATUS"));

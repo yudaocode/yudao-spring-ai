@@ -23,7 +23,7 @@ import org.jspecify.annotations.Nullable;
 import org.springframework.ai.systemone.api.SystemOneApiConstants;
 import org.springframework.ai.systemone.api.SystemOneRetryUtils;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.core.retry.RetryPolicy;
+import org.springframework.retry.RetryPolicy;
 
 /**
  * Connection properties of the System One client: where the server is, how to

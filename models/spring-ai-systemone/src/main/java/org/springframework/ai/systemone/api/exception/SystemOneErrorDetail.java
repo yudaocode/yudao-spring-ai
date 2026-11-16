@@ -21,8 +21,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.StringJoiner;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import org.jspecify.annotations.Nullable;
-import tools.jackson.databind.JsonNode;
 
 import org.springframework.ai.util.JacksonUtils;
 
@@ -81,7 +81,7 @@ public record SystemOneErrorDetail(@Nullable String errorType, @Nullable String 
 		try {
 			return parse(JacksonUtils.getDefaultJsonMapper().readTree(body));
 		}
-		catch (RuntimeException ex) {
+		catch (com.fasterxml.jackson.core.JsonProcessingException | RuntimeException ex) {
 			// A body that is not JSON at all - a proxy error page, say - or a detail
 			// whose fields are not the strings the envelope documents. The caller still
 			// has the raw text.
@@ -94,11 +94,11 @@ public record SystemOneErrorDetail(@Nullable String errorType, @Nullable String 
 		if (detail == null || detail.isNull()) {
 			// Ollama, serving the same protocol, reports errors as {"error": "..."}.
 			JsonNode error = root.get("error");
-			return (error != null && error.isString()) ? new SystemOneErrorDetail(null, error.stringValue(), List.of())
+			return (error != null && error.isTextual()) ? new SystemOneErrorDetail(null, error.textValue(), List.of())
 					: null;
 		}
-		if (detail.isString()) {
-			return new SystemOneErrorDetail(null, detail.stringValue(), List.of());
+		if (detail.isTextual()) {
+			return new SystemOneErrorDetail(null, detail.textValue(), List.of());
 		}
 		if (detail.isArray()) {
 			List<ValidationError> errors = new ArrayList<>();
@@ -118,7 +118,7 @@ public record SystemOneErrorDetail(@Nullable String errorType, @Nullable String 
 		JsonNode locNode = node.get("loc");
 		if (locNode != null && locNode.isArray()) {
 			for (JsonNode element : locNode) {
-				loc.add(element.asString());
+				loc.add(element.asText());
 			}
 		}
 		return new ValidationError(text(node, "type"), loc, text(node, "msg"));
@@ -132,7 +132,13 @@ public record SystemOneErrorDetail(@Nullable String errorType, @Nullable String 
 
 	private static @Nullable String text(JsonNode node, String field) {
 		JsonNode value = node.get(field);
-		return (value == null || value.isNull()) ? null : value.asString();
+		if (value == null || value.isNull()) {
+			return null;
+		}
+		if (!value.isTextual()) {
+			throw new IllegalArgumentException("Error detail field must be a string: " + field);
+		}
+		return value.textValue();
 	}
 
 	/**

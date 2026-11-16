@@ -102,7 +102,7 @@ public class AbstractEmbeddingModelTests {
 			}
 		};
 		try {
-			Thread.currentThread().setContextClassLoader(ClassLoader.getPlatformClassLoader());
+			Thread.currentThread().setContextClassLoader(ClassLoader.getSystemClassLoader().getParent());
 			Class<?> modelClass = Class.forName(AbstractEmbeddingModel.class.getName(), true, modelClassLoader);
 			assertThat(modelClass.getClassLoader()).isSameAs(modelClassLoader);
 			Object dimensions = modelClass.getMethod("dimensions", EmbeddingModel.class, String.class, String.class)

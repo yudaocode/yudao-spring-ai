@@ -29,7 +29,7 @@ import org.springframework.ai.tool.method.MethodToolCallbackProvider;
  * @author Christian Tzolov
  */
 
-public class AugmentedToolCallbackProvider<T extends Record> implements ToolCallbackProvider {
+public class AugmentedToolCallbackProvider<T> implements ToolCallbackProvider {
 
 	private final ToolCallbackProvider delegate;
 
@@ -68,14 +68,14 @@ public class AugmentedToolCallbackProvider<T extends Record> implements ToolCall
 	 * @param <T> the argument type
 	 * @return a new builder
 	 */
-	public static <T extends Record> Builder<T> builder() {
+	public static <T> Builder<T> builder() {
 		return new Builder<>();
 	}
 
 	/**
 	 * Builder for {@link AugmentedToolCallbackProvider}.
 	 */
-	public static class Builder<T extends Record> {
+	public static class Builder<T> {
 
 		private @Nullable ToolCallbackProvider delegate;
 

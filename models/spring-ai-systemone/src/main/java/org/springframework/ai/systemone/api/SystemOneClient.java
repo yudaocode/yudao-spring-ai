@@ -18,7 +18,6 @@ package org.springframework.ai.systemone.api;
 
 import java.io.IOException;
 import java.net.SocketTimeoutException;
-import java.net.http.HttpTimeoutException;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
@@ -36,12 +35,10 @@ import org.springframework.ai.systemone.api.question.SystemOneRequest;
 import org.springframework.ai.systemone.api.response.ListModelsResponse;
 import org.springframework.ai.systemone.api.response.ModelMetadata;
 import org.springframework.ai.systemone.api.response.SystemOneResponse;
-import org.springframework.core.retry.RetryException;
-import org.springframework.core.retry.RetryTemplate;
-import org.springframework.core.retry.Retryable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.client.JdkClientHttpRequestFactory;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.springframework.retry.support.RetryTemplate;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.ResourceAccessException;
@@ -207,33 +204,7 @@ public class SystemOneClient {
 	 * typed exceptions first so that the template can classify them.
 	 */
 	private <T> T execute(String endpoint, Supplier<T> call) {
-		try {
-			return this.retryTemplate.execute(new Retryable<T>() {
-
-				@Override
-				public T execute() {
-					return attempt(endpoint, call);
-				}
-
-				@Override
-				public String getName() {
-					return "System One " + endpoint;
-				}
-
-			});
-		}
-		catch (RetryException ex) {
-			// The cause is the last typed failure; earlier ones are its suppressed
-			// exceptions.
-			Throwable cause = ex.getCause();
-			if (cause instanceof RuntimeException runtime) {
-				throw runtime;
-			}
-			if (cause instanceof Error error) {
-				throw error;
-			}
-			throw new IllegalStateException("Unexpected failure of System One " + endpoint, cause);
-		}
+		return this.retryTemplate.execute(context -> attempt(endpoint, call));
 	}
 
 	private <T> T attempt(String endpoint, Supplier<T> call) {
@@ -254,15 +225,14 @@ public class SystemOneClient {
 			HttpHeaders headers = ex.getResponseHeaders() != null ? ex.getResponseHeaders() : new HttpHeaders();
 			throw new SystemOneApiResponseValidationException(
 					"System One %s returned %s where JSON was expected".formatted(endpoint, ex.getContentType()),
-					ex.getStatusCode().value(), ex.getResponseBodyAsString(), headers, endpoint, null);
+					ex.getRawStatusCode(), ex.getResponseBodyAsString(), headers, endpoint, null);
 		}
 		// An error status that reached here as a Spring exception came through a
 		// transport assembled elsewhere, without the error handler. Map it the same way,
 		// so the typed hierarchy and the retry policy see the status.
 		catch (RestClientResponseException ex) {
 			HttpHeaders headers = ex.getResponseHeaders() != null ? ex.getResponseHeaders() : new HttpHeaders();
-			throw ERROR_HANDLER.toException(ex.getStatusCode().value(), ex.getResponseBodyAsString(), headers,
-					endpoint);
+			throw ERROR_HANDLER.toException(ex.getRawStatusCode(), ex.getResponseBodyAsString(), headers, endpoint);
 		}
 		catch (RestClientException ex) {
 			// A body that broke off while it was read, such as a read timeout or a reset
@@ -282,7 +252,8 @@ public class SystemOneClient {
 	}
 
 	private static boolean isTimeout(Throwable ex) {
-		return hasCause(ex, SocketTimeoutException.class) || hasCause(ex, HttpTimeoutException.class);
+		return hasCause(ex, SocketTimeoutException.class)
+				|| hasCause(ex, org.apache.http.conn.ConnectTimeoutException.class);
 	}
 
 	private static boolean hasCause(Throwable ex, Class<? extends Throwable> type) {
@@ -438,9 +409,9 @@ public class SystemOneClient {
 			// its timeouts.
 			RestClient.Builder transport = this.restClientBuilder;
 			if (transport == null) {
-				JdkClientHttpRequestFactory requestFactory = new JdkClientHttpRequestFactory();
-				requestFactory
-					.setReadTimeout((this.timeout != null) ? this.timeout : SystemOneApiConstants.DEFAULT_TIMEOUT);
+				HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
+				requestFactory.setReadTimeout(Math.toIntExact(
+						((this.timeout != null) ? this.timeout : SystemOneApiConstants.DEFAULT_TIMEOUT).toMillis()));
 				transport = RestClient.builder().requestFactory(requestFactory);
 			}
 

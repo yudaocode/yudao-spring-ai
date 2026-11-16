@@ -23,9 +23,9 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import com.fasterxml.jackson.databind.JsonDeserializer;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import org.junit.jupiter.api.Test;
-import tools.jackson.databind.ValueDeserializer;
-import tools.jackson.databind.annotation.JsonDeserialize;
 
 import org.springframework.ai.systemone.api.JsonContent;
 import org.springframework.ai.systemone.api.question.Choice;
@@ -130,7 +130,7 @@ class SystemOneRuntimeHintsTests {
 			.getDeclaredConstructor(String.class, Map.class, Usage.class)
 			.getParameters()[1].getAnnotation(JsonDeserialize.class)
 			.contentUsing();
-		assertThat(answerDeserializer).isNotEqualTo(ValueDeserializer.None.class);
+		assertThat(answerDeserializer).isNotEqualTo(JsonDeserializer.None.class);
 
 		return Set.of(SystemOneRequest.class, Question.class, QuestionType.class, Noul.class, NoulCriteria.class,
 				Choice.class, Score.class, JsonContent.class, SystemOneResponse.class, Answer.class, AnswerType.class,

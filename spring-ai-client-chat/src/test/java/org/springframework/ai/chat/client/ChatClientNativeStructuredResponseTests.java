@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import net.javacrumbs.jsonunit.assertj.JsonAssertions;
 import net.javacrumbs.jsonunit.core.Option;
 import org.jspecify.annotations.NonNull;
@@ -29,7 +30,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import tools.jackson.databind.JsonNode;
 
 import org.springframework.ai.chat.client.advisor.api.CallAdvisor;
 import org.springframework.ai.chat.client.advisor.api.CallAdvisorChain;
@@ -44,7 +44,6 @@ import org.springframework.ai.chat.prompt.ChatOptions;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.converter.StructuredOutputConverter;
 import org.springframework.ai.model.tool.StructuredOutputChatOptions;
-import org.springframework.ai.util.JacksonUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
@@ -570,7 +569,7 @@ public class ChatClientNativeStructuredResponseTests {
 
 		@Override
 		public JsonNode convert(String source) {
-			return JacksonUtils.getDefaultJsonMapper().readTree(source);
+			return new org.springframework.ai.util.JsonHelper().fromJson(source, JsonNode.class);
 		}
 
 	}

@@ -1,0 +1,46 @@
+/*
+ * Copyright 2024-2025 the original author or authors.
+ */
+
+package io.modelcontextprotocol.common;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import io.modelcontextprotocol.util.Assert;
+
+/**
+ * Default implementation for {@link McpTransportContext} which uses a map as storage.
+ *
+ * @author Dariusz Jędrzejczyk
+ * @author Daniel Garnier-Moiroux
+ */
+class DefaultMcpTransportContext implements McpTransportContext {
+
+	private final Map<String, Object> metadata;
+
+	DefaultMcpTransportContext(Map<String, ?> metadata) {
+		Assert.notNull(metadata, "The metadata cannot be null");
+		this.metadata = Map.copyOf(metadata);
+	}
+
+	@Override
+	public Object get(String key) {
+		return this.metadata.get(key);
+	}
+
+	@Override
+	public McpTransportContext putAll(Map<String, ?> map) {
+		Assert.notNull(map, "The map cannot be null");
+		if (map.isEmpty()) {
+			return this;
+		}
+		if (this.metadata.isEmpty()) {
+			return new DefaultMcpTransportContext(map);
+		}
+		Map<String, Object> merged = new HashMap<>(this.metadata);
+		merged.putAll(map);
+		return new DefaultMcpTransportContext(merged);
+	}
+
+}

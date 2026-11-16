@@ -36,9 +36,8 @@ import com.anthropic.models.messages.ThinkingConfigDisabled;
 import com.anthropic.models.messages.ThinkingConfigEnabled;
 import com.anthropic.models.messages.ThinkingConfigParam;
 import com.anthropic.models.messages.ToolChoice;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import org.jspecify.annotations.Nullable;
-import tools.jackson.core.type.TypeReference;
-import tools.jackson.databind.json.JsonMapper;
 
 import org.springframework.ai.chat.prompt.ChatOptions;
 import org.springframework.ai.model.tool.DefaultToolCallingChatOptions;
@@ -427,7 +426,7 @@ public class AnthropicChatOptions implements ToolCallingChatOptions, StructuredO
 			Map<String, JsonValue> schemaProps = format.schema()._additionalProperties();
 			Map<String, @Nullable Object> nativeMap = new LinkedHashMap<>();
 			schemaProps.forEach((key, value) -> nativeMap.put(key, convertJsonValueToNative(value)));
-			return JSON_MAPPER.writeValueAsString(nativeMap);
+			return new org.springframework.ai.util.JsonHelper(JSON_MAPPER).toJson(nativeMap);
 		}).orElse(null);
 	}
 
@@ -649,8 +648,8 @@ public class AnthropicChatOptions implements ToolCallingChatOptions, StructuredO
 		@Override
 		public B outputSchema(@Nullable String outputSchema) {
 			if (outputSchema != null) {
-				Map<String, Object> schemaMap = JSON_MAPPER.readValue(outputSchema, new TypeReference<>() {
-				});
+				Map<String, Object> schemaMap = new org.springframework.ai.util.JsonHelper(JSON_MAPPER)
+					.fromJsonToMap(outputSchema);
 				JsonOutputFormat.Schema.Builder schemaBuilder = JsonOutputFormat.Schema.builder();
 				for (Map.Entry<String, Object> entry : schemaMap.entrySet()) {
 					// Strip JSON Schema meta-fields not supported by the Anthropic

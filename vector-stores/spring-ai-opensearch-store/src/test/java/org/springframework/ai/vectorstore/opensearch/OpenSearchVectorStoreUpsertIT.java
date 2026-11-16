@@ -27,7 +27,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.opensearch.client.opensearch.OpenSearchClient;
 import org.opensearch.client.transport.httpclient5.ApacheHttpClient5TransportBuilder;
-import org.opensearch.testcontainers.OpenSearchContainer;
+import org.opensearch.testcontainers.OpensearchContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
@@ -73,7 +73,7 @@ public class OpenSearchVectorStoreUpsertIT extends AbstractVectorStoreUpsertTest
 	private static final String CUSTOM_MAPPING_INDEX = "upsert-custom-mapping";
 
 	@Container
-	private static final OpenSearchContainer<?> opensearchContainer = new OpenSearchContainer<>(
+	private static final OpensearchContainer opensearchContainer = new OpensearchContainer(
 			OpenSearchImage.DEFAULT_IMAGE);
 
 	private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()

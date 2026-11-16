@@ -17,7 +17,6 @@
 package org.springframework.ai.reader;
 
 import java.io.File;
-import java.io.FileWriter;
 import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -167,7 +166,7 @@ public class TextReaderTests {
 	void resourceDescriptionHandling(@TempDir File tempDir) throws IOException {
 		// Test with file resource
 		File testFile = new File(tempDir, "test-file.txt");
-		try (FileWriter writer = new FileWriter(testFile, StandardCharsets.UTF_8)) {
+		try (java.io.Writer writer = java.nio.file.Files.newBufferedWriter(testFile.toPath(), StandardCharsets.UTF_8)) {
 			writer.write("File content");
 		}
 
@@ -197,7 +196,8 @@ public class TextReaderTests {
 	void resourceWithoutExtension(@TempDir File tempDir) throws IOException {
 		// Test file without extension
 		File noExtFile = new File(tempDir, "no-extension-file");
-		try (FileWriter writer = new FileWriter(noExtFile, StandardCharsets.UTF_8)) {
+		try (java.io.Writer writer = java.nio.file.Files.newBufferedWriter(noExtFile.toPath(),
+				StandardCharsets.UTF_8)) {
 			writer.write("Content without extension");
 		}
 

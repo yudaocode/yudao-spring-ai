@@ -18,7 +18,7 @@ package org.springframework.ai.converter
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import tools.jackson.databind.json.JsonMapper
+import com.fasterxml.jackson.databind.json.JsonMapper
 
 class KotlinBeanOutputConverterTests {
 
@@ -41,14 +41,14 @@ class KotlinBeanOutputConverterTests {
 		assertThat(required.toString()).doesNotContain("baz")
 
 		val properties = schemaNode["properties"]
-		assertThat(properties["bar"]["type"].asString()).isEqualTo("string")
+		assertThat(properties["bar"]["type"].asText()).isEqualTo("string")
 
 		val bazTypeNode = properties["baz"]["type"]
 		if (bazTypeNode.isArray) {
 			assertThat(bazTypeNode.toString()).contains("string")
 			assertThat(bazTypeNode.toString()).contains("null")
 		} else {
-			assertThat(bazTypeNode.asString()).isEqualTo("string")
+			assertThat(bazTypeNode.asText()).isEqualTo("string")
 		}
 	}
 
@@ -66,9 +66,9 @@ class KotlinBeanOutputConverterTests {
 		assertThat(required.toString()).doesNotContain("baz")
 
 		val properties = schemaNode["properties"]
-		assertThat(properties["bar"]["type"].asString()).isEqualTo("string")
+		assertThat(properties["bar"]["type"].asText()).isEqualTo("string")
 
 		val bazTypeNode = properties["baz"]["type"]
-		assertThat(bazTypeNode.asString()).isEqualTo("integer")
+		assertThat(bazTypeNode.asText()).isEqualTo("integer")
 	}
 }

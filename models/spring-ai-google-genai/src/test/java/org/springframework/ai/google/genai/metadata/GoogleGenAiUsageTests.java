@@ -18,12 +18,12 @@ package org.springframework.ai.google.genai.metadata;
 
 import java.util.List;
 
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.google.genai.types.GenerateContentResponseUsageMetadata;
 import com.google.genai.types.MediaModality;
 import com.google.genai.types.ModalityTokenCount;
 import com.google.genai.types.TrafficType;
 import org.junit.jupiter.api.Test;
-import tools.jackson.databind.json.JsonMapper;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -237,7 +237,7 @@ public class GoogleGenAiUsageTests {
 		GoogleGenAiUsage usage = new GoogleGenAiUsage(100, 50, 175, 25, 30, 15, null, null, null, null,
 				GoogleGenAiTrafficType.ON_DEMAND, null);
 
-		String json = JsonMapper.shared().writeValueAsString(usage);
+		String json = JsonMapper.builder().findAndAddModules().build().writeValueAsString(usage);
 
 		assertThat(json).contains("\"promptTokens\":100");
 		assertThat(json).contains("\"completionTokens\":50");

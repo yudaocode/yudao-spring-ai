@@ -41,7 +41,7 @@ import org.springframework.ai.embedding.observation.EmbeddingModelObservationDoc
 import org.springframework.ai.mistralai.api.MistralAiApi;
 import org.springframework.ai.model.ModelOptionsUtils;
 import org.springframework.ai.retry.RetryUtils;
-import org.springframework.core.retry.RetryTemplate;
+import org.springframework.retry.support.RetryTemplate;
 import org.springframework.util.Assert;
 
 /**
@@ -117,36 +117,37 @@ public class MistralAiEmbeddingModel extends AbstractEmbeddingModel {
 			.provider(MistralAiApi.PROVIDER_NAME)
 			.build();
 
-		return EmbeddingModelObservationDocumentation.EMBEDDING_MODEL_OPERATION
-			.observation(this.observationConvention, DEFAULT_OBSERVATION_CONVENTION, () -> observationContext,
-					this.observationRegistry)
-			.observe(() -> {
-				var embeddingResponseEntity = RetryUtils.execute(this.retryTemplate,
-						() -> this.mistralAiApi.embeddings(apiRequest));
-				MistralAiApi.EmbeddingList<MistralAiApi.Embedding> apiEmbeddingResponse = embeddingResponseEntity
-					.getBody();
+		return java.util.Objects.requireNonNull(
+				EmbeddingModelObservationDocumentation.EMBEDDING_MODEL_OPERATION
+					.observation(this.observationConvention, DEFAULT_OBSERVATION_CONVENTION, () -> observationContext,
+							this.observationRegistry)
+					.observe(() -> {
+						var embeddingResponseEntity = RetryUtils.execute(this.retryTemplate,
+								() -> this.mistralAiApi.embeddings(apiRequest));
+						MistralAiApi.EmbeddingList<MistralAiApi.Embedding> apiEmbeddingResponse = embeddingResponseEntity
+							.getBody();
 
-				if (apiEmbeddingResponse == null) {
-					if (logger.isWarnEnabled()) {
-						logger.warn("No embeddings returned for request: " + request);
-					}
-					return new EmbeddingResponse(List.of());
-				}
+						if (apiEmbeddingResponse == null) {
+							if (logger.isWarnEnabled()) {
+								logger.warn("No embeddings returned for request: " + request);
+							}
+							return new EmbeddingResponse(List.of());
+						}
 
-				var metadata = new EmbeddingResponseMetadata(apiEmbeddingResponse.model(),
-						getDefaultUsage(apiEmbeddingResponse.usage()));
+						var metadata = new EmbeddingResponseMetadata(apiEmbeddingResponse.model(),
+								getDefaultUsage(apiEmbeddingResponse.usage()));
 
-				var embeddings = apiEmbeddingResponse.data()
-					.stream()
-					.map(e -> new Embedding(e.embedding(), e.index()))
-					.toList();
+						var embeddings = apiEmbeddingResponse.data()
+							.stream()
+							.map(e -> new Embedding(e.embedding(), e.index()))
+							.toList();
 
-				var embeddingResponse = new EmbeddingResponse(embeddings, metadata);
+						var embeddingResponse = new EmbeddingResponse(embeddings, metadata);
 
-				observationContext.setResponse(embeddingResponse);
+						observationContext.setResponse(embeddingResponse);
 
-				return embeddingResponse;
-			});
+						return embeddingResponse;
+					}));
 	}
 
 	private EmbeddingRequest buildEmbeddingRequest(EmbeddingRequest embeddingRequest) {

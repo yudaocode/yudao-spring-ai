@@ -21,7 +21,8 @@ import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 
-import io.modelcontextprotocol.json.jackson3.JacksonMcpJsonMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
+import io.modelcontextprotocol.json.jackson2.JacksonMcpJsonMapper;
 import io.modelcontextprotocol.server.McpAsyncServer;
 import io.modelcontextprotocol.server.McpAsyncServerExchange;
 import io.modelcontextprotocol.server.McpServer;
@@ -46,7 +47,6 @@ import io.modelcontextprotocol.spec.McpServerTransportProvider;
 import io.modelcontextprotocol.spec.McpServerTransportProviderBase;
 import io.modelcontextprotocol.spec.McpStreamableServerTransportProvider;
 import reactor.core.publisher.Mono;
-import tools.jackson.databind.json.JsonMapper;
 
 import org.springframework.ai.mcp.customizer.McpServerCustomizer;
 import org.springframework.ai.mcp.server.common.autoconfigure.properties.McpServerChangeNotificationProperties;

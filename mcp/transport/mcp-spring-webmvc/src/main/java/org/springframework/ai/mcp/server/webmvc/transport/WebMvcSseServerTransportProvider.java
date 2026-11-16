@@ -396,7 +396,7 @@ public final class WebMvcSseServerTransportProvider implements McpServerTranspor
 			return ServerResponse.status(e.getStatusCode()).body(message);
 		}
 
-		if (request.param(SESSION_ID).isEmpty()) {
+		if (!request.param(SESSION_ID).isPresent()) {
 			return ServerResponse.badRequest()
 				.body(McpError.builder(McpSchema.ErrorCodes.METHOD_NOT_FOUND)
 					.message("Session ID missing in message endpoint")

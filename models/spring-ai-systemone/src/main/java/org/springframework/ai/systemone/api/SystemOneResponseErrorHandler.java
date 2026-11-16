@@ -66,7 +66,7 @@ public class SystemOneResponseErrorHandler implements RestClient.ResponseSpec.Er
 
 	@Override
 	public void handle(HttpRequest request, ClientHttpResponse response) throws IOException {
-		int status = response.getStatusCode().value();
+		int status = response.getRawStatusCode();
 		HttpHeaders headers = response.getHeaders();
 		String body = readBody(response);
 		String endpoint = "%s %s".formatted(request.getMethod().name(), request.getURI());

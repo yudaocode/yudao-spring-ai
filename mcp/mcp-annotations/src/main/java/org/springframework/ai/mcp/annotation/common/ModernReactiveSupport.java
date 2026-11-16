@@ -54,7 +54,21 @@ import org.springframework.core.ReactiveAdapterRegistry;
  */
 public final class ModernReactiveSupport {
 
-	private static final ReactiveAdapterRegistry adapters = ReactiveAdapterRegistry.getSharedInstance();
+	private static final ReactiveAdapterRegistry adapters = java8Adapters();
+
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	private static ReactiveAdapterRegistry java8Adapters() {
+		ReactiveAdapterRegistry registry = ReactiveAdapterRegistry.getSharedInstance();
+		registry.registerReactiveType(
+				org.springframework.core.ReactiveTypeDescriptor.multiValue(
+						org.springframework.ai.compat.jdkhttp.Flow.Publisher.class,
+						() -> org.springframework.ai.compat.jdkhttp.FlowAdapters
+							.publisherToFlowPublisher(reactor.core.publisher.Flux.empty())),
+				value -> org.springframework.ai.compat.jdkhttp.FlowAdapters
+					.flowPublisherToFlux((org.springframework.ai.compat.jdkhttp.Flow.Publisher) value),
+				org.springframework.ai.compat.jdkhttp.FlowAdapters::publisherToFlowPublisher);
+		return registry;
+	}
 
 	private ModernReactiveSupport() {
 	}

@@ -19,7 +19,7 @@ package org.springframework.ai.mcp.modern;
 import java.util.List;
 import java.util.Map;
 
-import io.modelcontextprotocol.json.jackson3.JacksonMcpJsonMapper;
+import io.modelcontextprotocol.json.jackson2.JacksonMcpJsonMapper;
 import io.modelcontextprotocol.modern.McpSchema.Annotations;
 import io.modelcontextprotocol.modern.McpSchema.CallToolRequest;
 import io.modelcontextprotocol.modern.McpSchema.CallToolResult;

@@ -20,12 +20,12 @@ import java.lang.reflect.Type;
 import java.util.Map;
 import java.util.Objects;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jspecify.annotations.Nullable;
-import tools.jackson.core.JacksonException;
-import tools.jackson.databind.DeserializationFeature;
-import tools.jackson.databind.json.JsonMapper;
 
 import org.springframework.ai.util.JacksonUtils;
 import org.springframework.ai.util.json.schema.JsonSchemaGenerator;
@@ -191,7 +191,12 @@ public class BeanOutputConverter<T> implements StructuredOutputConverter<T> {
 		// Clean the text using the configured text cleaner
 		text = this.textCleaner.clean(text);
 
-		return (T) this.jsonMapper.readValue(text, this.jsonMapper.constructType(this.type));
+		try {
+			return (T) this.jsonMapper.readValue(text, this.jsonMapper.constructType(this.type));
+		}
+		catch (com.fasterxml.jackson.core.JsonProcessingException ex) {
+			throw new IllegalArgumentException("Cannot convert model output to " + this.type, ex);
+		}
 	}
 
 	/**
@@ -236,7 +241,7 @@ public class BeanOutputConverter<T> implements StructuredOutputConverter<T> {
 		try {
 			return this.jsonMapper.readValue(this.jsonSchema, Map.class);
 		}
-		catch (JacksonException ex) {
+		catch (JsonProcessingException ex) {
 			logger.error("Could not parse the JSON Schema to a Map object", ex);
 			throw new IllegalStateException(ex);
 		}

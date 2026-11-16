@@ -16,8 +16,8 @@
 
 package org.springframework.ai.ollama.api;
 
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import org.junit.jupiter.api.Test;
-import tools.jackson.databind.json.JsonMapper;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -30,86 +30,86 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class ThinkOptionTests {
 
 	@Test
-	void testThinkBooleanEnabledSerialization() {
+	void testThinkBooleanEnabledSerialization() throws Exception {
 		ThinkOption option = ThinkOption.ThinkBoolean.ENABLED;
-		String json = JsonMapper.shared().writeValueAsString(option);
+		String json = JsonMapper.builder().findAndAddModules().build().writeValueAsString(option);
 		assertThat(json).isEqualTo("true");
 	}
 
 	@Test
-	void testThinkBooleanDisabledSerialization() {
+	void testThinkBooleanDisabledSerialization() throws Exception {
 		ThinkOption option = ThinkOption.ThinkBoolean.DISABLED;
-		String json = JsonMapper.shared().writeValueAsString(option);
+		String json = JsonMapper.builder().findAndAddModules().build().writeValueAsString(option);
 		assertThat(json).isEqualTo("false");
 	}
 
 	@Test
-	void testThinkLevelLowSerialization() {
+	void testThinkLevelLowSerialization() throws Exception {
 		ThinkOption option = ThinkOption.ThinkLevel.LOW;
-		String json = JsonMapper.shared().writeValueAsString(option);
+		String json = JsonMapper.builder().findAndAddModules().build().writeValueAsString(option);
 		assertThat(json).isEqualTo("\"low\"");
 	}
 
 	@Test
-	void testThinkLevelMediumSerialization() {
+	void testThinkLevelMediumSerialization() throws Exception {
 		ThinkOption option = ThinkOption.ThinkLevel.MEDIUM;
-		String json = JsonMapper.shared().writeValueAsString(option);
+		String json = JsonMapper.builder().findAndAddModules().build().writeValueAsString(option);
 		assertThat(json).isEqualTo("\"medium\"");
 	}
 
 	@Test
 	void testThinkLevelHighSerialization() throws Exception {
 		ThinkOption option = ThinkOption.ThinkLevel.HIGH;
-		String json = JsonMapper.shared().writeValueAsString(option);
+		String json = JsonMapper.builder().findAndAddModules().build().writeValueAsString(option);
 		assertThat(json).isEqualTo("\"high\"");
 	}
 
 	@Test
-	void testDeserializeBooleanTrue() {
+	void testDeserializeBooleanTrue() throws Exception {
 		String json = "true";
-		ThinkOption option = JsonMapper.shared().readValue(json, ThinkOption.class);
+		ThinkOption option = JsonMapper.builder().findAndAddModules().build().readValue(json, ThinkOption.class);
 		assertThat(option).isEqualTo(ThinkOption.ThinkBoolean.ENABLED);
 		assertThat(option).isInstanceOf(ThinkOption.ThinkBoolean.class);
 		assertThat(((ThinkOption.ThinkBoolean) option).enabled()).isTrue();
 	}
 
 	@Test
-	void testDeserializeBooleanFalse() {
+	void testDeserializeBooleanFalse() throws Exception {
 		String json = "false";
-		ThinkOption option = JsonMapper.shared().readValue(json, ThinkOption.class);
+		ThinkOption option = JsonMapper.builder().findAndAddModules().build().readValue(json, ThinkOption.class);
 		assertThat(option).isEqualTo(ThinkOption.ThinkBoolean.DISABLED);
 		assertThat(option).isInstanceOf(ThinkOption.ThinkBoolean.class);
 		assertThat(((ThinkOption.ThinkBoolean) option).enabled()).isFalse();
 	}
 
 	@Test
-	void testDeserializeStringLow() {
+	void testDeserializeStringLow() throws Exception {
 		String json = "\"low\"";
-		ThinkOption option = JsonMapper.shared().readValue(json, ThinkOption.class);
+		ThinkOption option = JsonMapper.builder().findAndAddModules().build().readValue(json, ThinkOption.class);
 		assertThat(option).isInstanceOf(ThinkOption.ThinkLevel.class);
 		assertThat(((ThinkOption.ThinkLevel) option).level()).isEqualTo("low");
 	}
 
 	@Test
-	void testDeserializeStringMedium() {
+	void testDeserializeStringMedium() throws Exception {
 		String json = "\"medium\"";
-		ThinkOption option = JsonMapper.shared().readValue(json, ThinkOption.class);
+		ThinkOption option = JsonMapper.builder().findAndAddModules().build().readValue(json, ThinkOption.class);
 		assertThat(option).isInstanceOf(ThinkOption.ThinkLevel.class);
 		assertThat(((ThinkOption.ThinkLevel) option).level()).isEqualTo("medium");
 	}
 
 	@Test
-	void testDeserializeStringHigh() {
+	void testDeserializeStringHigh() throws Exception {
 		String json = "\"high\"";
-		ThinkOption option = JsonMapper.shared().readValue(json, ThinkOption.class);
+		ThinkOption option = JsonMapper.builder().findAndAddModules().build().readValue(json, ThinkOption.class);
 		assertThat(option).isInstanceOf(ThinkOption.ThinkLevel.class);
 		assertThat(((ThinkOption.ThinkLevel) option).level()).isEqualTo("high");
 	}
 
 	@Test
-	void testDeserializeNull() {
+	void testDeserializeNull() throws Exception {
 		String json = "null";
-		ThinkOption option = JsonMapper.shared().readValue(json, ThinkOption.class);
+		ThinkOption option = JsonMapper.builder().findAndAddModules().build().readValue(json, ThinkOption.class);
 		assertThat(option).isNull();
 	}
 

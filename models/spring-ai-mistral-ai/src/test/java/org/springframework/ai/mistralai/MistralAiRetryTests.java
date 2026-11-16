@@ -40,10 +40,10 @@ import org.springframework.ai.mistralai.api.MistralAiApi.EmbeddingRequest;
 import org.springframework.ai.mistralai.api.MistralAiApi.FinishReason;
 import org.springframework.ai.retry.RetryUtils;
 import org.springframework.ai.retry.TransientAiException;
-import org.springframework.core.retry.RetryListener;
-import org.springframework.core.retry.RetryPolicy;
-import org.springframework.core.retry.Retryable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.retry.RetryCallback;
+import org.springframework.retry.RetryContext;
+import org.springframework.retry.RetryListener;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -74,7 +74,7 @@ class MistralAiRetryTests {
 		this.mistralAiApi = mock();
 		var retryTemplate = RetryUtils.SHORT_RETRY_TEMPLATE;
 		this.retryListener = new TestRetryListener();
-		retryTemplate.setRetryListener(this.retryListener);
+		retryTemplate.setListeners(new RetryListener[] { this.retryListener });
 
 		this.chatModel = MistralAiChatModel.builder()
 			.mistralAiApi(this.mistralAiApi)
@@ -195,26 +195,32 @@ class MistralAiRetryTests {
 		// Should fail immediately on non-transient error, no further retries
 		assertThrows(RuntimeException.class, () -> this.chatModel.call(new Prompt("text")));
 
-		// Should have 1 retry attempt before hitting non-transient error
-		assertThat(this.retryListener.onErrorRetryCount).isEqualTo(1);
+		// Spring Retry notifies onError for both the transient and terminal failures.
+		assertThat(this.retryListener.onErrorRetryCount).isEqualTo(2);
+		org.mockito.Mockito.verify(this.mistralAiApi, org.mockito.Mockito.times(2))
+			.chatCompletionEntity(isA(ChatCompletionRequest.class));
 	}
 
-	private static class TestRetryListener implements RetryListener {
+	private static class TestRetryListener extends org.springframework.retry.listener.RetryListenerSupport {
 
 		int onErrorRetryCount = 0;
 
 		int onSuccessRetryCount = 0;
 
 		@Override
-		public void beforeRetry(final RetryPolicy retryPolicy, final Retryable<?> retryable) {
+		public <T, E extends Throwable> void onError(RetryContext context, RetryCallback<T, E> callback,
+				Throwable throwable) {
 			// Count each retry attempt
 			this.onErrorRetryCount++;
 		}
 
 		@Override
-		public void onRetrySuccess(final RetryPolicy retryPolicy, final Retryable<?> retryable, final Object result) {
-			// Count successful retries - we increment when we succeed after a failure
-			this.onSuccessRetryCount++;
+		public <T, E extends Throwable> void close(RetryContext context, RetryCallback<T, E> callback,
+				Throwable throwable) {
+			if (throwable == null) {
+				// Count successful retries - we increment when we succeed after a failure
+				this.onSuccessRetryCount++;
+			}
 		}
 
 	}

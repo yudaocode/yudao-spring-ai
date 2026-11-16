@@ -24,7 +24,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 
-import io.modelcontextprotocol.json.jackson3.JacksonMcpJsonMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
+import io.modelcontextprotocol.json.jackson2.JacksonMcpJsonMapper;
 import io.modelcontextprotocol.modern.McpSchema.Implementation;
 import io.modelcontextprotocol.modern.client.McpAsyncClient;
 import io.modelcontextprotocol.modern.client.McpClient;
@@ -35,7 +36,6 @@ import io.modelcontextprotocol.modern.client.transport.McpHttpRequestCustomizer;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jspecify.annotations.Nullable;
-import tools.jackson.databind.json.JsonMapper;
 
 import org.springframework.ai.mcp.annotation.McpElicitation;
 import org.springframework.ai.mcp.annotation.McpLogging;
@@ -197,37 +197,52 @@ public class McpClientModernAutoConfiguration {
 	 * @param transportCustomizers the customizers of the transport builders
 	 * @return the named transports
 	 */
-	@Bean
+	@Bean(destroyMethod = "close")
 	public List<NamedModernClientMcpTransport> modernStreamableHttpTransports(
 			McpStreamableHttpClientProperties streamableProperties, ObjectProvider<JsonMapper> jsonMapperProvider,
 			ObjectProvider<McpHttpRequestCustomizer> requestCustomizers,
 			ObjectProvider<McpHttpAuthorizationErrorHandler> authorizationErrorHandler,
 			ObjectProvider<McpClientCustomizer<HttpClientMcpTransport.Builder>> transportCustomizers) {
 
-		JsonMapper jsonMapper = jsonMapperProvider.getIfAvailable(JsonMapper::shared);
+		JsonMapper jsonMapper = jsonMapperProvider
+			.getIfAvailable(org.springframework.ai.util.JacksonUtils::getDefaultJsonMapper);
 
-		List<NamedModernClientMcpTransport> transports = new ArrayList<>();
+		ManagedModernMcpTransports transports = new ManagedModernMcpTransports();
 
-		for (Map.Entry<String, ConnectionParameters> connection : streamableProperties.getConnections().entrySet()) {
+		try {
+			for (Map.Entry<String, ConnectionParameters> connection : streamableProperties.getConnections()
+				.entrySet()) {
 
-			if (!connection.getValue().isModern()) {
-				// Legacy connections are served by the legacy transport
-				// auto-configurations.
-				continue;
+				if (!connection.getValue().isModern()) {
+					// Legacy connections are served by the legacy transport
+					// auto-configurations.
+					continue;
+				}
+
+				String name = connection.getKey();
+
+				HttpClientMcpTransport.Builder transportBuilder = HttpClientMcpTransport
+					.builder(endpointUri(name, connection.getValue()))
+					.jsonMapper(new JacksonMcpJsonMapper(jsonMapper));
+
+				requestCustomizers.orderedStream().forEach(transportBuilder::requestCustomizer);
+				authorizationErrorHandler.ifAvailable(transportBuilder::authorizationErrorHandler);
+
+				transportCustomizers.orderedStream()
+					.forEach(customizer -> customizer.customize(name, transportBuilder));
+
+				transports.add(new NamedModernClientMcpTransport(name, transportBuilder.build()));
 			}
 
-			String name = connection.getKey();
-
-			HttpClientMcpTransport.Builder transportBuilder = HttpClientMcpTransport
-				.builder(endpointUri(name, connection.getValue()))
-				.jsonMapper(new JacksonMcpJsonMapper(jsonMapper));
-
-			requestCustomizers.orderedStream().forEach(transportBuilder::requestCustomizer);
-			authorizationErrorHandler.ifAvailable(transportBuilder::authorizationErrorHandler);
-
-			transportCustomizers.orderedStream().forEach(customizer -> customizer.customize(name, transportBuilder));
-
-			transports.add(new NamedModernClientMcpTransport(name, transportBuilder.build()));
+		}
+		catch (RuntimeException | Error failure) {
+			try {
+				transports.close();
+			}
+			catch (RuntimeException cleanupFailure) {
+				failure.addSuppressed(cleanupFailure);
+			}
+			throw failure;
 		}
 
 		return transports;

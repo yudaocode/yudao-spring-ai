@@ -79,8 +79,9 @@ class Neo4jVectorStoreIT extends BaseVectorStoreTests {
 
 	@BeforeEach
 	void cleanDatabase() {
-		this.contextRunner
-			.run(context -> context.getBean(Driver.class).executableQuery("MATCH (n) DETACH DELETE n").execute());
+		this.contextRunner.run(context -> Neo4jDriverQueries
+			.executableQuery(context.getBean(Driver.class), "MATCH (n) DETACH DELETE n")
+			.execute());
 	}
 
 	@Override
@@ -94,26 +95,18 @@ class Neo4jVectorStoreIT extends BaseVectorStoreTests {
 	@Test
 	void addAndSearchTest() {
 		this.contextRunner.run(context -> {
-
 			VectorStore vectorStore = context.getBean(VectorStore.class);
-
 			vectorStore.add(this.documents);
-
 			List<Document> results = vectorStore
 				.similaritySearch(SearchRequest.builder().query("Great").topK(3).build());
-
 			assertThat(results).hasSizeGreaterThanOrEqualTo(1);
-
 			// Verify at least one result contains "Great Depression" and has meta2
 			assertThat(results)
 				.anyMatch(doc -> doc.getText().contains("Great Depression") && doc.getMetadata().containsKey("meta2"));
-
 			// Verify all results have distance metadata
 			assertThat(results).allMatch(doc -> doc.getMetadata().containsKey(DocumentMetadata.DISTANCE.value()));
-
 			// Remove all documents from the store
 			vectorStore.delete(this.documents.stream().map(Document::getId).toList());
-
 			List<Document> results2 = vectorStore
 				.similaritySearch(SearchRequest.builder().query("Great").topK(1).build());
 			assertThat(results2).isEmpty();
@@ -123,80 +116,57 @@ class Neo4jVectorStoreIT extends BaseVectorStoreTests {
 	@Test
 	void searchWithFilters() {
 		this.contextRunner.run(context -> {
-
 			VectorStore vectorStore = context.getBean(VectorStore.class);
-
 			var bgDocument = new Document("The World is Big and Salvation Lurks Around the Corner",
 					Map.of("country", "BG", "year", 2020, "foo bar 1", "bar.foo"));
 			var nlDocument = new Document("The World is Big and Salvation Lurks Around the Corner",
 					Map.of("country", "NL"));
 			var bgDocument2 = new Document("The World is Big and Salvation Lurks Around the Corner",
 					Map.of("country", "BG", "year", 2023));
-
 			vectorStore.add(List.of(bgDocument, nlDocument, bgDocument2));
-
 			SearchRequest searchRequest = SearchRequest.builder()
 				.query("The World")
 				.topK(5)
 				.similarityThresholdAll()
 				.build();
-
 			List<Document> results = vectorStore.similaritySearch(searchRequest);
-
 			assertThat(results).hasSize(3);
-
 			results = vectorStore
 				.similaritySearch(SearchRequest.from(searchRequest).filterExpression("country == 'NL'").build());
-
 			assertThat(results).hasSize(1);
 			assertThat(results.get(0).getId()).isEqualTo(nlDocument.getId());
-
 			results = vectorStore
 				.similaritySearch(SearchRequest.from(searchRequest).filterExpression("country in ['NL']").build());
-
 			assertThat(results).hasSize(1);
 			assertThat(results.get(0).getId()).isEqualTo(nlDocument.getId());
-
 			results = vectorStore
 				.similaritySearch(SearchRequest.from(searchRequest).filterExpression("country nin ['BG']").build());
-
 			assertThat(results).hasSize(1);
 			assertThat(results.get(0).getId()).isEqualTo(nlDocument.getId());
-
 			results = vectorStore
 				.similaritySearch(SearchRequest.from(searchRequest).filterExpression("country not in ['BG']").build());
-
 			assertThat(results).hasSize(1);
 			assertThat(results.get(0).getId()).isEqualTo(nlDocument.getId());
-
 			results = vectorStore
 				.similaritySearch(SearchRequest.from(searchRequest).filterExpression("country == 'BG'").build());
-
 			assertThat(results).hasSize(2);
 			assertThat(results.get(0).getId()).isIn(bgDocument.getId(), bgDocument2.getId());
 			assertThat(results.get(1).getId()).isIn(bgDocument.getId(), bgDocument2.getId());
-
 			results = vectorStore.similaritySearch(
 					SearchRequest.from(searchRequest).filterExpression("country == 'BG' && year == 2020").build());
-
 			assertThat(results).hasSize(1);
 			assertThat(results.get(0).getId()).isEqualTo(bgDocument.getId());
-
 			results = vectorStore.similaritySearch(SearchRequest.from(searchRequest)
 				.filterExpression("(country == 'BG' && year == 2020) || (country == 'NL')")
 				.build());
-
 			assertThat(results).hasSize(2);
 			assertThat(results.get(0).getId()).isIn(bgDocument.getId(), nlDocument.getId());
 			assertThat(results.get(1).getId()).isIn(bgDocument.getId(), nlDocument.getId());
-
 			results = vectorStore.similaritySearch(SearchRequest.from(searchRequest)
 				.filterExpression("NOT((country == 'BG' && year == 2020) || (country == 'NL'))")
 				.build());
-
 			assertThat(results).hasSize(1);
 			assertThat(results.get(0).getId()).isEqualTo(bgDocument2.getId());
-
 			results = vectorStore.similaritySearch(SearchRequest.builder()
 				.query("The World")
 				.topK(5)
@@ -205,7 +175,6 @@ class Neo4jVectorStoreIT extends BaseVectorStoreTests {
 				.build());
 			assertThat(results).hasSize(1);
 			assertThat(results.get(0).getId()).isEqualTo(bgDocument.getId());
-
 			assertThatExceptionOfType(FilterExpressionTextParser.FilterExpressionParseException.class)
 				.isThrownBy(() -> vectorStore
 					.similaritySearch(SearchRequest.from(searchRequest).filterExpression("country == NL").build()))
@@ -215,65 +184,45 @@ class Neo4jVectorStoreIT extends BaseVectorStoreTests {
 
 	@Test
 	void documentUpdateTest() {
-
 		this.contextRunner.run(context -> {
-
 			VectorStore vectorStore = context.getBean(VectorStore.class);
-
 			Document document = new Document(UUID.randomUUID().toString(), "Spring AI rocks!!",
 					Collections.singletonMap("meta1", "meta1"));
-
 			vectorStore.add(List.of(document));
-
 			List<Document> results = vectorStore
 				.similaritySearch(SearchRequest.builder().query("Spring").topK(5).build());
-
 			assertThat(results).hasSize(1);
 			Document resultDoc = results.get(0);
 			assertThat(resultDoc.getId()).isEqualTo(document.getId());
 			assertThat(resultDoc.getText()).isEqualTo("Spring AI rocks!!");
 			assertThat(resultDoc.getMetadata()).containsKey("meta1");
 			assertThat(resultDoc.getMetadata()).containsKey(DocumentMetadata.DISTANCE.value());
-
 			Document sameIdDocument = new Document(document.getId(),
 					"The World is Big and Salvation Lurks Around the Corner",
 					Collections.singletonMap("meta2", "meta2"));
-
 			vectorStore.add(List.of(sameIdDocument));
-
 			results = vectorStore.similaritySearch(SearchRequest.builder().query("FooBar").topK(5).build());
-
 			assertThat(results).hasSize(1);
 			resultDoc = results.get(0);
 			assertThat(resultDoc.getId()).isEqualTo(document.getId());
 			assertThat(resultDoc.getText()).isEqualTo("The World is Big and Salvation Lurks Around the Corner");
 			assertThat(resultDoc.getMetadata()).containsKey("meta2");
 			assertThat(resultDoc.getMetadata()).containsKey(DocumentMetadata.DISTANCE.value());
-
 		});
 	}
 
 	@Test
 	void searchThresholdTest() {
-
 		this.contextRunner.run(context -> {
-
 			VectorStore vectorStore = context.getBean(VectorStore.class);
-
 			vectorStore.add(this.documents);
-
 			List<Document> fullResult = vectorStore
 				.similaritySearch(SearchRequest.builder().query("Great").topK(5).similarityThresholdAll().build());
-
 			List<Double> scores = fullResult.stream().map(Document::getScore).toList();
-
 			assertThat(scores).hasSize(3);
-
 			double similarityThreshold = (scores.get(0) + scores.get(1)) / 2;
-
 			List<Document> results = vectorStore.similaritySearch(
 					SearchRequest.builder().query("Great").topK(5).similarityThreshold(similarityThreshold).build());
-
 			assertThat(results).hasSize(1);
 			Document resultDoc = results.get(0);
 			assertThat(resultDoc.getId()).isEqualTo(this.documents.get(2).getId());
@@ -287,41 +236,38 @@ class Neo4jVectorStoreIT extends BaseVectorStoreTests {
 
 	@Test
 	void ensureVectorIndexGetsCreated() {
-		this.contextRunner.run(context -> assertThat(context.getBean(Driver.class)
-			.executableQuery(
-					"SHOW indexes yield name, type WHERE name = 'spring-ai-document-index' AND type = 'VECTOR' return count(*) > 0")
+		this.contextRunner.run(context -> assertThat(Neo4jDriverQueries.executableQuery(context.getBean(Driver.class),
+				"SHOW indexes yield name, type WHERE name = 'spring-ai-document-index' AND type = 'VECTOR' return count(*) > 0")
 			.execute()
 			.records()
-			.get(0) // get first record
+			.get(// get first record
+					0)
 			.get(0)
-			.asBoolean()) // get returned result
-			.isTrue());
+			.// get returned result
+			asBoolean()).isTrue());
 	}
 
 	@Test
 	void ensureIdIndexGetsCreated() {
-		this.contextRunner.run(context -> assertThat(context.getBean(Driver.class)
-			.executableQuery(
-					"SHOW indexes yield labelsOrTypes, properties, type WHERE any(x in labelsOrTypes where x = 'Document')  AND any(x in properties where x = 'id') AND type = 'RANGE' return count(*) > 0")
+		this.contextRunner.run(context -> assertThat(Neo4jDriverQueries.executableQuery(context.getBean(Driver.class),
+				"SHOW indexes yield labelsOrTypes, properties, type WHERE any(x in labelsOrTypes where x = 'Document')  AND any(x in properties where x = 'id') AND type = 'RANGE' return count(*) > 0")
 			.execute()
 			.records()
-			.get(0) // get first record
+			.get(// get first record
+					0)
 			.get(0)
-			.asBoolean()) // get returned result
-			.isTrue());
+			.// get returned result
+			asBoolean()).isTrue());
 	}
 
 	@Test
 	void deleteWithComplexFilterExpression() {
 		this.contextRunner.run(context -> {
 			VectorStore vectorStore = context.getBean(VectorStore.class);
-
 			var doc1 = new Document("Content 1", Map.of("type", "A", "priority", 1L));
 			var doc2 = new Document("Content 2", Map.of("type", "A", "priority", 2L));
 			var doc3 = new Document("Content 3", Map.of("type", "B", "priority", 1L));
-
 			vectorStore.add(List.of(doc1, doc2, doc3));
-
 			// Complex filter expression: (type == 'A' AND priority > 1)
 			Filter.Expression priorityFilter = new Filter.Expression(Filter.ExpressionType.GT,
 					new Filter.Key("priority"), new Filter.Value(1));
@@ -329,12 +275,9 @@ class Neo4jVectorStoreIT extends BaseVectorStoreTests {
 					new Filter.Value("A"));
 			Filter.Expression complexFilter = new Filter.Expression(Filter.ExpressionType.AND, typeFilter,
 					priorityFilter);
-
 			vectorStore.delete(complexFilter);
-
 			var results = vectorStore
 				.similaritySearch(SearchRequest.builder().query("Content").topK(5).similarityThresholdAll().build());
-
 			assertThat(results).hasSize(2);
 			assertThat(results.stream().map(doc -> doc.getMetadata().get("type")).collect(Collectors.toList()))
 				.containsExactlyInAnyOrder("A", "B");
@@ -357,18 +300,15 @@ class Neo4jVectorStoreIT extends BaseVectorStoreTests {
 		this.contextRunner.run(context -> {
 			Driver driver = context.getBean(Driver.class);
 			EmbeddingModel embeddingModel = context.getBean(EmbeddingModel.class);
-
 			// Create VectorStore with custom database name (neo4j is the default
 			// database)
 			VectorStore vectorStore = Neo4jVectorStore.builder(driver, embeddingModel)
 				.databaseName("neo4j")
 				.initializeSchema(true)
 				.build();
-
 			// Add documents using doAdd (which should respect the sessionConfig)
 			Document doc = new Document("Test content for custom database", Map.of("testKey", "testValue"));
 			vectorStore.add(List.of(doc));
-
 			// Verify the document was added by querying the specific database directly
 			// This ensures the sessionConfig was used correctly
 			try (var session = driver.session(org.neo4j.driver.SessionConfig.forDatabase("neo4j"))) {
@@ -379,16 +319,13 @@ class Neo4jVectorStoreIT extends BaseVectorStoreTests {
 					.asLong();
 				assertThat(count).isEqualTo(1);
 			}
-
 			// Verify through the VectorStore API as well
 			List<Document> results = vectorStore
 				.similaritySearch(SearchRequest.builder().query("Test content").topK(1).build());
-
 			assertThat(results).hasSize(1);
 			assertThat(results.get(0).getId()).isEqualTo(doc.getId());
 			assertThat(results.get(0).getText()).isEqualTo("Test content for custom database");
 			assertThat(results.get(0).getMetadata()).containsEntry("testKey", "testValue");
-
 			// Clean up
 			vectorStore.delete(List.of(doc.getId()));
 		});
@@ -399,22 +336,18 @@ class Neo4jVectorStoreIT extends BaseVectorStoreTests {
 		this.contextRunner.run(context -> {
 			Driver driver = context.getBean(Driver.class);
 			EmbeddingModel embeddingModel = context.getBean(EmbeddingModel.class);
-
 			// Create VectorStore with custom SessionConfig
 			var sessionConfig = org.neo4j.driver.SessionConfig.forDatabase("neo4j");
 			VectorStore vectorStore = Neo4jVectorStore.builder(driver, embeddingModel)
 				.sessionConfig(sessionConfig)
 				.initializeSchema(true)
 				.build();
-
 			// Add multiple documents to test batch processing
 			List<Document> docs = List.of(
 					new Document("First document with custom session", Map.of("category", "session-test", "index", 1)),
 					new Document("Second document with custom session", Map.of("category", "session-test", "index", 2)),
 					new Document("Third document with custom session", Map.of("category", "session-test", "index", 3)));
-
 			vectorStore.add(docs);
-
 			// Verify documents were added to the correct database by querying directly
 			try (var session = driver.session(sessionConfig)) {
 				var count = session
@@ -425,15 +358,12 @@ class Neo4jVectorStoreIT extends BaseVectorStoreTests {
 					.asLong();
 				assertThat(count).isEqualTo(3);
 			}
-
 			// Verify all documents were added through VectorStore API
 			List<Document> results = vectorStore.similaritySearch(
 					SearchRequest.builder().query("document custom session").topK(5).similarityThresholdAll().build());
-
 			assertThat(results).hasSize(3);
 			assertThat(results.stream().map(Document::getId).toList())
 				.containsExactlyInAnyOrderElementsOf(docs.stream().map(Document::getId).toList());
-
 			// Verify we can search with filters
 			results = vectorStore.similaritySearch(SearchRequest.builder()
 				.query("document custom session")
@@ -441,10 +371,8 @@ class Neo4jVectorStoreIT extends BaseVectorStoreTests {
 				.similarityThresholdAll()
 				.filterExpression("index == 2")
 				.build());
-
 			assertThat(results).hasSize(1);
 			assertThat(results.get(0).getMetadata()).containsEntry("index", 2L);
-
 			// Clean up
 			vectorStore.delete(docs.stream().map(Document::getId).toList());
 		});
@@ -453,9 +381,8 @@ class Neo4jVectorStoreIT extends BaseVectorStoreTests {
 	@Test
 	void vectorIndexDimensionsDefaultAndOverwriteWorks() {
 		this.contextRunner.run(context -> {
-			var result = context.getBean(Driver.class)
-				.executableQuery(
-						"SHOW VECTOR INDEXES yield name, options return name, options['indexConfig']['vector.dimensions'] as dimensions")
+			var result = Neo4jDriverQueries.executableQuery(context.getBean(Driver.class),
+					"SHOW VECTOR INDEXES yield name, options return name, options['indexConfig']['vector.dimensions'] as dimensions")
 				.execute()
 				.records()
 				.stream()
@@ -471,13 +398,11 @@ class Neo4jVectorStoreIT extends BaseVectorStoreTests {
 		@Bean
 		@Primary
 		public VectorStore vectorStore(Driver driver, EmbeddingModel embeddingModel) {
-
 			return Neo4jVectorStore.builder(driver, embeddingModel).initializeSchema(true).build();
 		}
 
 		@Bean
 		public VectorStore vectorStoreWithCustomDimension(Driver driver, EmbeddingModel embeddingModel) {
-
 			return Neo4jVectorStore.builder(driver, embeddingModel)
 				.initializeSchema(true)
 				.indexName("secondIndex")

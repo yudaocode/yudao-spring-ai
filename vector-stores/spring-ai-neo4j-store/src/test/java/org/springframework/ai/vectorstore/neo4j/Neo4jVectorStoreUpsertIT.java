@@ -36,8 +36,8 @@ import org.neo4j.driver.AuthTokens;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.GraphDatabase;
 import org.neo4j.driver.Session;
-import org.neo4j.driver.TransactionCallback;
-import org.neo4j.driver.TransactionContext;
+import org.neo4j.driver.Transaction;
+import org.neo4j.driver.TransactionWork;
 import org.neo4j.driver.exceptions.ClientException;
 import org.testcontainers.containers.Neo4jContainer;
 import org.testcontainers.junit.jupiter.Container;
@@ -96,9 +96,9 @@ class Neo4jVectorStoreUpsertIT extends AbstractVectorStoreUpsertTests {
 		// Each test starts from an index the shared store creates
 		try (Driver driver = driver()) {
 			for (String name : List.of(INDEX_NAME, CONFIGURED_INDEX_NAME, ANY_SIZE_INDEX_NAME)) {
-				driver.executableQuery("DROP INDEX `%s` IF EXISTS".formatted(name)).execute();
+				Neo4jDriverQueries.executableQuery(driver, "DROP INDEX `%s` IF EXISTS".formatted(name)).execute();
 			}
-			driver.executableQuery("MATCH (n) DETACH DELETE n").execute();
+			Neo4jDriverQueries.executableQuery(driver, "MATCH (n) DETACH DELETE n").execute();
 		}
 	}
 
@@ -138,14 +138,12 @@ class Neo4jVectorStoreUpsertIT extends AbstractVectorStoreUpsertTests {
 		executeTest(vectorStore -> {
 			Driver driver = vectorStore.<Driver>getNativeClient().orElseThrow();
 			CallCountingEmbeddingModel embeddingModel = new CallCountingEmbeddingModel(EMBEDDING_DIMENSIONS + 3);
-
 			// The shared store has already created the index
 			Neo4jVectorStore store = Neo4jVectorStore.builder(driver, embeddingModel)
 				.indexName(INDEX_NAME)
 				.initializeSchema(true)
 				.build();
 			assertThatNoException().isThrownBy(store::afterPropertiesSet);
-
 			store.upsert(List.of(embeddedDocument(UUID.randomUUID().toString(), "existing", Map.of("tag", "e"))));
 			assertWrongDimensionRejected(store);
 			assertThat(embeddingModel.calls()).isZero();
@@ -160,7 +158,6 @@ class Neo4jVectorStoreUpsertIT extends AbstractVectorStoreUpsertTests {
 			Neo4jVectorStore store = Neo4jVectorStore.builder(driver, embeddingModel)
 				.indexName("no-such-index")
 				.build();
-
 			assertThatIllegalStateException()
 				.isThrownBy(() -> store
 					.upsert(List.of(embeddedDocument(UUID.randomUUID().toString(), "nowhere", Map.of("tag", "n")))))
@@ -181,20 +178,17 @@ class Neo4jVectorStoreUpsertIT extends AbstractVectorStoreUpsertTests {
 				.indexName(INDEX_NAME)
 				.build();
 			String id = UUID.randomUUID().toString();
-
 			// Neo4j would store a vector of any size, so nothing is written while the
 			// size
 			// is unknown
 			assertThatIllegalStateException()
 				.isThrownBy(() -> store.upsert(List.of(embeddedDocument(id, "during outage", Map.of("tag", "o")))));
 			assertThat(readAll(vectorStore, 10)).isEmpty();
-
 			// A wrong-size query is still rejected, by Neo4j
 			SearchRequest request = SearchRequest.builder().topK(3).similarityThresholdAll().build();
 			assertThatExceptionOfType(ClientException.class)
 				.isThrownBy(() -> store.similaritySearch(new float[] { 1f, 0f, 0f }, request))
 				.withMessageContaining("indexed vectors have " + EMBEDDING_DIMENSIONS);
-
 			// Once the index can be read again its size is read and applies
 			failIndexReads.set(false);
 			store.upsert(List.of(embeddedDocument(id, "after outage", Map.of("tag", "a"))));
@@ -210,14 +204,12 @@ class Neo4jVectorStoreUpsertIT extends AbstractVectorStoreUpsertTests {
 			Driver driver = vectorStore.<Driver>getNativeClient().orElseThrow();
 			String id = UUID.randomUUID().toString();
 			vectorStore.upsert(List.of(embeddedDocument(id, "first", Map.of("tag", "v1", "removed", "old"))));
-			driver.executableQuery("""
+			Neo4jDriverQueries.executableQuery(driver, """
 					MATCH (n:Document {id: $id})
 					SET n.foreign = 'keep', n:Extra
 					CREATE (n)-[:LINKED_TO]->(:Other)""").withParameters(Map.of("id", id)).execute();
-
 			vectorStore.upsert(List.of(embeddedDocument(id, "second", Map.of("tag", "v2"))));
-
-			var record = driver.executableQuery("""
+			var record = Neo4jDriverQueries.executableQuery(driver, """
 					MATCH (n:Document {id: $id})
 					RETURN n.text AS text, n.foreign AS foreign, labels(n) AS labels,
 						[k IN keys(n) WHERE k STARTS WITH 'metadata.'] AS metadataKeys,
@@ -238,10 +230,8 @@ class Neo4jVectorStoreUpsertIT extends AbstractVectorStoreUpsertTests {
 	void theLaterEntryForAnIdInABatchIsWhatIsStored() {
 		executeTest(vectorStore -> {
 			String id = UUID.randomUUID().toString();
-
 			vectorStore.upsert(List.of(embeddedDocument(id, "earlier", Map.of("a", "1")),
 					embeddedDocument(id, "later", Map.of("b", "2"))));
-
 			assertThat(readAll(vectorStore, 10)).singleElement().satisfies(document -> {
 				assertThat(document.getText()).isEqualTo("later");
 				assertThat(document.getMetadata()).containsEntry("b", "2").doesNotContainKey("a");
@@ -255,7 +245,6 @@ class Neo4jVectorStoreUpsertIT extends AbstractVectorStoreUpsertTests {
 			Driver driver = vectorStore.<Driver>getNativeClient().orElseThrow();
 			String id = UUID.randomUUID().toString();
 			vectorStore.upsert(List.of(embeddedDocument(id, "seed", Map.of("a", "0"))));
-
 			// Writer A pauses between reading the metadata keys and writing, until writer
 			// B has finished or 3 seconds have passed
 			CountDownLatch aHasReadTheKeys = new CountDownLatch(1);
@@ -266,7 +255,6 @@ class Neo4jVectorStoreUpsertIT extends AbstractVectorStoreUpsertTests {
 					awaitQuietly(bIsDone, 3);
 				}
 			}), new FixedDimensionEmbeddingModel(EMBEDDING_DIMENSIONS)).indexName(INDEX_NAME).build();
-
 			ExecutorService executor = Executors.newFixedThreadPool(2);
 			try {
 				Future<?> a = executor
@@ -285,10 +273,9 @@ class Neo4jVectorStoreUpsertIT extends AbstractVectorStoreUpsertTests {
 			finally {
 				executor.shutdownNow();
 			}
-
 			// B waits for A's lock and then removes A's key; without the lock A would
 			// keep B's key
-			var keys = driver.executableQuery("""
+			var keys = Neo4jDriverQueries.executableQuery(driver, """
 					MATCH (n:Document {id: $id})
 					RETURN [k IN keys(n) WHERE k STARTS WITH 'metadata.'] AS keys""")
 				.withParameters(Map.of("id", id))
@@ -305,11 +292,12 @@ class Neo4jVectorStoreUpsertIT extends AbstractVectorStoreUpsertTests {
 	void startupFailsWhenAnIndexUnderAnotherNameCoversTheSameProperty() {
 		executeTest(vectorStore -> {
 			Driver driver = vectorStore.<Driver>getNativeClient().orElseThrow();
-			driver
-				.executableQuery("""
-						CREATE VECTOR INDEX `%s` FOR (n:%s) ON (n.embedding)
-						OPTIONS {indexConfig: {`vector.dimensions`: %d, `vector.similarity_function`: 'cosine'}}"""
-					.formatted(ANY_SIZE_INDEX_NAME, ANY_SIZE_LABEL, EMBEDDING_DIMENSIONS))
+			Neo4jDriverQueries
+				.executableQuery(driver,
+						"""
+								CREATE VECTOR INDEX `%s` FOR (n:%s) ON (n.embedding)
+								OPTIONS {indexConfig: {`vector.dimensions`: %d, `vector.similarity_function`: 'cosine'}}"""
+							.formatted(ANY_SIZE_INDEX_NAME, ANY_SIZE_LABEL, EMBEDDING_DIMENSIONS))
 				.execute();
 			Neo4jVectorStore store = Neo4jVectorStore
 				.builder(driver, new FixedDimensionEmbeddingModel(EMBEDDING_DIMENSIONS))
@@ -318,7 +306,6 @@ class Neo4jVectorStoreUpsertIT extends AbstractVectorStoreUpsertTests {
 				.indexName("upsert-other-name")
 				.initializeSchema(true)
 				.build();
-
 			assertThatIllegalStateException().isThrownBy(store::afterPropertiesSet)
 				.withMessageContaining("upsert-other-name");
 		});
@@ -328,13 +315,14 @@ class Neo4jVectorStoreUpsertIT extends AbstractVectorStoreUpsertTests {
 	void anIndexWithoutDimensionsTakesVectorsOfAnySize() {
 		executeTest(vectorStore -> {
 			Driver driver = vectorStore.<Driver>getNativeClient().orElseThrow();
-			driver
-				.executableQuery("""
-						CREATE VECTOR INDEX `%s` FOR (n:%s) ON (n.embedding)
-						OPTIONS {indexConfig: {`vector.similarity_function`: 'cosine'}}"""
-					.formatted(ANY_SIZE_INDEX_NAME, ANY_SIZE_LABEL))
+			Neo4jDriverQueries
+				.executableQuery(driver,
+						"""
+								CREATE VECTOR INDEX `%s` FOR (n:%s) ON (n.embedding)
+								OPTIONS {indexConfig: {`vector.similarity_function`: 'cosine'}}"""
+							.formatted(ANY_SIZE_INDEX_NAME, ANY_SIZE_LABEL))
 				.execute();
-			driver.executableQuery("CALL db.awaitIndexes()").execute();
+			Neo4jDriverQueries.executableQuery(driver, "CALL db.awaitIndexes()").execute();
 			CallCountingEmbeddingModel embeddingModel = new CallCountingEmbeddingModel(EMBEDDING_DIMENSIONS);
 			Neo4jVectorStore store = Neo4jVectorStore.builder(driver, embeddingModel)
 				.label(ANY_SIZE_LABEL)
@@ -342,11 +330,9 @@ class Neo4jVectorStoreUpsertIT extends AbstractVectorStoreUpsertTests {
 				.build();
 			String smallId = UUID.randomUUID().toString();
 			String largeId = UUID.randomUUID().toString();
-
 			store.upsert(List.of(new EmbeddedDocument(new Document(smallId, "small", Map.of()), new float[] { 1f, 0f }),
 					new EmbeddedDocument(new Document(largeId, "large", Map.of()),
 							new float[] { 1f, 0f, 0f, 0f, 0f })));
-
 			SearchRequest request = SearchRequest.builder().topK(5).similarityThresholdAll().build();
 			assertThat(store.similaritySearch(new float[] { 1f, 0f }, request)).extracting(Document::getId)
 				.containsExactly(smallId);
@@ -383,9 +369,9 @@ class Neo4jVectorStoreUpsertIT extends AbstractVectorStoreUpsertTests {
 
 	private static Session sessionWithStatementHook(Session session, Consumer<String> hook) {
 		return proxy(Session.class, session, (method, args) -> {
-			if (args != null && args.length > 0 && args[0] instanceof TransactionCallback<?> callback) {
-				args[0] = (TransactionCallback<?>) tx -> callback
-					.execute(proxy(TransactionContext.class, tx, (txMethod, txArgs) -> {
+			if (args != null && args.length > 0 && args[0] instanceof TransactionWork<?> callback) {
+				args[0] = (TransactionWork<?>) tx -> callback
+					.execute(proxy(Transaction.class, tx, (txMethod, txArgs) -> {
 						if (txMethod.getName().equals("run") && txArgs[0] instanceof String query) {
 							hook.accept(query);
 						}

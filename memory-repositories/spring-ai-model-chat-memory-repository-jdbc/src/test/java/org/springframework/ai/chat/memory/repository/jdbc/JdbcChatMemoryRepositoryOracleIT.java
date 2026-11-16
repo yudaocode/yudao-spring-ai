@@ -18,7 +18,6 @@ package org.springframework.ai.chat.memory.repository.jdbc;
 
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.jdbc.Sql;
 
 /**
  * Integration tests for {@link JdbcChatMemoryRepository} with Oracle.
@@ -29,8 +28,8 @@ import org.springframework.test.context.jdbc.Sql;
 @SpringBootTest
 @TestPropertySource(properties = { "spring.datasource.url=jdbc:tc:oracle:slim-faststart:///FREEPDB1",
 		"spring.datasource.username=test", "spring.datasource.password=test" })
-@Sql(scripts = "classpath:org/springframework/ai/chat/memory/repository/jdbc/schema-oracle.sql",
-		executionPhase = Sql.ExecutionPhase.BEFORE_TEST_CLASS)
+@TestPropertySource(properties = { "spring.sql.init.mode=always",
+		"spring.sql.init.schema-locations=classpath:org/springframework/ai/chat/memory/repository/jdbc/schema-oracle.sql" })
 class JdbcChatMemoryRepositoryOracleIT extends AbstractJdbcChatMemoryRepositoryIT {
 
 }

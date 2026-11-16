@@ -78,7 +78,7 @@ final class ModernToolDefinitions {
 		Class<?> outcomeClass = ModernReactiveSupport.outcomeClass(method);
 		if (annotation.generateOutputSchema() && outcomeClass != null && !isProtocolResultType(outcomeClass)
 				&& !isVoid(outcomeClass) && !ClassUtils.isPrimitiveOrWrapper(outcomeClass)
-				&& !ClassUtils.isSimpleValueType(outcomeClass)) {
+				&& !org.springframework.ai.util.Java8SpringTypes.isSimpleValueType(outcomeClass)) {
 			toolBuilder.outputSchema(jsonMapper, McpJsonSchemaGenerator.generateFromType(outcomeType));
 		}
 		Tool tool = toolBuilder.build();

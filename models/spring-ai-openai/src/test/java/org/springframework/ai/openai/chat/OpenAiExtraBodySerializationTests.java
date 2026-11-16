@@ -18,8 +18,8 @@ package org.springframework.ai.openai.chat;
 
 import java.util.Map;
 
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import org.junit.jupiter.api.Test;
-import tools.jackson.databind.json.JsonMapper;
 
 import org.springframework.ai.openai.OpenAiChatOptions;
 
@@ -44,7 +44,11 @@ class OpenAiExtraBodySerializationTests {
 			.build();
 
 		// Act: Serialize to JSON
-		String json = JsonMapper.shared().writerWithDefaultPrettyPrinter().writeValueAsString(options);
+		String json = JsonMapper.builder()
+			.findAndAddModules()
+			.build()
+			.writerWithDefaultPrettyPrinter()
+			.writeValueAsString(options);
 
 		// Assert: Verify @JsonAnyGetter flattens fields to top level
 		assertThat(json).contains("\"top_k\" : 50");
@@ -58,7 +62,11 @@ class OpenAiExtraBodySerializationTests {
 		OpenAiChatOptions options = OpenAiChatOptions.builder().model("gpt-4").extraBody(Map.of()).build();
 
 		// Act
-		String json = JsonMapper.shared().writerWithDefaultPrettyPrinter().writeValueAsString(options);
+		String json = JsonMapper.builder()
+			.findAndAddModules()
+			.build()
+			.writerWithDefaultPrettyPrinter()
+			.writeValueAsString(options);
 
 		// Assert: No extra fields should appear
 		assertThat(json).doesNotContain("extra_body");
@@ -71,7 +79,11 @@ class OpenAiExtraBodySerializationTests {
 		OpenAiChatOptions options = OpenAiChatOptions.builder().model("gpt-4").extraBody(null).build();
 
 		// Act
-		String json = JsonMapper.shared().writerWithDefaultPrettyPrinter().writeValueAsString(options);
+		String json = JsonMapper.builder()
+			.findAndAddModules()
+			.build()
+			.writerWithDefaultPrettyPrinter()
+			.writeValueAsString(options);
 
 		// Assert: No extra fields should appear
 		assertThat(json).doesNotContain("extra_body");

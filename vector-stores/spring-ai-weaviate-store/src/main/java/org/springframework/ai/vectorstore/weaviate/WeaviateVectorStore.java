@@ -25,6 +25,8 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import io.weaviate.client.WeaviateClient;
 import io.weaviate.client.base.Result;
 import io.weaviate.client.base.WeaviateErrorMessage;
@@ -44,8 +46,6 @@ import io.weaviate.client.v1.graphql.query.fields.Field;
 import io.weaviate.client.v1.graphql.query.fields.Fields;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import tools.jackson.core.JacksonException;
-import tools.jackson.databind.json.JsonMapper;
 
 import org.springframework.ai.document.Document;
 import org.springframework.ai.document.DocumentMetadata;
@@ -243,10 +243,13 @@ public class WeaviateVectorStore extends AbstractObservationVectorStore {
 		Map<String, Object> fields = new HashMap<>();
 		fields.put(this.options.getContentFieldName(), document.getText());
 		try {
-			String metadataString = JsonMapper.shared().writeValueAsString(document.getMetadata());
+			String metadataString = JsonMapper.builder()
+				.findAndAddModules()
+				.build()
+				.writeValueAsString(document.getMetadata());
 			fields.put(METADATA_FIELD_NAME, metadataString);
 		}
-		catch (JacksonException e) {
+		catch (JsonProcessingException e) {
 			throw new RuntimeException("Failed to serialize the Document metadata: " + document.getText());
 		}
 
@@ -319,7 +322,7 @@ public class WeaviateVectorStore extends AbstractObservationVectorStore {
 				logger.debug("No documents found matching filter expression");
 			}
 		}
-		catch (JacksonException e) {
+		catch (RuntimeException e) {
 			logger.error("Failed to delete documents by filter", e);
 			throw new IllegalStateException("Failed to delete documents by filter", e);
 		}
@@ -409,7 +412,7 @@ public class WeaviateVectorStore extends AbstractObservationVectorStore {
 
 		String metadataJson = (String) item.get(METADATA_FIELD_NAME);
 		if (StringUtils.hasText(metadataJson)) {
-			metadata.putAll(JsonMapper.shared().readValue(metadataJson, Map.class));
+			metadata.putAll(new org.springframework.ai.util.JsonHelper().fromJsonToMap(metadataJson));
 		}
 
 		// Content

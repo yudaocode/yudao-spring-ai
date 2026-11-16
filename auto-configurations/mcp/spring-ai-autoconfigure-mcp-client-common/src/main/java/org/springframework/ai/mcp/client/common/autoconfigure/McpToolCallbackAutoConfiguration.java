@@ -260,7 +260,7 @@ public class McpToolCallbackAutoConfiguration {
 			ObjectProvider<McpToolNamePrefixGenerator> legacyToolNamePrefixGenerator,
 			ObjectProvider<McpModernToolFilter> modernToolFilter,
 			ObjectProvider<McpModernToolNamePrefixGenerator> modernToolNamePrefixGenerator) {
-		if (legacyToolFilter.stream().findAny().isPresent() && modernToolFilter.stream().findAny().isEmpty()) {
+		if (legacyToolFilter.stream().findAny().isPresent() && !modernToolFilter.stream().findAny().isPresent()) {
 			throw new IllegalStateException("A McpToolFilter bean is defined, but it does not filter the tools of "
 					+ "the MCP connections that use the MODERN protocol " + modernConnectionNames
 					+ ". Define a McpModernToolFilter bean for them, for example McpModernToolFilter.acceptAll() "
@@ -268,7 +268,7 @@ public class McpToolCallbackAutoConfiguration {
 		}
 		McpToolNamePrefixGenerator legacyNameGenerator = legacyToolNamePrefixGenerator.getIfUnique();
 		if (legacyNameGenerator != null && !(legacyNameGenerator instanceof DefaultMcpToolNamePrefixGenerator)
-				&& modernToolNamePrefixGenerator.stream().findAny().isEmpty()) {
+				&& !modernToolNamePrefixGenerator.stream().findAny().isPresent()) {
 			logger.warn("The McpToolNamePrefixGenerator bean does not name the tools of the MCP connections that "
 					+ "use the MODERN protocol " + modernConnectionNames
 					+ ". They are named <connection>_<tool> unless a McpModernToolNamePrefixGenerator bean is "

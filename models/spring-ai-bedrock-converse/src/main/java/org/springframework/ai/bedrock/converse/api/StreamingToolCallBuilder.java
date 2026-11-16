@@ -65,7 +65,7 @@ public class StreamingToolCallBuilder {
 		Assert.state(this.id != null, "Tool call id must not be null");
 		Assert.state(this.name != null, "Tool call name must not be null");
 		// Workaround to handle streaming tool calling with no input arguments.
-		String toolArgs = this.arguments.isEmpty() ? "{}" : this.arguments.toString();
+		String toolArgs = this.arguments.length() == 0 ? "{}" : this.arguments.toString();
 		return new AssistantMessage.ToolCall(this.id, "function", this.name, toolArgs);
 	}
 

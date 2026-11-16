@@ -50,7 +50,7 @@ import org.springframework.ai.vertexai.embedding.VertexAiEmbeddingConnectionDeta
 import org.springframework.ai.vertexai.embedding.VertexAiEmbeddingUtils;
 import org.springframework.ai.vertexai.embedding.VertexAiEmbeddingUtils.TextInstanceBuilder;
 import org.springframework.ai.vertexai.embedding.VertexAiEmbeddingUtils.TextParametersBuilder;
-import org.springframework.core.retry.RetryTemplate;
+import org.springframework.retry.support.RetryTemplate;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -127,48 +127,49 @@ public class VertexAiTextEmbeddingModel extends AbstractEmbeddingModel {
 			.provider(AiProvider.VERTEX_AI.value())
 			.build();
 
-		return EmbeddingModelObservationDocumentation.EMBEDDING_MODEL_OPERATION
-			.observation(this.observationConvention, DEFAULT_OBSERVATION_CONVENTION, () -> observationContext,
-					this.observationRegistry)
-			.observe(() -> {
-				try (PredictionServiceClient client = createPredictionServiceClient()) {
+		return java.util.Objects.requireNonNull(
+				EmbeddingModelObservationDocumentation.EMBEDDING_MODEL_OPERATION
+					.observation(this.observationConvention, DEFAULT_OBSERVATION_CONVENTION, () -> observationContext,
+							this.observationRegistry)
+					.observe(() -> {
+						try (PredictionServiceClient client = createPredictionServiceClient()) {
 
-					EmbeddingOptions options = embeddingRequest.getOptions();
-					Assert.state(options instanceof VertexAiTextEmbeddingOptions,
-							"options must be an instance of VertexAiTextEmbeddingOptions");
-					String model = options.getModel();
-					Assert.state(model != null, "model must not be null");
-					EndpointName endpointName = this.connectionDetails.getEndpointName(model);
+							EmbeddingOptions options = embeddingRequest.getOptions();
+							Assert.state(options instanceof VertexAiTextEmbeddingOptions,
+									"options must be an instance of VertexAiTextEmbeddingOptions");
+							String model = options.getModel();
+							Assert.state(model != null, "model must not be null");
+							EndpointName endpointName = this.connectionDetails.getEndpointName(model);
 
-					PredictRequest.Builder predictRequestBuilder = getPredictRequestBuilder(request, endpointName,
-							(VertexAiTextEmbeddingOptions) options);
+							PredictRequest.Builder predictRequestBuilder = getPredictRequestBuilder(request,
+									endpointName, (VertexAiTextEmbeddingOptions) options);
 
-					PredictResponse embeddingResponse = RetryUtils.execute(this.retryTemplate,
-							() -> getPredictResponse(client, predictRequestBuilder));
+							PredictResponse embeddingResponse = RetryUtils.execute(this.retryTemplate,
+									() -> getPredictResponse(client, predictRequestBuilder));
 
-					int index = 0;
-					int totalTokenCount = 0;
-					List<Embedding> embeddingList = new ArrayList<>();
-					for (Value prediction : embeddingResponse.getPredictionsList()) {
-						Value embeddings = prediction.getStructValue().getFieldsOrThrow("embeddings");
-						Value statistics = embeddings.getStructValue().getFieldsOrThrow("statistics");
-						Value tokenCount = statistics.getStructValue().getFieldsOrThrow("token_count");
-						totalTokenCount = totalTokenCount + (int) tokenCount.getNumberValue();
+							int index = 0;
+							int totalTokenCount = 0;
+							List<Embedding> embeddingList = new ArrayList<>();
+							for (Value prediction : embeddingResponse.getPredictionsList()) {
+								Value embeddings = prediction.getStructValue().getFieldsOrThrow("embeddings");
+								Value statistics = embeddings.getStructValue().getFieldsOrThrow("statistics");
+								Value tokenCount = statistics.getStructValue().getFieldsOrThrow("token_count");
+								totalTokenCount = totalTokenCount + (int) tokenCount.getNumberValue();
 
-						Value values = embeddings.getStructValue().getFieldsOrThrow("values");
+								Value values = embeddings.getStructValue().getFieldsOrThrow("values");
 
-						float[] vectorValues = VertexAiEmbeddingUtils.toVector(values);
+								float[] vectorValues = VertexAiEmbeddingUtils.toVector(values);
 
-						embeddingList.add(new Embedding(vectorValues, index++));
-					}
-					EmbeddingResponse response = new EmbeddingResponse(embeddingList,
-							generateResponseMetadata(model, totalTokenCount));
+								embeddingList.add(new Embedding(vectorValues, index++));
+							}
+							EmbeddingResponse response = new EmbeddingResponse(embeddingList,
+									generateResponseMetadata(model, totalTokenCount));
 
-					observationContext.setResponse(response);
+							observationContext.setResponse(response);
 
-					return response;
-				}
-			});
+							return response;
+						}
+					}));
 	}
 
 	EmbeddingRequest buildEmbeddingRequest(EmbeddingRequest embeddingRequest) {

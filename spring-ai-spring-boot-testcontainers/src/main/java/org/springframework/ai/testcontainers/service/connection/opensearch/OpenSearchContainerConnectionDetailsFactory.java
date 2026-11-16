@@ -19,7 +19,7 @@ package org.springframework.ai.testcontainers.service.connection.opensearch;
 import java.util.List;
 
 import org.jspecify.annotations.Nullable;
-import org.opensearch.testcontainers.OpenSearchContainer;
+import org.opensearch.testcontainers.OpensearchContainer;
 
 import org.springframework.ai.vectorstore.opensearch.autoconfigure.OpenSearchConnectionDetails;
 import org.springframework.boot.testcontainers.service.connection.ContainerConnectionDetailsFactory;
@@ -29,11 +29,11 @@ import org.springframework.boot.testcontainers.service.connection.ContainerConne
  * @author Eddú Meléndez
  */
 class OpenSearchContainerConnectionDetailsFactory
-		extends ContainerConnectionDetailsFactory<OpenSearchContainer<?>, OpenSearchConnectionDetails> {
+		extends ContainerConnectionDetailsFactory<OpensearchContainer<?>, OpenSearchConnectionDetails> {
 
 	@Override
 	public OpenSearchConnectionDetails getContainerConnectionDetails(
-			ContainerConnectionSource<OpenSearchContainer<?>> source) {
+			ContainerConnectionSource<OpensearchContainer<?>> source) {
 		return new OpenSearchContainerConnectionDetails(source);
 	}
 
@@ -41,9 +41,9 @@ class OpenSearchContainerConnectionDetailsFactory
 	 * {@link OpenSearchConnectionDetails} backed by a {@link ContainerConnectionSource}.
 	 */
 	private static final class OpenSearchContainerConnectionDetails
-			extends ContainerConnectionDetails<OpenSearchContainer<?>> implements OpenSearchConnectionDetails {
+			extends ContainerConnectionDetails<OpensearchContainer<?>> implements OpenSearchConnectionDetails {
 
-		private OpenSearchContainerConnectionDetails(ContainerConnectionSource<OpenSearchContainer<?>> source) {
+		private OpenSearchContainerConnectionDetails(ContainerConnectionSource<OpensearchContainer<?>> source) {
 			super(source);
 		}
 

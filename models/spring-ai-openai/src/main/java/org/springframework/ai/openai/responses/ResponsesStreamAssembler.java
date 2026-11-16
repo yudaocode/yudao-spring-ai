@@ -268,8 +268,8 @@ final class ResponsesStreamAssembler {
 		// response object does not always repeat them, and deriving an empty value from
 		// the items would silently erase what the stream delivered.
 		ChatGenerationMetadata generationMetadata = ResponsesItemMapper.toGenerationMetadata(response, items,
-				this.reasoning.isEmpty() ? null : this.reasoning.toString(),
-				this.refusal.isEmpty() ? null : this.refusal.toString());
+				(this.reasoning.length() == 0) ? null : this.reasoning.toString(),
+				(this.refusal.length() == 0) ? null : this.refusal.toString());
 
 		AssistantMessage.Builder<?> terminal = AssistantMessage.builder();
 		if (noItemEvents) {

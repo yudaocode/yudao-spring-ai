@@ -230,7 +230,8 @@ class OpenAiAudioSpeechModelTests {
 
 		ByteArrayOutputStream reassembled = new ByteArrayOutputStream();
 		for (TextToSpeechResponse response : responses) {
-			reassembled.writeBytes(response.getResult().getOutput());
+			byte[] chunkBytes = response.getResult().getOutput();
+			reassembled.write(chunkBytes, 0, chunkBytes.length);
 		}
 		assertThat(reassembled.toByteArray()).isEqualTo(audioBytes);
 

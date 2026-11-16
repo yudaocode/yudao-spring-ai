@@ -17,12 +17,11 @@
 package org.springframework.ai.retry.autoconfigure;
 
 import java.io.IOException;
-import java.net.URI;
 import java.nio.charset.StandardCharsets;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.NonNull;
 
 import org.springframework.ai.retry.NonTransientAiException;
 import org.springframework.ai.retry.RetryUtils;
@@ -32,12 +31,11 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
-import org.springframework.core.retry.RetryListener;
-import org.springframework.core.retry.RetryPolicy;
-import org.springframework.core.retry.RetryTemplate;
-import org.springframework.core.retry.Retryable;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.client.ClientHttpResponse;
+import org.springframework.retry.RetryCallback;
+import org.springframework.retry.RetryContext;
+import org.springframework.retry.support.RetryTemplate;
+import org.springframework.retry.support.RetryTemplateBuilder;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StreamUtils;
 import org.springframework.web.client.ResourceAccessException;
@@ -62,75 +60,71 @@ public class SpringAiRetryAutoConfiguration {
 	@Bean
 	@ConditionalOnMissingBean
 	public RetryTemplate retryTemplate(SpringAiRetryProperties properties) {
-		RetryPolicy retryPolicy = RetryPolicy.builder()
-			.maxRetries(properties.getMaxAttempts())
-			.includes(TransientAiException.class)
-			.includes(ResourceAccessException.class)
-			.delay(properties.getBackoff().getInitialInterval())
-			.multiplier(properties.getBackoff().getMultiplier())
-			.maxDelay(properties.getBackoff().getMaxInterval())
-			.build();
+		org.springframework.util.Assert.isTrue(
+				properties.getMaxAttempts() >= 0 && properties.getMaxAttempts() < Integer.MAX_VALUE,
+				"maxAttempts must be non-negative and less than Integer.MAX_VALUE");
+		RetryTemplateBuilder builder = RetryTemplate.builder()
+			.maxAttempts(properties.getMaxAttempts() + 1)
+			.retryOn(TransientAiException.class)
+			.retryOn(ResourceAccessException.class)
+			.exponentialBackoff(properties.getBackoff().getInitialInterval().toMillis(),
+					properties.getBackoff().getMultiplier(), properties.getBackoff().getMaxInterval().toMillis())
+			.withListener(new org.springframework.retry.listener.RetryListenerSupport() {
 
-		RetryTemplate retryTemplate = new RetryTemplate(retryPolicy);
-		retryTemplate.setRetryListener(new RetryListener() {
-			private final AtomicInteger retryCount = new AtomicInteger(0);
-
-			@Override
-			public void onRetryFailure(RetryPolicy policy, Retryable<?> retryable, Throwable throwable) {
-				int currentRetries = this.retryCount.incrementAndGet();
-				if (logger.isWarnEnabled()) {
-					logger.warn("Retry error. Retry count:" + currentRetries, throwable);
+				@Override
+				public <T, E extends Throwable> void onError(RetryContext context, RetryCallback<T, E> callback,
+						Throwable throwable) {
+					logger.warn("Retry error. Retry count: " + context.getRetryCount(), throwable);
 				}
-			}
-		});
-		return retryTemplate;
+			});
+		// Optionally add WebFlux pre-response network errors if present
+		try {
+			Class<?> webClientRequestEx = Class
+				.forName("org.springframework.web.reactive.function.client.WebClientRequestException");
+			@SuppressWarnings("unchecked")
+			Class<? extends Throwable> exClass = (Class<? extends Throwable>) webClientRequestEx;
+			builder.retryOn(exClass);
+		}
+		catch (ClassNotFoundException ignore) {
+			// WebFlux not on classpath; skip
+		}
+		return builder.build();
 	}
 
 	@Bean
 	@ConditionalOnMissingBean
 	public ResponseErrorHandler responseErrorHandler(SpringAiRetryProperties properties) {
-
 		return new ResponseErrorHandler() {
 
 			@Override
-			public boolean hasError(ClientHttpResponse response) throws IOException {
-				return response.getStatusCode().isError();
+			public boolean hasError(@NonNull ClientHttpResponse response) throws IOException {
+				return (response.getRawStatusCode() >= 400 && response.getRawStatusCode() < 600);
 			}
 
 			@Override
-			public void handleError(URI url, HttpMethod method, ClientHttpResponse response) throws IOException {
-				handleError(response);
-			}
-
-			@SuppressWarnings("removal")
-			public void handleError(ClientHttpResponse response) throws IOException {
-				if (!response.getStatusCode().isError()) {
+			public void handleError(@NonNull ClientHttpResponse response) throws IOException {
+				if (!(response.getRawStatusCode() >= 400 && response.getRawStatusCode() < 600)) {
 					return;
 				}
-
 				String error = StreamUtils.copyToString(response.getBody(), StandardCharsets.UTF_8);
 				if (error == null || error.isEmpty()) {
 					error = "No response body available";
 				}
-
-				String message = String.format("HTTP %s - %s", response.getStatusCode().value(), error);
-
+				String message = String.format("HTTP %s - %s", response.getRawStatusCode(), error);
 				// Explicitly configured transient codes
-				if (properties.getOnHttpCodes().contains(response.getStatusCode().value())) {
+				if (properties.getOnHttpCodes().contains(response.getRawStatusCode())) {
 					throw new TransientAiException(message);
 				}
-
 				// Handle client errors (4xx)
-				if (!properties.isOnClientErrors() && response.getStatusCode().is4xxClientError()) {
+				if (!properties.isOnClientErrors()
+						&& (response.getRawStatusCode() >= 400 && response.getRawStatusCode() < 500)) {
 					throw new NonTransientAiException(message);
 				}
-
 				// Explicitly configured non-transient codes
 				if (!CollectionUtils.isEmpty(properties.getExcludeOnHttpCodes())
-						&& properties.getExcludeOnHttpCodes().contains(response.getStatusCode().value())) {
+						&& properties.getExcludeOnHttpCodes().contains(response.getRawStatusCode())) {
 					throw new NonTransientAiException(message);
 				}
-
 				// Default to transient exception
 				throw new TransientAiException(message);
 			}

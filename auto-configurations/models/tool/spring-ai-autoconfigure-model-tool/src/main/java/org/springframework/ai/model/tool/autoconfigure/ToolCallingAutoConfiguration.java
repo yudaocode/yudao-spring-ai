@@ -229,7 +229,7 @@ public class ToolCallingAutoConfiguration {
 			policy = ToolCallConfirmationPolicy.none();
 		}
 		if (!confirmation.getTools().isEmpty()) {
-			policy = policy.or(ToolCallConfirmationPolicy.forTools(confirmation.getTools().toArray(String[]::new)));
+			policy = policy.or(ToolCallConfirmationPolicy.forTools(confirmation.getTools().toArray(new String[0])));
 		}
 		for (ToolCallConfirmationPolicy bean : beans) {
 			policy = policy.or(bean);

@@ -1,0 +1,8 @@
+{
+  "repository": "https://github.com/modelcontextprotocol/java-sdk",
+  "tag": "v2.2.0",
+  "commit": "81aed210cea9b4d080d0300944b6ee128cf64424",
+  "sourceArchive": "mcp-test-2.2.0-sources.jar",
+  "sha256": "4b95c110ddda2ab2b556ee889d0abb557cb78745ee0bc8ac3438446b1dbc37c5",
+  "license": "MIT"
+}

@@ -110,14 +110,15 @@ public class DefaultAroundAdvisorChain implements BaseAdvisorChain {
 			.order(advisor.getOrder())
 			.build();
 
-		return AdvisorObservationDocumentation.AI_ADVISOR
-			.observation(this.observationConvention, DEFAULT_OBSERVATION_CONVENTION, () -> observationContext,
-					this.observationRegistry)
-			.observe(() -> {
-				var chatClientResponse = advisor.adviseCall(chatClientRequest, this);
-				observationContext.setChatClientResponse(chatClientResponse);
-				return chatClientResponse;
-			});
+		return java.util.Objects.requireNonNull(
+				AdvisorObservationDocumentation.AI_ADVISOR
+					.observation(this.observationConvention, DEFAULT_OBSERVATION_CONVENTION, () -> observationContext,
+							this.observationRegistry)
+					.observe(() -> {
+						var chatClientResponse = advisor.adviseCall(chatClientRequest, this);
+						observationContext.setChatClientResponse(chatClientResponse);
+						return chatClientResponse;
+					}));
 	}
 
 	@Override

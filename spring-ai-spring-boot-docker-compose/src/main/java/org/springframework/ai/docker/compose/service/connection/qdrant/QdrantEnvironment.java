@@ -24,7 +24,7 @@ class QdrantEnvironment {
 
 	private final @Nullable String apiKey;
 
-	QdrantEnvironment(Map<String, @Nullable String> env) {
+	QdrantEnvironment(Map<String, ? extends @Nullable String> env) {
 		this.apiKey = env.get("QDRANT__SERVICE__API_KEY");
 	}
 

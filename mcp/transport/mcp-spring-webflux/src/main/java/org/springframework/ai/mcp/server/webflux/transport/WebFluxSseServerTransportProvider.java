@@ -423,7 +423,7 @@ public final class WebFluxSseServerTransportProvider implements McpServerTranspo
 			return ServerResponse.status(e.getStatusCode()).bodyValue(errorMessage != null ? errorMessage : "");
 		}
 
-		if (request.queryParam("sessionId").isEmpty()) {
+		if (!request.queryParam("sessionId").isPresent()) {
 			return ServerResponse.badRequest()
 				.bodyValue(McpError.builder(McpSchema.ErrorCodes.METHOD_NOT_FOUND)
 					.message("Session ID missing in message endpoint")

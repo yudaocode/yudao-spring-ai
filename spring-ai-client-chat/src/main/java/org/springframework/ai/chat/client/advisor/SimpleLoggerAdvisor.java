@@ -43,8 +43,16 @@ public class SimpleLoggerAdvisor implements CallAdvisor, StreamAdvisor {
 	public static final Function<@Nullable ChatClientRequest, String> DEFAULT_REQUEST_TO_STRING = chatClientRequest -> chatClientRequest != null
 			? chatClientRequest.toString() : "null";
 
-	public static final Function<@Nullable ChatResponse, String> DEFAULT_RESPONSE_TO_STRING = object -> object != null
-			? JacksonUtils.getDefaultJsonMapper().writerWithDefaultPrettyPrinter().writeValueAsString(object) : "null";
+	public static final Function<@Nullable ChatResponse, String> DEFAULT_RESPONSE_TO_STRING = object -> {
+		try {
+			return object != null
+					? JacksonUtils.getDefaultJsonMapper().writerWithDefaultPrettyPrinter().writeValueAsString(object)
+					: "null";
+		}
+		catch (com.fasterxml.jackson.core.JsonProcessingException ex) {
+			throw new IllegalStateException("Cannot serialize chat response", ex);
+		}
+	};
 
 	private static final Log logger = LogFactory.getLog(SimpleLoggerAdvisor.class);
 

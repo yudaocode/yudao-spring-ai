@@ -162,14 +162,14 @@ public abstract class AbstractObservationVectorStore implements VectorStore {
 			.queryRequest(request)
 			.build();
 
-		return VectorStoreObservationDocumentation.AI_VECTOR_STORE
+		return java.util.Objects.requireNonNull(VectorStoreObservationDocumentation.AI_VECTOR_STORE
 			.observation(this.customObservationConvention, DEFAULT_OBSERVATION_CONVENTION,
 					() -> searchObservationContext, this.observationRegistry)
 			.observe(() -> {
 				var documents = this.doSimilaritySearch(request);
 				searchObservationContext.setQueryResponse(documents);
 				return documents;
-			});
+			}));
 	}
 
 	@Override
@@ -199,14 +199,14 @@ public abstract class AbstractObservationVectorStore implements VectorStore {
 			.queryRequest(SearchRequest.from(request).query("").build())
 			.build();
 
-		return VectorStoreObservationDocumentation.AI_VECTOR_STORE
+		return java.util.Objects.requireNonNull(VectorStoreObservationDocumentation.AI_VECTOR_STORE
 			.observation(this.customObservationConvention, DEFAULT_OBSERVATION_CONVENTION,
 					() -> searchObservationContext, this.observationRegistry)
 			.observe(() -> {
 				var documents = this.doSimilaritySearch(queryEmbedding, request);
 				searchObservationContext.setQueryResponse(documents);
 				return documents;
-			});
+			}));
 	}
 
 	/**

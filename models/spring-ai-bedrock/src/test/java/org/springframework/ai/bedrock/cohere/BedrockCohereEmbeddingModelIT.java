@@ -19,11 +19,11 @@ package org.springframework.ai.bedrock.cohere;
 import java.time.Duration;
 import java.util.List;
 
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import software.amazon.awssdk.auth.credentials.EnvironmentVariableCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
-import tools.jackson.databind.json.JsonMapper;
 
 import org.springframework.ai.bedrock.RequiresAwsCredentials;
 import org.springframework.ai.bedrock.cohere.api.CohereEmbeddingBedrockApi;
@@ -35,8 +35,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.context.annotation.Bean;
-import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
@@ -48,7 +48,7 @@ class BedrockCohereEmbeddingModelIT {
 	@Autowired
 	private BedrockCohereEmbeddingModel embeddingModel;
 
-	@MockitoSpyBean
+	@SpyBean
 	private CohereEmbeddingBedrockApi embeddingApi;
 
 	@Autowired
@@ -68,9 +68,7 @@ class BedrockCohereEmbeddingModelIT {
 	void truncatesLongText() {
 		String longText = "Hello World".repeat(300);
 		assertThat(longText.length()).isGreaterThan(2048);
-
 		EmbeddingResponse embeddingResponse = this.embeddingModel.embedForResponse(List.of(longText));
-
 		assertThat(embeddingResponse.getResults()).hasSize(1);
 		assertThat(embeddingResponse.getResults().get(0).getOutput()).isNotEmpty();
 		assertThat(this.embeddingModel.dimensions()).isEqualTo(1024);
@@ -80,9 +78,7 @@ class BedrockCohereEmbeddingModelIT {
 	void truncatesMultipleLongTexts() {
 		String longText1 = "Hello World".repeat(300);
 		String longText2 = "Another Text".repeat(300);
-
 		EmbeddingResponse embeddingResponse = this.embeddingModel.embedForResponse(List.of(longText1, longText2));
-
 		assertThat(embeddingResponse.getResults()).hasSize(2);
 		assertThat(embeddingResponse.getResults().get(0).getOutput()).isNotEmpty();
 		assertThat(embeddingResponse.getResults().get(1).getOutput()).isNotEmpty();
@@ -92,18 +88,13 @@ class BedrockCohereEmbeddingModelIT {
 	@Test
 	void verifyExactTruncationLength() {
 		String longText = "x".repeat(3000);
-
 		ArgumentCaptor<CohereEmbeddingBedrockApi.CohereEmbeddingRequest> requestCaptor = ArgumentCaptor
 			.forClass(CohereEmbeddingBedrockApi.CohereEmbeddingRequest.class);
-
 		EmbeddingResponse embeddingResponse = this.embeddingModel.embedForResponse(List.of(longText));
-
 		verify(this.embeddingApi).embedding(requestCaptor.capture());
 		CohereEmbeddingBedrockApi.CohereEmbeddingRequest capturedRequest = requestCaptor.getValue();
-
 		assertThat(capturedRequest.texts()).hasSize(1);
 		assertThat(capturedRequest.texts().get(0).length()).isLessThanOrEqualTo(2048);
-
 		assertThat(embeddingResponse.getResults()).hasSize(1);
 		assertThat(embeddingResponse.getResults().get(0).getOutput()).isNotEmpty();
 	}
@@ -112,23 +103,19 @@ class BedrockCohereEmbeddingModelIT {
 	void truncatesLongTextFromStart() {
 		String startMarker = "START_MARKER_";
 		String endMarker = "_END_MARKER";
-		String middlePadding = "x".repeat(2500); // Long enough to force truncation
+		// Long enough to force truncation
+		String middlePadding = "x".repeat(2500);
 		String longText = startMarker + middlePadding + endMarker;
-
 		assertThat(longText.length()).isGreaterThan(2048);
-
 		ArgumentCaptor<CohereEmbeddingBedrockApi.CohereEmbeddingRequest> requestCaptor = ArgumentCaptor
 			.forClass(CohereEmbeddingBedrockApi.CohereEmbeddingRequest.class);
-
 		EmbeddingResponse embeddingResponse = this.embeddingModelStartTruncate.embedForResponse(List.of(longText));
-
 		// Verify truncation behavior
 		verify(this.embeddingApi).embedding(requestCaptor.capture());
 		String truncatedText = requestCaptor.getValue().texts().get(0);
 		assertThat(truncatedText.length()).isLessThanOrEqualTo(2048);
 		assertThat(truncatedText).doesNotContain(startMarker);
 		assertThat(truncatedText).endsWith(endMarker);
-
 		// Verify embedding response
 		assertThat(embeddingResponse.getResults()).hasSize(1);
 		assertThat(embeddingResponse.getResults().get(0).getOutput()).isNotEmpty();
@@ -145,7 +132,6 @@ class BedrockCohereEmbeddingModelIT {
 		assertThat(embeddingResponse.getResults().get(0).getIndex()).isEqualTo(0);
 		assertThat(embeddingResponse.getResults().get(1).getOutput()).isNotEmpty();
 		assertThat(embeddingResponse.getResults().get(1).getIndex()).isEqualTo(1);
-
 		assertThat(this.embeddingModel.dimensions()).isEqualTo(1024);
 	}
 
@@ -160,7 +146,6 @@ class BedrockCohereEmbeddingModelIT {
 		assertThat(embeddingResponse.getResults().get(0).getIndex()).isEqualTo(0);
 		assertThat(embeddingResponse.getResults().get(1).getOutput()).isNotEmpty();
 		assertThat(embeddingResponse.getResults().get(1).getIndex()).isEqualTo(1);
-
 		assertThat(this.embeddingModel.dimensions()).isEqualTo(1024);
 	}
 

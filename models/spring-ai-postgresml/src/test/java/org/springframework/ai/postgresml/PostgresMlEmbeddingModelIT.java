@@ -40,10 +40,11 @@ import org.springframework.ai.embedding.EmbeddingResponseMetadata;
 import org.springframework.ai.postgresml.PostgresMlEmbeddingModel.VectorType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
-import org.springframework.boot.jdbc.test.autoconfigure.JdbcTest;
-import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -58,7 +59,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 class PostgresMlEmbeddingModelIT {
 
 	@Container
-	@ServiceConnection
 	static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>(
 			DockerImageName.parse("ghcr.io/postgresml/postgresml:2.8.1").asCompatibleSubstituteFor("postgres"))
 		.withCommand("sleep", "infinity")
@@ -80,9 +80,7 @@ class PostgresMlEmbeddingModelIT {
 		PostgresMlEmbeddingModel embeddingModel = new PostgresMlEmbeddingModel(this.jdbcTemplate,
 				PostgresMlEmbeddingOptions.builder().build(), true);
 		embeddingModel.afterPropertiesSet();
-
 		float[] embed = embeddingModel.embed("Hello World!");
-
 		assertThat(embed).hasSize(768);
 	}
 
@@ -95,9 +93,7 @@ class PostgresMlEmbeddingModelIT {
 					.build(),
 				true);
 		embeddingModel.afterPropertiesSet();
-
 		float[] embed = embeddingModel.embed(new Document("Hello World!"));
-
 		assertThat(embed).hasSize(768);
 	}
 
@@ -106,9 +102,7 @@ class PostgresMlEmbeddingModelIT {
 		PostgresMlEmbeddingModel embeddingModel = new PostgresMlEmbeddingModel(this.jdbcTemplate,
 				PostgresMlEmbeddingOptions.builder().transformer("intfloat/e5-small").build(), true);
 		embeddingModel.afterPropertiesSet();
-
 		float[] embed = embeddingModel.embed(new Document("Hello World!"));
-
 		assertThat(embed).hasSize(384);
 	}
 
@@ -123,9 +117,7 @@ class PostgresMlEmbeddingModelIT {
 					.build(),
 				true);
 		embeddingModel.afterPropertiesSet();
-
 		float[] embed = embeddingModel.embed(new Document("Hello World!"));
-
 		assertThat(embed).hasSize(768);
 	}
 
@@ -139,27 +131,20 @@ class PostgresMlEmbeddingModelIT {
 					.build(),
 				true);
 		embeddingModel.afterPropertiesSet();
-
 		EmbeddingResponse embeddingResponse = embeddingModel
 			.embedForResponse(List.of("Hello World!", "Spring AI!", "LLM!"));
-
 		assertThat(embeddingResponse).isNotNull();
 		assertThat(embeddingResponse.getResults()).hasSize(3);
-
 		EmbeddingResponseMetadata metadata = embeddingResponse.getMetadata();
 		assertThat(metadata.keySet()).as("Metadata should contain exactly the expected keys")
 			.containsExactlyInAnyOrder("transformer", "vector-type", "kwargs");
-
 		assertThat(metadata.get("transformer").toString())
 			.as("Transformer in metadata should be 'distilbert-base-uncased'")
 			.isEqualTo("distilbert-base-uncased");
-
 		assertThat(metadata.get("vector-type").toString())
 			.as("Vector type in metadata should match expected vector type")
 			.isEqualTo(vectorType);
-
 		assertThat(metadata.get("kwargs").toString()).as("kwargs in metadata should be '{}'").isEqualTo("{}");
-
 		assertThat(embeddingResponse.getResults().get(0).getIndex()).isEqualTo(0);
 		assertThat(embeddingResponse.getResults().get(0).getOutput()).hasSize(768);
 		assertThat(embeddingResponse.getResults().get(1).getIndex()).isEqualTo(1);
@@ -170,7 +155,6 @@ class PostgresMlEmbeddingModelIT {
 
 	@Test
 	void embedCallWithRequestOptionsOverride() {
-
 		PostgresMlEmbeddingModel embeddingModel = new PostgresMlEmbeddingModel(this.jdbcTemplate,
 				PostgresMlEmbeddingOptions.builder()
 					.transformer("distilbert-base-uncased")
@@ -178,37 +162,27 @@ class PostgresMlEmbeddingModelIT {
 					.build(),
 				true);
 		embeddingModel.afterPropertiesSet();
-
 		var request1 = new EmbeddingRequest(List.of("Hello World!", "Spring AI!", "LLM!"),
 				EmbeddingOptions.builder().build());
-
 		EmbeddingResponse embeddingResponse = embeddingModel.call(request1);
-
 		assertThat(embeddingResponse).isNotNull();
 		assertThat(embeddingResponse.getResults()).hasSize(3);
-
 		EmbeddingResponseMetadata metadata = embeddingResponse.getMetadata();
-
 		assertThat(metadata.keySet()).as("Metadata should contain exactly the expected keys")
 			.containsExactlyInAnyOrder("transformer", "vector-type", "kwargs");
-
 		assertThat(metadata.get("transformer").toString())
 			.as("Transformer in metadata should be 'distilbert-base-uncased'")
 			.isEqualTo("distilbert-base-uncased");
-
 		assertThat(metadata.get("vector-type").toString())
 			.as("Vector type in metadata should match expected vector type")
 			.isEqualTo(VectorType.PG_VECTOR.name());
-
 		assertThat(metadata.get("kwargs").toString()).as("kwargs in metadata should be '{}'").isEqualTo("{}");
-
 		assertThat(embeddingResponse.getResults().get(0).getIndex()).isEqualTo(0);
 		assertThat(embeddingResponse.getResults().get(0).getOutput()).hasSize(768);
 		assertThat(embeddingResponse.getResults().get(1).getIndex()).isEqualTo(1);
 		assertThat(embeddingResponse.getResults().get(1).getOutput()).hasSize(768);
 		assertThat(embeddingResponse.getResults().get(2).getIndex()).isEqualTo(2);
 		assertThat(embeddingResponse.getResults().get(2).getOutput()).hasSize(768);
-
 		// Override the default options in the request
 		var request2 = new EmbeddingRequest(List.of("Hello World!", "Spring AI!", "LLM!"),
 				PostgresMlEmbeddingOptions.builder()
@@ -217,26 +191,18 @@ class PostgresMlEmbeddingModelIT {
 					.metadataMode(MetadataMode.EMBED)
 					.kwargs(Map.of("device", "cpu"))
 					.build());
-
 		embeddingResponse = embeddingModel.call(request2);
-
 		assertThat(embeddingResponse).isNotNull();
 		assertThat(embeddingResponse.getResults()).hasSize(3);
-
 		metadata = embeddingResponse.getMetadata();
-
 		assertThat(metadata.keySet()).as("Metadata should contain exactly the expected keys")
 			.containsExactlyInAnyOrder("transformer", "vector-type", "kwargs");
-
 		assertThat(metadata.get("transformer").toString()).as("Transformer in metadata should be 'intfloat/e5-small'")
 			.isEqualTo("intfloat/e5-small");
-
 		assertThat(metadata.get("vector-type").toString()).as("Vector type in metadata should be PG_ARRAY")
 			.isEqualTo(VectorType.PG_ARRAY.name());
-
 		assertThat(metadata.get("kwargs").toString()).as("kwargs in metadata should be '{\"device\":\"cpu\"}'")
 			.isEqualTo("{\"device\":\"cpu\"}");
-
 		assertThat(embeddingResponse.getResults().get(0).getIndex()).isEqualTo(0);
 		assertThat(embeddingResponse.getResults().get(0).getOutput()).hasSize(384);
 		assertThat(embeddingResponse.getResults().get(1).getIndex()).isEqualTo(1);
@@ -253,6 +219,14 @@ class PostgresMlEmbeddingModelIT {
 		Assertions.assertThat(embeddingModel.dimensions()).isEqualTo(768);
 		// cached
 		Assertions.assertThat(embeddingModel.dimensions()).isEqualTo(768);
+	}
+
+	@DynamicPropertySource
+	static void datasourceProperties(DynamicPropertyRegistry registry) {
+		registry.add("spring.datasource.url", postgres::getJdbcUrl);
+		registry.add("spring.datasource.username", postgres::getUsername);
+		registry.add("spring.datasource.password", postgres::getPassword);
+		registry.add("spring.datasource.driver-class-name", postgres::getDriverClassName);
 	}
 
 	@SpringBootApplication

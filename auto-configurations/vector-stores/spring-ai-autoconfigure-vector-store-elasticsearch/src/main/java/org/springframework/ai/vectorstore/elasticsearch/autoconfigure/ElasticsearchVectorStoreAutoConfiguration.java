@@ -16,8 +16,8 @@
 
 package org.springframework.ai.vectorstore.elasticsearch.autoconfigure;
 
-import co.elastic.clients.transport.rest5_client.low_level.Rest5Client;
 import io.micrometer.observation.ObservationRegistry;
+import org.elasticsearch.client.RestClient;
 
 import org.springframework.ai.embedding.BatchingStrategy;
 import org.springframework.ai.embedding.EmbeddingModel;
@@ -48,7 +48,7 @@ import org.springframework.context.annotation.Bean;
  * @since 1.0.0
  */
 @AutoConfiguration
-@ConditionalOnClass({ ElasticsearchVectorStore.class, EmbeddingModel.class, Rest5Client.class })
+@ConditionalOnClass({ ElasticsearchVectorStore.class, EmbeddingModel.class, RestClient.class })
 @EnableConfigurationProperties(ElasticsearchVectorStoreProperties.class)
 @ConditionalOnProperty(name = SpringAIVectorStoreTypes.TYPE, havingValue = SpringAIVectorStoreTypes.ELASTICSEARCH,
 		matchIfMissing = true)
@@ -62,13 +62,13 @@ public class ElasticsearchVectorStoreAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
-	ElasticsearchVectorStore vectorStore(ElasticsearchVectorStoreProperties properties, Rest5Client restClient,
+	ElasticsearchVectorStore vectorStore(ElasticsearchVectorStoreProperties properties, RestClient restClient,
 			EmbeddingModel embeddingModel, ObjectProvider<ObservationRegistry> observationRegistry,
 			ObjectProvider<VectorStoreObservationConvention> customObservationConvention,
 			BatchingStrategy batchingStrategy) {
 		ElasticsearchVectorStoreOptions elasticsearchVectorStoreOptions = new ElasticsearchVectorStoreOptions();
 
-		PropertyMapper mapper = PropertyMapper.get();
+		PropertyMapper mapper = PropertyMapper.get().alwaysApplyingWhenNonNull();
 		mapper.from(properties::getIndexName).whenHasText().to(elasticsearchVectorStoreOptions::setIndexName);
 		mapper.from(properties::getDimensions).to(elasticsearchVectorStoreOptions::setDimensions);
 		mapper.from(properties::getSimilarity).to(elasticsearchVectorStoreOptions::setSimilarity);

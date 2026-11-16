@@ -140,7 +140,8 @@ public class AsyncStatelessMcpToolProvider extends AbstractMcpToolProvider {
 							Class<?> methodReturnType = typeArgument instanceof Class<?> ? (Class<?>) typeArgument
 									: null;
 							if (!ClassUtils.isPrimitiveOrWrapper(methodReturnType)
-									&& !ClassUtils.isSimpleValueType(methodReturnType)) {
+									&& !org.springframework.ai.util.Java8SpringTypes
+										.isSimpleValueType(methodReturnType)) {
 								toolBuilder.outputSchema(this.getJsonMapper(),
 										McpJsonSchemaGenerator.generateFromType(typeArgument));
 							}

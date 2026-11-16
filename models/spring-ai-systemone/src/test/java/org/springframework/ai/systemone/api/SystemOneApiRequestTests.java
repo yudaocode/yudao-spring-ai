@@ -27,7 +27,6 @@ import org.springframework.ai.systemone.api.question.Score;
 import org.springframework.ai.systemone.api.question.SystemOneRequest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.test.json.JsonCompareMode;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.content;
@@ -358,7 +357,7 @@ class SystemOneApiRequestTests {
 		this.mock.server()
 			.expect(requestTo(MockSystemOneServer.SYSTEM_ONE_URL))
 			.andExpect(method(org.springframework.http.HttpMethod.POST))
-			.andExpect(content().json(expectedJson, JsonCompareMode.STRICT))
+			.andExpect(content().json(expectedJson, true))
 			.andRespond(MockSystemOneServer.jsonResponse(OK_BODY));
 	}
 

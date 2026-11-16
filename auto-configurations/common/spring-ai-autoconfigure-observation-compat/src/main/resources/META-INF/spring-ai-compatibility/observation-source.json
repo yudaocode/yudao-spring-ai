@@ -1,0 +1,21 @@
+{
+  "sourceArtifact": "org.springframework.boot:spring-boot-actuator-autoconfigure:3.5.15:jar:sources",
+  "sourceJarSha256": "f65694b1171661d29e1c3ed63d45b2e37f668f0842af5fa06486d12f4b6a3ed0",
+  "license": "Apache-2.0",
+  "originalFilesSha256": {
+    "org/springframework/boot/actuate/autoconfigure/observation/package-info.java": "3e80d627e6f05fa74bcf3c689391b3b7bd8d2052c34bb07c5ec26fba251b364c",
+    "org/springframework/boot/actuate/autoconfigure/observation/ObservationRegistryCustomizer.java": "d797d2b1591768ba2cbf1b50beba41f26a388c7b24ff711c4fbe84000ad9f88c",
+    "org/springframework/boot/actuate/autoconfigure/observation/ObservationRegistryPostProcessor.java": "b84a64e0e15aa87b27f7e0713c51c74c7da0e70247a1d9de49063f833c5e1a7f",
+    "org/springframework/boot/actuate/autoconfigure/observation/ObservationProperties.java": "0cc9a9264f38d61e29a6e9ae8e3231ead3eb33439d753dc6222cfb6a1d302b20",
+    "org/springframework/boot/actuate/autoconfigure/observation/ObservationRegistryConfigurer.java": "84e40bc0eb029df2da556f805b3487baeea6007b24026bfc0938b82d94cf9267",
+    "org/springframework/boot/actuate/autoconfigure/observation/ObservationHandlerGrouping.java": "cd689fe5ee03723ecbec28afec9a2296dc8bb18d0618cfbe05bdbca4c397876f",
+    "org/springframework/boot/actuate/autoconfigure/observation/PropertiesObservationFilterPredicate.java": "62cf56e005cb80417febb402d495805f2be9b419cf657d0afbc79c786f7c6fe5",
+    "org/springframework/boot/actuate/autoconfigure/observation/ObservationAutoConfiguration.java": "29d75cdc5b2fec85c01980c1f38afc4c16abafcc5ec8b9c073ca2dab3fca6cf0"
+  },
+  "scope": "Observation registry, property filter/predicate, customizers and handler grouping; no Boot 3 HTTP server, tracing setup or actuator runtime jar",
+  "changes": [
+    "Order via class names rather than unavailable Boot 3 tracing class",
+    "Boot 2 ConditionalOnProperty with havingValue=true",
+    "Java 8 collection/stream overloads"
+  ]
+}

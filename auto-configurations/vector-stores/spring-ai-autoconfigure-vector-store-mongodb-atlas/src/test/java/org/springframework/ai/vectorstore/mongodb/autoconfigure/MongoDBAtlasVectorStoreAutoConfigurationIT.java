@@ -20,7 +20,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.mongodb.ConnectionString;
 import io.micrometer.observation.tck.TestObservationRegistry;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
@@ -38,10 +37,9 @@ import org.springframework.ai.vectorstore.filter.FilterExpressionBuilder;
 import org.springframework.ai.vectorstore.mongodb.atlas.MongoDBAtlasVectorStore;
 import org.springframework.ai.vectorstore.observation.VectorStoreObservationContext;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
-import org.springframework.boot.data.mongodb.autoconfigure.DataMongoAutoConfiguration;
-import org.springframework.boot.mongodb.autoconfigure.MongoAutoConfiguration;
-import org.springframework.boot.mongodb.autoconfigure.MongoConnectionDetails;
-import org.springframework.boot.restclient.autoconfigure.RestClientAutoConfiguration;
+import org.springframework.boot.autoconfigure.data.mongo.MongoDataAutoConfiguration;
+import org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration;
+import org.springframework.boot.autoconfigure.web.client.RestClientAutoConfiguration;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -65,7 +63,7 @@ class MongoDBAtlasVectorStoreAutoConfigurationIT {
 
 	private ApplicationContextRunner getContextRunner() {
 		return new ApplicationContextRunner().withUserConfiguration(Config.class)
-			.withConfiguration(AutoConfigurations.of(MongoAutoConfiguration.class, DataMongoAutoConfiguration.class,
+			.withConfiguration(AutoConfigurations.of(MongoAutoConfiguration.class, MongoDataAutoConfiguration.class,
 					MongoDBAtlasVectorStoreAutoConfiguration.class, RestClientAutoConfiguration.class,
 					OpenAiEmbeddingAutoConfiguration.class))
 			.withPropertyValues("spring.ai.vectorstore.mongodb.initialize-schema=true",
@@ -199,16 +197,10 @@ class MongoDBAtlasVectorStoreAutoConfigurationIT {
 		}
 
 		@Bean
-		public MongoConnectionDetails mongoConnectionDetails() {
-			return new MongoConnectionDetails() {
-				@Override
-				public ConnectionString getConnectionString() {
-					// Add database name to the connection string
-					String baseUri = mongo.getConnectionString();
-					String uriWithDb = baseUri.replace("/?", "/springaisample?");
-					return new ConnectionString(uriWithDb);
-				}
-			};
+		public org.springframework.data.mongodb.MongoDatabaseFactory mongoDatabaseFactory() {
+			String baseUri = mongo.getConnectionString();
+			String uriWithDb = baseUri.replace("/?", "/springaisample?");
+			return new org.springframework.data.mongodb.core.SimpleMongoClientDatabaseFactory(uriWithDb);
 		}
 
 	}

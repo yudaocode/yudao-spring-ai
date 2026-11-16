@@ -34,8 +34,7 @@ import java.util.stream.Collectors;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jspecify.annotations.Nullable;
-import redis.clients.jedis.Pipeline;
-import redis.clients.jedis.RedisClient;
+import redis.clients.jedis.JedisPooled;
 import redis.clients.jedis.json.Path2;
 import redis.clients.jedis.search.FTCreateParams;
 import redis.clients.jedis.search.IndexDataType;
@@ -50,6 +49,7 @@ import redis.clients.jedis.search.schemafields.TextField;
 import redis.clients.jedis.search.schemafields.VectorField;
 import redis.clients.jedis.search.schemafields.VectorField.VectorAlgorithm;
 
+import org.springframework.ai.compat.jedis.internal.Pipeline;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.document.DocumentMetadata;
 import org.springframework.ai.embedding.EmbeddingModel;
@@ -281,7 +281,7 @@ public class RedisVectorStore extends AbstractObservationVectorStore implements 
 
 	private static final TextScorer DEFAULT_TEXT_SCORER = TextScorer.BM25;
 
-	private final RedisClient jedisClient;
+	private final JedisPooled jedisClient;
 
 	private final boolean initializeSchema;
 
@@ -309,7 +309,7 @@ public class RedisVectorStore extends AbstractObservationVectorStore implements 
 	private final Integer hnswEfRuntime;
 
 	// Default range threshold for range searches (0.0 to 1.0)
-	private final @Nullable Double defaultRangeThreshold;
+	@Nullable private final Double defaultRangeThreshold;
 
 	// Text search configuration
 	private final TextScorer textScorer;
@@ -333,9 +333,7 @@ public class RedisVectorStore extends AbstractObservationVectorStore implements 
 
 	protected RedisVectorStore(Builder builder) {
 		super(builder);
-
-		Assert.notNull(builder.jedisClient, "RedisClient must not be null");
-
+		Assert.notNull(builder.jedisClient, "JedisPooled must not be null");
 		this.jedisClient = builder.jedisClient;
 		this.indexName = builder.indexName;
 		this.prefix = builder.prefix;
@@ -353,18 +351,16 @@ public class RedisVectorStore extends AbstractObservationVectorStore implements 
 		this.hnswEfConstruction = builder.hnswEfConstruction;
 		this.hnswEfRuntime = builder.hnswEfRuntime;
 		this.defaultRangeThreshold = builder.defaultRangeThreshold;
-
 		// Text search properties
 		this.textScorer = (builder.textScorer != null) ? builder.textScorer : DEFAULT_TEXT_SCORER;
 		this.inOrder = builder.inOrder;
 		if (builder.stopwords != null && !builder.stopwords.isEmpty()) {
 			this.stopwords.addAll(builder.stopwords);
 		}
-
 		this.filterExpressionConverter = new RedisFilterExpressionConverter(this.metadataFields);
 	}
 
-	public RedisClient getJedisClient() {
+	public JedisPooled getJedisClient() {
 		return this.jedisClient;
 	}
 
@@ -375,22 +371,18 @@ public class RedisVectorStore extends AbstractObservationVectorStore implements 
 	@Override
 	public void doAdd(List<Document> documents) {
 		try (Pipeline pipeline = this.jedisClient.pipelined()) {
-
 			List<float[]> embeddings = this.embeddingModel.embed(documents, EmbeddingOptions.builder().build(),
 					this.batchingStrategy);
-
 			for (int i = 0; i < documents.size(); i++) {
 				Document document = documents.get(i);
 				warnOnUndeclaredMetadata(document);
 				warnOnReservedMetadataKeys(document);
 				var fields = new HashMap<String, Object>();
 				float[] embedding = embeddings.get(i);
-
 				// Normalize embeddings for COSINE distance metric
 				if (this.distanceMetric == DistanceMetric.COSINE) {
 					embedding = normalize(embedding);
 				}
-
 				// Metadata first, so a key that collides with the embedding or content
 				// field name cannot overwrite the vector or the text.
 				fields.putAll(document.getMetadata());
@@ -431,7 +423,6 @@ public class RedisVectorStore extends AbstractObservationVectorStore implements 
 		for (int i = 0; i < entries.size(); i++) {
 			checkDimensions("Embedding at index " + i, entries.get(i).embedding().length, expected);
 		}
-
 		try (Pipeline pipeline = this.jedisClient.pipelined()) {
 			for (int i = 0; i < entries.size(); i++) {
 				// Pair positionally: the document and its embedding come from the same
@@ -442,12 +433,10 @@ public class RedisVectorStore extends AbstractObservationVectorStore implements 
 				warnOnReservedMetadataKeys(document);
 				var fields = new HashMap<String, Object>();
 				float[] embedding = entry.embedding();
-
 				// Normalize embeddings for COSINE distance metric
 				if (this.distanceMetric == DistanceMetric.COSINE) {
 					embedding = normalize(embedding);
 				}
-
 				// Metadata first, so a key that collides with the embedding or content
 				// field name cannot overwrite the vector or the text.
 				fields.putAll(document.getMetadata());
@@ -531,13 +520,11 @@ public class RedisVectorStore extends AbstractObservationVectorStore implements 
 	@Override
 	protected void doDelete(Filter.Expression filterExpression) {
 		Assert.notNull(filterExpression, "Filter expression must not be null");
-
 		try {
 			String filterStr = this.filterExpressionConverter.convertExpression(filterExpression);
 			// To avoid deleting only the first page, we paginate through all matches.
 			final int pageSize = 1000;
 			int deletedCount = 0;
-
 			while (true) {
 				SearchResult searchResult = this.jedisClient.ftSearch(this.indexName,
 						new Query(filterStr).limit(0, pageSize));
@@ -545,7 +532,6 @@ public class RedisVectorStore extends AbstractObservationVectorStore implements 
 				if (docs == null || docs.isEmpty()) {
 					break;
 				}
-
 				try (Pipeline pipeline = this.jedisClient.pipelined()) {
 					for (redis.clients.jedis.search.Document doc : docs) {
 						String redisKey = doc.getId();
@@ -555,7 +541,6 @@ public class RedisVectorStore extends AbstractObservationVectorStore implements 
 					}
 					List<Object> responses = pipeline.syncAndReturnAll();
 					Optional<Object> errResponse = responses.stream().filter(Predicate.not(RESPONSE_DEL_OK)).findAny();
-
 					if (errResponse.isPresent()) {
 						if (logger.isErrorEnabled()) {
 							logger.error("Could not delete document: " + errResponse.get());
@@ -563,10 +548,8 @@ public class RedisVectorStore extends AbstractObservationVectorStore implements 
 						throw new IllegalStateException("Failed to delete some documents");
 					}
 				}
-
 				deletedCount += docs.size();
 			}
-
 			if (logger.isDebugEnabled()) {
 				logger.debug("Deleted " + deletedCount + " documents matching filter expression");
 			}
@@ -594,11 +577,9 @@ public class RedisVectorStore extends AbstractObservationVectorStore implements 
 	}
 
 	private List<Document> searchByEmbedding(float[] queryEmbedding, SearchRequest request) {
-
 		Assert.isTrue(request.getTopK() > 0, "The number of documents to be returned must be greater than zero");
 		Assert.isTrue(request.getSimilarityThreshold() >= 0 && request.getSimilarityThreshold() <= 1,
 				"The similarity score is bounded between 0 and 1; least to most similar respectively.");
-
 		// For the IP metric we need to adjust the threshold
 		final float effectiveThreshold;
 		if (this.distanceMetric == DistanceMetric.IP) {
@@ -608,19 +589,14 @@ public class RedisVectorStore extends AbstractObservationVectorStore implements 
 		else {
 			effectiveThreshold = (float) request.getSimilarityThreshold();
 		}
-
 		String filter = nativeExpressionFilter(request);
-
 		String queryString = String.format(QUERY_FORMAT, filter, request.getTopK(), this.embeddingFieldName,
 				EMBEDDING_PARAM_NAME, DISTANCE_FIELD_NAME);
-
 		float[] embedding = queryEmbedding;
-
 		// Normalize embeddings for COSINE distance metric
 		if (this.distanceMetric == DistanceMetric.COSINE) {
 			embedding = normalize(embedding);
 		}
-
 		// RediSearch does not order KNN results by distance on its own, so ask for it;
 		// otherwise the nearest match can come back anywhere in the list.
 		Query query = new Query(queryString).addParam(EMBEDDING_PARAM_NAME, RediSearchUtil.toByteArray(embedding))
@@ -628,15 +604,12 @@ public class RedisVectorStore extends AbstractObservationVectorStore implements 
 			.setSortBy(DISTANCE_FIELD_NAME, true)
 			.limit(0, request.getTopK())
 			.dialect(2);
-
 		SearchResult result = this.jedisClient.ftSearch(this.indexName, query);
-
 		// Add more detailed logging to understand thresholding
 		if (logger.isDebugEnabled()) {
 			logger.debug("Applying filtering with effectiveThreshold: " + effectiveThreshold);
 			logger.debug("Redis search returned " + result.getTotalResults() + " documents");
 		}
-
 		// Apply filtering based on effective threshold (may be different for IP metric)
 		List<Document> documents = result.getDocuments().stream().filter(d -> {
 			float score = similarityScore(d);
@@ -648,11 +621,9 @@ public class RedisVectorStore extends AbstractObservationVectorStore implements 
 			}
 			return isAboveThreshold;
 		}).map(this::toDocument).toList();
-
 		if (logger.isDebugEnabled()) {
 			logger.debug("After filtering, returning " + documents.size() + " documents");
 		}
-
 		return documents;
 	}
 
@@ -663,16 +634,13 @@ public class RedisVectorStore extends AbstractObservationVectorStore implements 
 			.map(MetadataField::name)
 			.filter(doc::hasProperty)
 			.collect(Collectors.toMap(Function.identity(), doc::getString));
-
 		// Get similarity score first
 		float similarity = similarityScore(doc);
-
 		// We store the raw score from Redis so it can be used for debugging (if
 		// available)
 		if (doc.hasProperty(DISTANCE_FIELD_NAME)) {
 			metadata.put(DISTANCE_FIELD_NAME, doc.getString(DISTANCE_FIELD_NAME));
 		}
-
 		// The distance in the standard metadata should be inverted from similarity (1.0 -
 		// similarity)
 		metadata.put(DocumentMetadata.DISTANCE.value(), 1.0 - similarity);
@@ -690,11 +658,9 @@ public class RedisVectorStore extends AbstractObservationVectorStore implements 
 				// scale to 0.0-1.0
 				// Assuming 10.0 is a "perfect" score, but capping at 1.0
 				float normalizedTextScore = Math.min(textScore / 10.0f, 1.0f);
-
 				if (logger.isDebugEnabled()) {
 					logger.debug("Text search raw score: " + textScore + ", normalized: " + normalizedTextScore);
 				}
-
 				return normalizedTextScore;
 			}
 			catch (NumberFormatException e) {
@@ -702,30 +668,27 @@ public class RedisVectorStore extends AbstractObservationVectorStore implements 
 				if (logger.isWarnEnabled()) {
 					logger.warn("Could not parse text search score: " + doc.getString("$score"));
 				}
-				return 0.9f; // Default high similarity
+				// Default high similarity
+				return 0.9f;
 			}
 		}
-
 		// Handle the case where the distance field might not be present (like in text
 		// search)
 		if (!doc.hasProperty(DISTANCE_FIELD_NAME)) {
 			// For text search, we don't have a vector distance, so use a default high
 			// similarity
 			logger.debug("No vector distance score found. Using default similarity.");
-			return 0.9f; // Default high similarity
+			// Default high similarity
+			return 0.9f;
 		}
-
 		float rawScore = Float.parseFloat(doc.getString(DISTANCE_FIELD_NAME));
-
 		// Different distance metrics need different score transformations
 		if (logger.isDebugEnabled()) {
 			logger.debug("Distance metric: " + this.distanceMetric + ", Raw score: " + rawScore);
 		}
-
 		// If using IP (inner product), higher is better (it's a dot product)
 		// For COSINE and L2, lower is better (they're distances)
 		float normalizedScore;
-
 		switch (this.distanceMetric) {
 			case COSINE:
 				// Following RedisVL's implementation in utils.py:
@@ -738,7 +701,6 @@ public class RedisVectorStore extends AbstractObservationVectorStore implements 
 					logger.debug("COSINE raw score: " + rawScore + ", normalized score: " + normalizedScore);
 				}
 				break;
-
 			case L2:
 				// Following RedisVL's implementation in utils.py: norm_l2_distance(value)
 				// For L2, convert to similarity score 0-1 where higher is better
@@ -747,7 +709,6 @@ public class RedisVectorStore extends AbstractObservationVectorStore implements 
 					logger.debug("L2 raw score: " + rawScore + ", normalized score: " + normalizedScore);
 				}
 				break;
-
 			case IP:
 				// For IP (Inner Product), the scores are naturally similarity-like,
 				// but need proper normalization to 0-1 range
@@ -755,20 +716,16 @@ public class RedisVectorStore extends AbstractObservationVectorStore implements 
 				// and 1
 				// for unit vectors, so (score+1)/2 maps to 0-1 range
 				normalizedScore = (rawScore + 1) / 2.0f;
-
 				// Clamp to 0-1 range to ensure we don't exceed bounds
 				normalizedScore = Math.min(Math.max(normalizedScore, 0.0f), 1.0f);
-
 				if (logger.isDebugEnabled()) {
 					logger.debug("IP raw score: " + rawScore + ", normalized score: " + normalizedScore);
 				}
 				break;
-
 			default:
 				// Should never happen, but just in case
 				normalizedScore = 0.0f;
 		}
-
 		return normalizedScore;
 	}
 
@@ -781,16 +738,13 @@ public class RedisVectorStore extends AbstractObservationVectorStore implements 
 
 	@Override
 	public void afterPropertiesSet() {
-
 		if (!this.initializeSchema) {
 			return;
 		}
-
 		// If index already exists don't do anything
 		if (this.jedisClient.ftList().contains(this.indexName)) {
 			return;
 		}
-
 		// The embedding model is only consulted here, when the index has to be created.
 		int createdDimensions = (this.dimensions > 0) ? this.dimensions : this.embeddingModel.dimensions();
 		String response = this.jedisClient.ftCreate(this.indexName,
@@ -809,7 +763,6 @@ public class RedisVectorStore extends AbstractObservationVectorStore implements 
 		vectorAttrs.put("DIM", vectorDimensions);
 		vectorAttrs.put("DISTANCE_METRIC", this.distanceMetric.getRedisName());
 		vectorAttrs.put("TYPE", VECTOR_TYPE_FLOAT32);
-
 		// Add HNSW algorithm configuration parameters when using HNSW algorithm
 		if (this.vectorAlgorithm == Algorithm.HNSW) {
 			// M parameter: maximum number of connections per node in the graph (default:
@@ -817,20 +770,17 @@ public class RedisVectorStore extends AbstractObservationVectorStore implements 
 			if (this.hnswM != null) {
 				vectorAttrs.put("M", this.hnswM);
 			}
-
 			// EF_CONSTRUCTION parameter: size of dynamic candidate list during index
 			// building (default: 200)
 			if (this.hnswEfConstruction != null) {
 				vectorAttrs.put("EF_CONSTRUCTION", this.hnswEfConstruction);
 			}
-
 			// EF_RUNTIME parameter: size of dynamic candidate list during search
 			// (default: 10)
 			if (this.hnswEfRuntime != null) {
 				vectorAttrs.put("EF_RUNTIME", this.hnswEfRuntime);
 			}
 		}
-
 		List<SchemaField> fields = new ArrayList<>();
 		fields.add(TextField.of(jsonPath(this.contentFieldName)).as(this.contentFieldName).weight(1.0));
 		fields.add(VectorField.builder()
@@ -839,7 +789,6 @@ public class RedisVectorStore extends AbstractObservationVectorStore implements 
 			.attributes(vectorAttrs)
 			.as(this.embeddingFieldName)
 			.build());
-
 		if (!CollectionUtils.isEmpty(this.metadataFields)) {
 			for (MetadataField field : this.metadataFields) {
 				fields.add(schemaField(field));
@@ -954,7 +903,6 @@ public class RedisVectorStore extends AbstractObservationVectorStore implements 
 			case L2 -> VectorStoreSimilarityMetric.EUCLIDEAN;
 			case IP -> VectorStoreSimilarityMetric.DOT;
 		};
-
 		VectorStoreObservationContext.Builder builder = VectorStoreObservationContext
 			.builder(VectorStoreProvider.REDIS.value(), operationName)
 			.collectionName(this.indexName)
@@ -994,16 +942,13 @@ public class RedisVectorStore extends AbstractObservationVectorStore implements 
 	private void validateTextField(String fieldName) {
 		// Normalize the field name for consistent checking
 		final String normalizedFieldName = normalizeFieldName(fieldName);
-
 		// Check if it's the content field (always a text field)
 		if (normalizedFieldName.equals(this.contentFieldName)) {
 			return;
 		}
-
 		// Check if it's a metadata field with TEXT type
 		boolean isTextField = this.metadataFields.stream()
 			.anyMatch(field -> field.name().equals(normalizedFieldName) && field.fieldType() == FieldType.TEXT);
-
 		if (!isTextField) {
 			// Log detailed metadata fields for debugging
 			if (logger.isDebugEnabled()) {
@@ -1081,17 +1026,13 @@ public class RedisVectorStore extends AbstractObservationVectorStore implements 
 		Assert.notNull(query, "Query must not be null");
 		Assert.notNull(textField, "Text field must not be null");
 		Assert.isTrue(limit > 0, "Limit must be greater than zero");
-
 		// Verify the field is a text field
 		validateTextField(textField);
-
 		if (logger.isDebugEnabled()) {
 			logger.debug("Searching text: '" + query + "' in field: '" + textField + "'");
 		}
-
 		// Special case handling for test cases
 		// For specific test scenarios known to require exact matches
-
 		// Case 1: "framework integration" in description field - using partial matching
 		if ("framework integration".equalsIgnoreCase(query) && "description".equalsIgnoreCase(textField)) {
 			// Look for framework AND integration in description, not necessarily as an
@@ -1100,11 +1041,9 @@ public class RedisVectorStore extends AbstractObservationVectorStore implements 
 				.returnFields(getReturnFields().toArray(new String[0]))
 				.limit(0, limit)
 				.dialect(2);
-
 			SearchResult result = this.jedisClient.ftSearch(this.indexName, redisQuery);
 			return result.getDocuments().stream().map(this::toDocument).toList();
 		}
-
 		// Case 2: Testing stopwords with "is a framework for" query
 		if ("is a framework for".equalsIgnoreCase(query) && "content".equalsIgnoreCase(textField)
 				&& !this.stopwords.isEmpty()) {
@@ -1112,21 +1051,16 @@ public class RedisVectorStore extends AbstractObservationVectorStore implements 
 			Query redisQuery = new Query("@content:framework").returnFields(getReturnFields().toArray(new String[0]))
 				.limit(0, limit)
 				.dialect(2);
-
 			SearchResult result = this.jedisClient.ftSearch(this.indexName, redisQuery);
 			return result.getDocuments().stream().map(this::toDocument).toList();
 		}
-
 		// Process and escape any special characters in the query
 		String escapedQuery = escapeSpecialCharacters(query);
-
 		// Normalize field name (remove @ prefix and JSON path if present)
 		String normalizedField = normalizeFieldName(textField);
-
 		// Build the query string with proper syntax and escaping
 		StringBuilder queryBuilder = new StringBuilder();
 		queryBuilder.append("@").append(normalizedField).append(":");
-
 		// Handle multi-word queries differently from single words
 		if (escapedQuery.contains(" ")) {
 			// For multi-word queries, try to match as exact phrase if inOrder is true
@@ -1137,10 +1071,8 @@ public class RedisVectorStore extends AbstractObservationVectorStore implements 
 				// For non-inOrder, search for any of the terms
 				String[] terms = escapedQuery.split("\\s+");
 				queryBuilder.append("(");
-
 				// For better matching, include both the exact phrase and individual terms
 				queryBuilder.append("\"").append(escapedQuery).append("\"");
-
 				// Add individual terms with OR operator
 				for (String term : terms) {
 					// Skip stopwords if configured
@@ -1150,7 +1082,6 @@ public class RedisVectorStore extends AbstractObservationVectorStore implements 
 					}
 					queryBuilder.append(" | ").append(term);
 				}
-
 				queryBuilder.append(")");
 			}
 		}
@@ -1158,7 +1089,6 @@ public class RedisVectorStore extends AbstractObservationVectorStore implements 
 			// Single word query - simple match
 			queryBuilder.append(escapedQuery);
 		}
-
 		// Add filter if provided
 		if (StringUtils.hasText(filterExpression)) {
 			// Handle common filter syntax (field == 'value')
@@ -1167,12 +1097,10 @@ public class RedisVectorStore extends AbstractObservationVectorStore implements 
 				if (parts.length == 2) {
 					String field = parts[0].trim();
 					String value = parts[1].trim();
-
 					// Remove quotes if present
 					if (value.startsWith("'") && value.endsWith("'")) {
 						value = value.substring(1, value.length() - 1);
 					}
-
 					queryBuilder.append(" @").append(field).append(":{").append(value).append("}");
 				}
 				else {
@@ -1183,23 +1111,18 @@ public class RedisVectorStore extends AbstractObservationVectorStore implements 
 				queryBuilder.append(" ").append(filterExpression);
 			}
 		}
-
 		String finalQuery = queryBuilder.toString();
-
 		if (logger.isDebugEnabled()) {
 			logger.debug("Final Redis search query: " + finalQuery);
 		}
-
 		// Create and execute the query
 		Query redisQuery = new Query(finalQuery).returnFields(getReturnFields().toArray(new String[0]))
 			.limit(0, limit)
 			.dialect(2);
-
 		// Set scoring algorithm if different from default
 		if (this.textScorer != DEFAULT_TEXT_SCORER) {
 			redisQuery.setScorer(this.textScorer.getRedisName());
 		}
-
 		try {
 			SearchResult result = this.jedisClient.ftSearch(this.indexName, redisQuery);
 			return result.getDocuments().stream().map(this::toDocument).toList();
@@ -1266,17 +1189,14 @@ public class RedisVectorStore extends AbstractObservationVectorStore implements 
 		Assert.notNull(query, "Query must not be null");
 		Assert.isTrue(radius >= 0.0 && radius <= 1.0,
 				"Radius must be between 0.0 and 1.0 (inclusive) representing the similarity threshold");
-
 		// Convert the normalized radius (0.0-1.0) to the appropriate distance metric
 		// value based on the distance metric being used
 		float effectiveRadius;
 		float[] embedding = this.embeddingModel.embed(query);
-
 		// Normalize embeddings for COSINE distance metric
 		if (this.distanceMetric == DistanceMetric.COSINE) {
 			embedding = normalize(embedding);
 		}
-
 		// Convert the similarity threshold (0.0-1.0) to the appropriate distance for the
 		// metric
 		switch (this.distanceMetric) {
@@ -1290,7 +1210,6 @@ public class RedisVectorStore extends AbstractObservationVectorStore implements 
 							+ effectiveRadius);
 				}
 				break;
-
 			case L2:
 				// For L2, the inverse of the normalization formula: 1/(1+distance) =
 				// similarity
@@ -1301,7 +1220,6 @@ public class RedisVectorStore extends AbstractObservationVectorStore implements 
 							+ effectiveRadius);
 				}
 				break;
-
 			case IP:
 				// For IP (Inner Product), converting from similarity (0-1) back to raw
 				// score (-1 to 1)
@@ -1312,12 +1230,10 @@ public class RedisVectorStore extends AbstractObservationVectorStore implements 
 							+ effectiveRadius);
 				}
 				break;
-
 			default:
 				// Should never happen, but just in case
 				effectiveRadius = 0.0f;
 		}
-
 		// With our proper handling of IP, we can use the native Redis VECTOR_RANGE query
 		// but we still need to handle very small radius values specially
 		if (this.distanceMetric == DistanceMetric.IP && radius < 0.1) {
@@ -1328,35 +1244,35 @@ public class RedisVectorStore extends AbstractObservationVectorStore implements 
 			// extra safe
 			SearchRequest.Builder requestBuilder = SearchRequest.builder()
 				.query(query)
-				.topK(1000) // Use a large number to approximate "all" documents
-				.similarityThreshold(radius); // Client-side filtering
-
+				.topK(// Use a large number to approximate "all" documents
+						1000)
+				.similarityThreshold(// Client-side filtering
+						radius);
 			if (StringUtils.hasText(filterExpression)) {
 				requestBuilder.filterExpression(filterExpression);
 			}
-
 			return similaritySearch(requestBuilder.build());
 		}
-
 		// Build the base query with vector range
-		String queryString = String.format(RANGE_QUERY_FORMAT, this.embeddingFieldName, "radius", // Parameter
-				// name
-				// for
-				// the
-				// radius
-				EMBEDDING_PARAM_NAME, DISTANCE_FIELD_NAME);
-
+		String queryString = // Parameter
+				String.// Parameter
+					format(// Parameter
+							RANGE_QUERY_FORMAT, // Parameter
+							this.embeddingFieldName, // Parameter
+							"radius", // name
+							// for
+							// the
+							// radius
+							EMBEDDING_PARAM_NAME, DISTANCE_FIELD_NAME);
 		// Add filter if provided
 		if (StringUtils.hasText(filterExpression)) {
 			queryString = "(" + queryString + " " + filterExpression + ")";
 		}
-
 		// Log query information for debugging
 		if (logger.isDebugEnabled()) {
 			logger.debug("Range query string: " + queryString);
 			logger.debug("Effective radius (distance): " + effectiveRadius);
 		}
-
 		// Sorted by distance, like the KNN search, so the nearest matches come first and
 		// are the ones kept by the result limit.
 		Query query1 = new Query(queryString).addParam("radius", effectiveRadius)
@@ -1364,15 +1280,12 @@ public class RedisVectorStore extends AbstractObservationVectorStore implements 
 			.returnFields(getReturnFields().toArray(new String[0]))
 			.setSortBy(DISTANCE_FIELD_NAME, true)
 			.dialect(2);
-
 		SearchResult result = this.jedisClient.ftSearch(this.indexName, query1);
-
 		// Add more detailed logging to understand thresholding
 		if (logger.isDebugEnabled()) {
 			logger.debug("Vector Range search returned " + result.getTotalResults()
 					+ " documents, applying final radius filter: " + radius);
 		}
-
 		// Process the results and ensure they match the specified similarity threshold
 		List<Document> documents = result.getDocuments().stream().map(this::toDocument).filter(doc -> {
 			boolean isAboveThreshold = doc.getScore() != null && doc.getScore() >= radius;
@@ -1383,11 +1296,9 @@ public class RedisVectorStore extends AbstractObservationVectorStore implements 
 			}
 			return isAboveThreshold;
 		}).toList();
-
 		if (logger.isDebugEnabled()) {
 			logger.debug("After filtering, returning " + documents.size() + " documents");
 		}
-
 		return documents;
 	}
 
@@ -1428,11 +1339,12 @@ public class RedisVectorStore extends AbstractObservationVectorStore implements 
 	 */
 	private long executeCountQuery(String filterExpression) {
 		// Create a query with the filter, limiting to 0 results to only get count
-		Query query = new Query(filterExpression).returnFields("id") // Minimal field to
-			// return
-			.limit(0, 0) // No actual results, just count
-			.dialect(2); // Use dialect 2 for advanced query features
-
+		Query query = // Minimal field to
+				new Query(filterExpression).returnFields("id").// return
+					limit(0, // No actual results, just count
+							0)
+					.dialect(// Use dialect 2 for advanced query features
+							2);
 		try {
 			SearchResult result = this.jedisClient.ftSearch(this.indexName, query);
 			return result.getTotalResults();
@@ -1452,12 +1364,10 @@ public class RedisVectorStore extends AbstractObservationVectorStore implements 
 			magnitude += value * value;
 		}
 		magnitude = (float) Math.sqrt(magnitude);
-
 		// Avoid division by zero
 		if (magnitude == 0.0f) {
 			return vector;
 		}
-
 		// Normalize the vector
 		float[] normalized = new float[vector.length];
 		for (int i = 0; i < vector.length; i++) {
@@ -1466,7 +1376,7 @@ public class RedisVectorStore extends AbstractObservationVectorStore implements 
 		return normalized;
 	}
 
-	public static Builder builder(RedisClient jedis, EmbeddingModel embeddingModel) {
+	public static Builder builder(JedisPooled jedis, EmbeddingModel embeddingModel) {
 		return new Builder(jedis, embeddingModel);
 	}
 
@@ -1527,12 +1437,11 @@ public class RedisVectorStore extends AbstractObservationVectorStore implements 
 		public static MetadataField tag(String name) {
 			return new MetadataField(name, FieldType.TAG);
 		}
-
 	}
 
 	public static class Builder extends AbstractVectorStoreBuilder<Builder> {
 
-		private final RedisClient jedisClient;
+		private final JedisPooled jedisClient;
 
 		private String indexName = DEFAULT_INDEX_NAME;
 
@@ -1559,7 +1468,7 @@ public class RedisVectorStore extends AbstractObservationVectorStore implements 
 
 		private Integer hnswEfRuntime = 10;
 
-		private @Nullable Double defaultRangeThreshold;
+		@Nullable private Double defaultRangeThreshold;
 
 		// Text search configuration
 		private TextScorer textScorer = DEFAULT_TEXT_SCORER;
@@ -1568,9 +1477,9 @@ public class RedisVectorStore extends AbstractObservationVectorStore implements 
 
 		private Set<String> stopwords = new HashSet<>();
 
-		private Builder(RedisClient jedisClient, EmbeddingModel embeddingModel) {
+		private Builder(JedisPooled jedisClient, EmbeddingModel embeddingModel) {
 			super(embeddingModel);
-			Assert.notNull(jedisClient, "RedisClient must not be null");
+			Assert.notNull(jedisClient, "JedisPooled must not be null");
 			this.jedisClient = jedisClient;
 		}
 

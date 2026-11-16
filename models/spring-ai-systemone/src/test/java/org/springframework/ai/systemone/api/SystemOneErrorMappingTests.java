@@ -36,9 +36,9 @@ import org.springframework.ai.systemone.api.exception.SystemOnePermissionDeniedE
 import org.springframework.ai.systemone.api.exception.SystemOneRateLimitException;
 import org.springframework.ai.systemone.api.exception.SystemOneUnprocessableEntityException;
 import org.springframework.ai.systemone.api.question.Noul;
-import org.springframework.core.retry.RetryTemplate;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.retry.support.RetryTemplate;
 import org.springframework.test.web.client.response.MockRestResponseCreators;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
@@ -123,7 +123,8 @@ class SystemOneErrorMappingTests {
 				assertThat(ex.body()).contains("Field required");
 				assertThat(ex.endpoint()).isEqualTo("POST " + MockSystemOneServer.SYSTEM_ONE_URL);
 				assertThat(ex.requestId()).isEqualTo("req_abcdef");
-				assertThat(ex.getMessage()).contains("422 Unprocessable Content")
+				assertThat(ex.getMessage())
+					.contains("422 " + org.springframework.http.HttpStatus.UNPROCESSABLE_ENTITY.getReasonPhrase())
 					.contains("request id req_abcdef")
 					.contains("body.questions: Field required");
 			});

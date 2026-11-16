@@ -19,9 +19,9 @@ package org.springframework.ai.mcp.server.webflux.autoconfigure;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import io.modelcontextprotocol.server.McpSyncServer;
 import org.junit.jupiter.api.Test;
-import tools.jackson.databind.json.JsonMapper;
 
 import org.springframework.ai.mcp.customizer.McpServerCustomizer;
 import org.springframework.ai.mcp.server.common.autoconfigure.McpServerAutoConfiguration;

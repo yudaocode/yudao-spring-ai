@@ -42,7 +42,7 @@ import org.springframework.ai.deepseek.api.DeepSeekApi.ChatCompletionMessage.Rol
 import org.springframework.ai.deepseek.api.DeepSeekApi.ChatCompletionRequest;
 import org.springframework.ai.model.tool.ToolCallingManager;
 import org.springframework.ai.retry.RetryUtils;
-import org.springframework.core.retry.RetryTemplate;
+import org.springframework.retry.support.RetryTemplate;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.isA;

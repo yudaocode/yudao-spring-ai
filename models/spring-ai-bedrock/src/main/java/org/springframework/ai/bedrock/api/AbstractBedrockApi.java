@@ -25,6 +25,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import reactor.core.publisher.Flux;
@@ -43,8 +44,6 @@ import software.amazon.awssdk.services.bedrockruntime.model.InvokeModelResponse;
 import software.amazon.awssdk.services.bedrockruntime.model.InvokeModelWithResponseStreamRequest;
 import software.amazon.awssdk.services.bedrockruntime.model.InvokeModelWithResponseStreamResponseHandler;
 import software.amazon.awssdk.services.bedrockruntime.model.ResponseStream;
-import tools.jackson.core.JacksonException;
-import tools.jackson.databind.json.JsonMapper;
 
 import org.springframework.ai.util.JacksonUtils;
 import org.springframework.util.Assert;
@@ -234,7 +233,7 @@ public abstract class AbstractBedrockApi<I, O, SO> {
 		try {
 			body = SdkBytes.fromUtf8String(this.jsonMapper.writeValueAsString(request));
 		}
-		catch (JacksonException e) {
+		catch (java.io.IOException e) {
 			throw new IllegalArgumentException("Invalid JSON format for the input request: " + request, e);
 		}
 
@@ -250,7 +249,7 @@ public abstract class AbstractBedrockApi<I, O, SO> {
 		try {
 			return this.jsonMapper.readValue(responseBody, clazz);
 		}
-		catch (JacksonException e) {
+		catch (java.io.IOException e) {
 			throw new IllegalArgumentException("Invalid JSON format for the response: " + responseBody, e);
 		}
 	}
@@ -271,7 +270,7 @@ public abstract class AbstractBedrockApi<I, O, SO> {
 		try {
 			body = SdkBytes.fromUtf8String(this.jsonMapper.writeValueAsString(request));
 		}
-		catch (JacksonException e) {
+		catch (java.io.IOException e) {
 			eventSink.emitError(e, DEFAULT_EMIT_FAILURE_HANDLER);
 			return eventSink.asFlux();
 		}
@@ -291,7 +290,7 @@ public abstract class AbstractBedrockApi<I, O, SO> {
 						SO response = this.jsonMapper.readValue(chunk.bytes().asByteArray(), clazz);
 						eventSink.emitNext(response, DEFAULT_EMIT_FAILURE_HANDLER);
 					}
-					catch (JacksonException e) {
+					catch (java.io.IOException e) {
 						logger.error("Failed to unmarshall", e);
 						eventSink.emitError(e, DEFAULT_EMIT_FAILURE_HANDLER);
 					}

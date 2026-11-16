@@ -200,7 +200,7 @@ public final class WebFluxMcpTransport {
 				.bodyValue("Unsupported Media Type: Content-Type must be application/json");
 		}
 		if (request.headers().contentLength().orElse(-1) > this.maxRequestSize) {
-			return ServerResponse.status(HttpStatus.CONTENT_TOO_LARGE).build();
+			return ServerResponse.status(HttpStatus.PAYLOAD_TOO_LARGE).build();
 		}
 
 		McpTransportContext transportContext = this.contextExtractor.extract(request);
@@ -212,7 +212,7 @@ public final class WebFluxMcpTransport {
 			.defaultIfEmpty("")
 			.flatMap(body -> handleBody(request, transportContext, body))
 			.onErrorResume(DataBufferLimitException.class,
-					ex -> ServerResponse.status(HttpStatus.CONTENT_TOO_LARGE).build());
+					ex -> ServerResponse.status(HttpStatus.PAYLOAD_TOO_LARGE).build());
 	}
 
 	private Mono<ServerResponse> handleBody(ServerRequest request, McpTransportContext transportContext, String body) {
@@ -398,7 +398,7 @@ public final class WebFluxMcpTransport {
 
 			@Override
 			public List<String> getHeaderNames() {
-				return List.copyOf(headers.headerNames());
+				return List.copyOf(headers.keySet());
 			}
 		};
 	}

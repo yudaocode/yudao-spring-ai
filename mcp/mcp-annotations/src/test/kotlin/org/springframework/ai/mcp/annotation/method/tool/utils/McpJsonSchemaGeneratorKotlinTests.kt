@@ -20,8 +20,8 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.ai.mcp.annotation.McpTool
 import org.springframework.ai.mcp.annotation.McpToolParam
-import tools.jackson.databind.JsonNode
-import tools.jackson.databind.json.JsonMapper
+import com.fasterxml.jackson.databind.JsonNode
+import com.fasterxml.jackson.databind.json.JsonMapper
 
 class McpJsonSchemaGeneratorKotlinTests {
 
@@ -71,7 +71,7 @@ class McpJsonSchemaGeneratorKotlinTests {
 		if (required == null || required.isNull) {
 			return emptyList()
 		}
-		return required.iterator().asSequence().map { it.asString() }.toList()
+		return required.iterator().asSequence().map { it.asText() }.toList()
 	}
 
 	private data class Filter(val name: String? = null, val ids: List<String>? = null)

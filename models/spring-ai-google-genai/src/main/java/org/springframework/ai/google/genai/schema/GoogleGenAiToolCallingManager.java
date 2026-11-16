@@ -18,7 +18,7 @@ package org.springframework.ai.google.genai.schema;
 
 import java.util.List;
 
-import tools.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.prompt.Prompt;

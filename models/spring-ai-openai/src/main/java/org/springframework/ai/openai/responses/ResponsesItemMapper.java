@@ -571,7 +571,7 @@ final class ResponsesItemMapper {
 				if (summary != null) {
 					// One line per reasoning item, matching what the streaming path
 					// accumulates across items
-					reasoning.append(reasoning.isEmpty() ? "" : REASONING_ITEM_SEPARATOR).append(summary);
+					reasoning.append((reasoning.length() == 0) ? "" : REASONING_ITEM_SEPARATOR).append(summary);
 				}
 			}
 			else if (item.functionCall().isPresent()) {

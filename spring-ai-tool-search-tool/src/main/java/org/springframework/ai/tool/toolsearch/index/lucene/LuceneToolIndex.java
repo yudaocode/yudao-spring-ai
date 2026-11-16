@@ -35,7 +35,6 @@ import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
-import org.apache.lucene.index.StoredFields;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.BooleanQuery;
@@ -258,14 +257,12 @@ public class LuceneToolIndex implements Closeable, ToolIndex {
 			float minScore) throws IOException {
 
 		List<ToolReference> foundToolReferences = new ArrayList<>(results.scoreDocs.length);
-		StoredFields storedFields = searcher.storedFields();
 		for (ScoreDoc scoreDoc : results.scoreDocs) {
 			if (logger.isInfoEnabled()) {
-				logger.info("Score: " + scoreDoc.score + ", name: "
-						+ storedFields.document(scoreDoc.doc).get(FIELD_TOOL_NAME));
+				logger.info("Score: " + scoreDoc.score + ", name: " + searcher.doc(scoreDoc.doc).get(FIELD_TOOL_NAME));
 			}
 			if (scoreDoc.score >= minScore) {
-				var doc = storedFields.document(scoreDoc.doc);
+				var doc = searcher.doc(scoreDoc.doc);
 				foundToolReferences.add(ToolReference.builder()
 					.relevanceScore(scoreDoc.score)
 					.toolName(doc.get(FIELD_TOOL_NAME))

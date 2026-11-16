@@ -20,16 +20,16 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
-import tools.jackson.databind.DeserializationFeature;
-import tools.jackson.databind.json.JsonMapper;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 
 import org.springframework.messaging.Message;
-import org.springframework.messaging.converter.JacksonJsonMessageConverter;
+import org.springframework.messaging.converter.MappingJackson2MessageConverter;
 import org.springframework.messaging.support.MessageBuilder;
 
 /**
  * {@link StructuredOutputConverter} implementation that uses a pre-configured
- * {@link JacksonJsonMessageConverter} to convert the LLM output into a
+ * {@link MappingJackson2MessageConverter} to convert the LLM output into a
  * java.util.Map&lt;String, Object&gt; instance.
  *
  * @author Mark Pollack
@@ -38,8 +38,13 @@ import org.springframework.messaging.support.MessageBuilder;
 public class MapOutputConverter extends AbstractMessageOutputConverter<Map<String, Object>> {
 
 	public MapOutputConverter() {
-		super(new JacksonJsonMessageConverter(
-				JsonMapper.builder().disable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS)));
+		super(createMessageConverter());
+	}
+
+	private static MappingJackson2MessageConverter createMessageConverter() {
+		MappingJackson2MessageConverter converter = new MappingJackson2MessageConverter();
+		converter.setObjectMapper(JsonMapper.builder().disable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS).build());
+		return converter;
 	}
 
 	@Override

@@ -151,7 +151,7 @@ class CassandraFilterExpressionConverter extends AbstractFilterExpressionConvert
 
 		// work around the need to escape filter keys the ANTLR parser doesn't like
 		// e.g. with underscores like chunk_no
-		if (column.isEmpty()) {
+		if (!column.isPresent()) {
 			if (name.startsWith("\"") && name.endsWith("\"")) {
 				name = name.substring(1, name.length() - 1);
 				column = Optional.ofNullable(this.columnsByName.get(name));

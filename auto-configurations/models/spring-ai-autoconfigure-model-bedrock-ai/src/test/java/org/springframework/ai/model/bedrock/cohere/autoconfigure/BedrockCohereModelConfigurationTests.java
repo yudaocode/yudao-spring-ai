@@ -16,8 +16,8 @@
 
 package org.springframework.ai.model.bedrock.cohere.autoconfigure;
 
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import org.junit.jupiter.api.Test;
-import tools.jackson.databind.json.JsonMapper;
 
 import org.springframework.ai.bedrock.cohere.BedrockCohereEmbeddingModel;
 import org.springframework.boot.autoconfigure.AutoConfigurations;

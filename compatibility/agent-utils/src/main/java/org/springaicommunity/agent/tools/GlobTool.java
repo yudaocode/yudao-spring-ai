@@ -1,0 +1,318 @@
+/*
+* Copyright 2025 - 2025 the original author or authors.
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+* https://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*/
+package org.springaicommunity.agent.tools;
+
+import java.io.IOException;
+import java.nio.file.FileSystems;
+import java.nio.file.FileVisitOption;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.PathMatcher;
+import java.nio.file.Paths;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.stream.Stream;
+
+import org.springaicommunity.agent.common.workspace.Workspace;
+import org.springframework.ai.tool.annotation.Tool;
+import org.springframework.ai.tool.annotation.ToolParam;
+import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
+
+/**
+ * Pure Java glob implementation that doesn't require external tools. Uses Java NIO.2 for
+ * file pattern matching and traversal.
+ *
+ * Generated with Claude Code AI assistant.
+ *
+ * @author Christian Tzolov
+ * @author Claude Code
+ */
+public class GlobTool {
+
+	private final int maxDepth;
+
+	private final int maxResults;
+
+	private final Path workingDirectory;
+
+	private final AllowedDirectories allowedDirectories;
+
+	/**
+	 * Constructor with configurable parameters.
+	 * @param maxDepth Maximum directory traversal depth to prevent infinite recursion
+	 * (default: 100)
+	 * @param maxResults Maximum number of results to return (default: 1000)
+	 * @param workingDirectory The working directory to use when path is not specified. If
+	 * null, defaults to current JVM working directory.
+	 */
+	protected GlobTool(int maxDepth, int maxResults, Path workingDirectory) {
+		this(maxDepth, maxResults, workingDirectory, List.of());
+	}
+
+	protected GlobTool(int maxDepth, int maxResults, Path workingDirectory, List<Path> allowedDirectories) {
+		this.maxDepth = maxDepth;
+		this.maxResults = maxResults;
+		// Operator-supplied config: normalize so the model-input '..' defense in the
+		// confinement check does not reject the tool's own working directory.
+		this.workingDirectory = (workingDirectory != null) ? workingDirectory.toAbsolutePath().normalize() : null;
+		this.allowedDirectories = new AllowedDirectories(allowedDirectories);
+	}
+
+	// @formatter:off
+	@Tool(name = "Glob", description = """
+        - Fast file pattern matching tool that works with any codebase size
+        - Supports glob patterns like "**/*.js" or "src/**/*.ts"
+        - Returns matching file paths sorted by modification time
+        - Use this tool when you need to find files by name patterns
+        - When you are doing an open ended search that may require multiple rounds of globbing and grepping, use the Agent tool instead
+        - You can call multiple tools in a single response. It is always better to speculatively perform multiple searches in parallel if they are potentially useful.
+		""")
+	public String glob(
+		@ToolParam(description = "The glob pattern to match files against") String pattern,
+		@ToolParam(description = "The directory to search in, absolute or relative to the working directory. If not specified, the working directory will be used. IMPORTANT: Omit this field to use the default directory. DO NOT enter \\\"undefined\\\" or \\\"null\\\" - simply omit it for the default behavior. Must be a valid directory path if provided.", required = false) String path) { // @formatter:on
+
+		Assert.hasText(pattern, "	The glob pattern must not be empty");
+
+		try {
+			// Determine search path - use configured workingDirectory if path not
+			// specified
+			Path searchPath;
+			if (StringUtils.hasText(path)) {
+				// A relative path is relative to the working directory (e.g. the workspace
+				// root), not the JVM's; '..' is kept for the confinement check below.
+				searchPath = AllowedDirectories.resolve(this.workingDirectory, path);
+			}
+			else if (this.workingDirectory != null) {
+				searchPath = this.workingDirectory;
+			}
+			else {
+				searchPath = Paths.get(".");
+			}
+
+			// Confinement check shared with FileSystemTools (see AllowedDirectories)
+			String accessError = this.allowedDirectories.validate(searchPath.toString());
+			if (accessError != null) {
+				return accessError;
+			}
+
+			if (!Files.exists(searchPath)) {
+				return "Error: Path does not exist: " + searchPath.toAbsolutePath();
+			}
+
+			if (!Files.isDirectory(searchPath)) {
+				return "Error: Path is not a directory: " + searchPath.toAbsolutePath();
+			}
+
+			// Build glob matcher
+			PathMatcher matcher = this.buildGlobMatcher(pattern);
+
+			// Find matching files
+			List<FileInfo> matchingFiles = new ArrayList<>();
+
+			// Under confinement, do not follow symbolic links during traversal — a link
+			// inside the workspace must not expose content outside the allowed
+			// directories.
+			try (Stream<Path> paths = this.allowedDirectories.isRestricted() ? Files.walk(searchPath, this.maxDepth)
+					: Files.walk(searchPath, this.maxDepth, FileVisitOption.FOLLOW_LINKS)) {
+				paths.filter(Files::isRegularFile)
+					.filter(p -> !this.isIgnoredPath(p))
+					.filter(p -> this.matchesPattern(p, searchPath, matcher))
+					.limit(this.maxResults)
+					.forEach(file -> {
+						try {
+							BasicFileAttributes attrs = Files.readAttributes(file, BasicFileAttributes.class);
+							matchingFiles.add(new FileInfo(file, attrs.lastModifiedTime().toMillis()));
+						}
+						catch (IOException e) {
+							// Skip files that can't be read
+							matchingFiles.add(new FileInfo(file, 0));
+						}
+					});
+			}
+
+			if (matchingFiles.isEmpty()) {
+				return "No files found matching pattern: " + pattern;
+			}
+
+			// Sort by modification time (most recent first)
+			matchingFiles.sort(Comparator.comparingLong(FileInfo::modificationTime).reversed());
+
+			// Build result
+			StringBuilder result = new StringBuilder();
+			for (FileInfo fileInfo : matchingFiles) {
+				result.append(fileInfo.path().toString()).append("\n");
+			}
+
+			return result.toString().trim();
+
+		}
+		catch (Exception e) {
+			return "Error executing glob: " + e.getMessage();
+		}
+	}
+
+	/**
+	 * Build a PathMatcher from the glob pattern
+	 */
+	private PathMatcher buildGlobMatcher(String pattern) {
+		// Handle both simple globs (*.java) and complex globs (**/*.java)
+		String globPattern = pattern.startsWith("**/") ? pattern : "**/" + pattern;
+		return FileSystems.getDefault().getPathMatcher("glob:" + globPattern);
+	}
+
+	/**
+	 * Check if a path matches the glob pattern
+	 */
+	private boolean matchesPattern(Path file, Path searchPath, PathMatcher matcher) {
+		// Try matching against the full path
+		if (matcher.matches(file)) {
+			return true;
+		}
+
+		// Also try matching against the relative path from the search directory
+		try {
+			Path relativePath = searchPath.relativize(file);
+			return matcher.matches(relativePath);
+		}
+		catch (IllegalArgumentException e) {
+			// If we can't relativize, just use the matcher on the file itself
+			return false;
+		}
+	}
+
+	/**
+	 * Check if a file should be ignored (common ignore patterns)
+	 */
+	private boolean isIgnoredPath(Path path) {
+		String pathStr = path.toString();
+		return pathStr.contains("/.git/") || pathStr.contains("/node_modules/") || pathStr.contains("/target/")
+				|| pathStr.contains("/build/") || pathStr.contains("/.idea/") || pathStr.contains("/.vscode/")
+				|| pathStr.contains("/dist/") || pathStr.contains("/__pycache__/");
+	}
+
+	/**
+	 * Record to hold file information
+	 */
+	private record FileInfo(Path path, long modificationTime) {
+	}
+
+	public static Builder builder() {
+		return new Builder();
+	}
+
+	public static class Builder {
+
+		private int maxDepth = 100;
+
+		private int maxResults = 1000;
+
+		private Path workingDirectory = null;
+
+		private final AllowedDirectories.Collector allowedDirectories = new AllowedDirectories.Collector();
+
+		private Builder() {
+		}
+
+		public Builder maxDepth(int maxDepth) {
+			this.maxDepth = maxDepth;
+			return this;
+		}
+
+		public Builder maxResults(int maxResults) {
+			this.maxResults = maxResults;
+			return this;
+		}
+
+		/**
+		 * Set the working directory to use when the agent doesn't specify a path. This
+		 * allows tools to operate within a sandbox/workspace context.
+		 * @param workingDirectory the working directory path
+		 * @return this builder
+		 */
+		public Builder workingDirectory(Path workingDirectory) {
+			this.workingDirectory = workingDirectory;
+			return this;
+		}
+
+		/**
+		 * Set the working directory using a string path.
+		 * @param workingDirectory the working directory path as string
+		 * @return this builder
+		 */
+		public Builder workingDirectory(String workingDirectory) {
+			this.workingDirectory = workingDirectory != null ? Paths.get(workingDirectory) : null;
+			return this;
+		}
+
+		/**
+		 * Configures this tool for the given workspace — shorthand for
+		 * {@code workingDirectory(workspace.root())} plus
+		 * {@code allowedDirectory(workspace.root())}: searches default to the workspace
+		 * root and are confined to it. A later {@code workingDirectory} call overrides
+		 * the default location while the confinement remains.
+		 * @param workspace the workspace to operate within
+		 * @return this builder
+		 */
+		public Builder workspace(Workspace workspace) {
+			Assert.notNull(workspace, "workspace must not be null");
+			this.workingDirectory = workspace.root();
+			this.allowedDirectories.add(workspace.root());
+			return this;
+		}
+
+		/**
+		 * Adds a directory to the list of allowed paths. When configured, the resolved
+		 * search path (explicit {@code path} argument or the workingDirectory fallback)
+		 * must fall within the union of allowed directories — same semantics as
+		 * FileSystemTools. Empty (the default) means unrestricted.
+		 * @param allowedDirectory the directory to allow searches within
+		 * @return this builder
+		 */
+		public Builder allowedDirectory(Path allowedDirectory) {
+			this.allowedDirectories.add(allowedDirectory);
+			return this;
+		}
+
+		/**
+		 * Adds a directory to the list of allowed paths.
+		 * @param allowedDirectory the directory path as a string; ignored if {@code null}
+		 * @return this builder
+		 */
+		public Builder allowedDirectory(String allowedDirectory) {
+			this.allowedDirectories.add(allowedDirectory);
+			return this;
+		}
+
+		/**
+		 * Adds multiple directories to the list of allowed paths.
+		 * @param allowedDirectories the directories to allow searches within
+		 * @return this builder
+		 */
+		public Builder allowedDirectories(Path... allowedDirectories) {
+			this.allowedDirectories.addAll(allowedDirectories);
+			return this;
+		}
+
+		public GlobTool build() {
+			return new GlobTool(maxDepth, maxResults, workingDirectory, this.allowedDirectories.directories());
+		}
+
+	}
+
+}

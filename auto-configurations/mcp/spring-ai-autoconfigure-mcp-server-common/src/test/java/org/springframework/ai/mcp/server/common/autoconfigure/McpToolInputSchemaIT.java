@@ -22,12 +22,12 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.JsonNode;
 import io.modelcontextprotocol.server.McpAsyncServer;
 import io.modelcontextprotocol.server.McpServerFeatures.AsyncToolSpecification;
 import io.modelcontextprotocol.server.McpSyncServer;
 import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Test;
-import tools.jackson.databind.JsonNode;
 
 import org.springframework.ai.mcp.annotation.McpTool;
 import org.springframework.ai.mcp.annotation.method.tool.utils.McpJsonSchemaGenerator;
@@ -161,7 +161,7 @@ public class McpToolInputSchemaIT {
 		List<String> result = new ArrayList<>();
 		JsonNode arr = node.get("required");
 		if (arr != null && arr.isArray()) {
-			arr.forEach(n -> result.add(n.asString()));
+			arr.forEach(n -> result.add(n.asText()));
 		}
 		return result;
 	}

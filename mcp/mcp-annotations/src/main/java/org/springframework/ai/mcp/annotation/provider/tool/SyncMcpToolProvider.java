@@ -129,7 +129,7 @@ public class SyncMcpToolProvider extends AbstractMcpToolProvider {
 					if (toolJavaAnnotation.generateOutputSchema() && methodReturnType != null
 							&& methodReturnType != CallToolResult.class && methodReturnType != Void.class
 							&& methodReturnType != void.class && !ClassUtils.isPrimitiveOrWrapper(methodReturnType)
-							&& !ClassUtils.isSimpleValueType(methodReturnType)) {
+							&& !org.springframework.ai.util.Java8SpringTypes.isSimpleValueType(methodReturnType)) {
 
 						toolBuilder.outputSchema(this.getJsonMapper(),
 								McpJsonSchemaGenerator.generateFromType(mcpToolMethod.getGenericReturnType()));

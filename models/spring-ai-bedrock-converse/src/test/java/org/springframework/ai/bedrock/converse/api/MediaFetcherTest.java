@@ -46,8 +46,9 @@ class MediaFetcherTest {
 
 	@BeforeEach
 	void setUp() {
-		this.restClientBuilder = RestClient.builder();
-		this.mockServer = MockRestServiceServer.bindTo(this.restClientBuilder).build();
+		org.springframework.web.client.RestTemplate template = new org.springframework.web.client.RestTemplate();
+		this.mockServer = MockRestServiceServer.bindTo(template).build();
+		this.restClientBuilder = RestClient.builder(template);
 	}
 
 	// -------------------------------------------------------------------------

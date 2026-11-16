@@ -76,6 +76,8 @@ import com.anthropic.models.messages.UserLocation;
 import com.anthropic.models.messages.WebSearchResultBlock;
 import com.anthropic.models.messages.WebSearchTool20260209;
 import com.anthropic.models.messages.WebSearchToolResultBlock;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.observation.Observation;
 import io.micrometer.observation.ObservationRegistry;
@@ -86,8 +88,6 @@ import org.jspecify.annotations.Nullable;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
-import tools.jackson.core.type.TypeReference;
-import tools.jackson.databind.json.JsonMapper;
 
 import org.springframework.ai.anthropic.http.okhttp.AnthropicHttpClientBuilderCustomizer;
 import org.springframework.ai.anthropic.metadata.AnthropicRateLimit;
@@ -720,7 +720,7 @@ public final class AnthropicChatModel implements ChatModel, StreamingChatModel {
 				return chatResponse;
 			});
 
-		return response;
+		return java.util.Objects.requireNonNull(response);
 	}
 
 	private static AnthropicChatOptions resolveAnthropicOptions(Prompt prompt) {
@@ -1247,7 +1247,7 @@ public final class AnthropicChatModel implements ChatModel, StreamingChatModel {
 	 * Classifies the stop reason of a message.
 	 */
 	static FinishReasonCategory finishReasonCategory(Optional<StopReason> stopReason) {
-		if (stopReason.isEmpty()) {
+		if (!stopReason.isPresent()) {
 			return FinishReasonCategory.UNSPECIFIED;
 		}
 		return switch (stopReason.get().value()) {
@@ -2076,7 +2076,7 @@ public final class AnthropicChatModel implements ChatModel, StreamingChatModel {
 				return null;
 			}
 			JsonValue json = unknownBlock.json;
-			if (!unknownBlock.input.isEmpty() && convertJsonValueToNative(json) instanceof Map<?, ?> fields) {
+			if (unknownBlock.input.length() != 0 && convertJsonValueToNative(json) instanceof Map<?, ?> fields) {
 				Map<Object, @Nullable Object> completed = new LinkedHashMap<>(fields);
 				completed.put("input", parseJson(unknownBlock.input.toString()));
 				json = JsonValue.from(completed);

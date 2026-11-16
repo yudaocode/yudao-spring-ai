@@ -44,7 +44,7 @@ public class McpTestRequestRecordingExchangeFilterFunction implements HandlerFil
 	public Mono<ServerResponse> filter(ServerRequest request, HandlerFunction next) {
 		Map<String, String> headers = request.headers()
 			.asHttpHeaders()
-			.headerSet()
+			.entrySet()
 			.stream()
 			.collect(Collectors.toMap(e -> e.getKey().toLowerCase(Locale.ROOT), e -> String.join(",", e.getValue())));
 

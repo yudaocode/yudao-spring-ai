@@ -17,10 +17,13 @@
 package org.springframework.ai.chat.client.advisor;
 
 import java.lang.reflect.Type;
-import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.networknt.schema.Error;
 import com.networknt.schema.Schema;
 import com.networknt.schema.SchemaRegistry;
@@ -29,10 +32,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jspecify.annotations.Nullable;
 import reactor.core.publisher.Flux;
-import tools.jackson.core.JacksonException;
-import tools.jackson.core.type.TypeReference;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.json.JsonMapper;
 
 import org.springframework.ai.chat.client.ChatClientRequest;
 import org.springframework.ai.chat.client.ChatClientResponse;
@@ -236,14 +235,14 @@ public final class StructuredOutputValidationAdvisor implements CallAdvisor, Str
 		}
 		try {
 			JsonNode instance = this.jsonMapper.readTree(json);
-			List<Error> errors = this.jsonSchema.validate(instance);
+			var errors = this.jsonSchema.validate(instance);
 			if (errors.isEmpty()) {
 				return SchemaValidation.passed();
 			}
 			String message = errors.stream().map(Error::getMessage).collect(Collectors.joining("; "));
 			return SchemaValidation.failed(message);
 		}
-		catch (JacksonException e) {
+		catch (JsonProcessingException e) {
 			return SchemaValidation.failed("Invalid JSON: " + e.getOriginalMessage());
 		}
 	}

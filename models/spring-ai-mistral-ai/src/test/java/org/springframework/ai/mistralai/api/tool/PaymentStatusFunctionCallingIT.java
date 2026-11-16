@@ -22,9 +22,9 @@ import java.util.Map;
 import java.util.function.Function;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
-import tools.jackson.databind.json.JsonMapper;
 
 import org.springframework.ai.mistralai.api.MistralAiApi;
 import org.springframework.ai.mistralai.api.MistralAiApi.ChatCompletion;
@@ -62,13 +62,13 @@ class PaymentStatusFunctionCallingIT {
 	private static final Map<String, Function<Transaction, ?>> FUNCTIONS = Map.of("retrieve_payment_status",
 			new RetrievePaymentStatus(), "retrieve_payment_date", new RetrievePaymentDate());
 
-	private static <T> T jsonToObject(String json, Class<T> targetClass) {
-		return JsonMapper.shared().readValue(json, targetClass);
+	private static <T> T jsonToObject(String json, Class<T> targetClass) throws Exception {
+		return JsonMapper.builder().findAndAddModules().build().readValue(json, targetClass);
 	}
 
 	@Test
 	@SuppressWarnings("null")
-	void toolFunctionCall() {
+	void toolFunctionCall() throws Exception {
 
 		var transactionJsonSchema = """
 				{

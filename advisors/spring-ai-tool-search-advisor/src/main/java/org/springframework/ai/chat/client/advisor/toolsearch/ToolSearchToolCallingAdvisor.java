@@ -22,7 +22,6 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
-import java.util.HexFormat;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -344,7 +343,7 @@ public class ToolSearchToolCallingAdvisor extends ToolCallingAdvisor {
 				digest.update(tr.summary().getBytes(StandardCharsets.UTF_8));
 				digest.update((byte) 1); // entry separator
 			});
-			return HexFormat.of().formatHex(digest.digest());
+			return org.springframework.ai.util.Java8Platform.hexString(digest.digest());
 		}
 		catch (NoSuchAlgorithmException e) {
 			throw new IllegalStateException("SHA-256 not available", e);

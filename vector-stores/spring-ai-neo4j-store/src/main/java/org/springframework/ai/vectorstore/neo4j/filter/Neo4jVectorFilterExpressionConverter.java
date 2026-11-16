@@ -16,13 +16,12 @@
 
 package org.springframework.ai.vectorstore.neo4j.filter;
 
-import org.neo4j.cypherdsl.support.schema_name.SchemaNames;
-
 import org.springframework.ai.vectorstore.filter.Filter;
 import org.springframework.ai.vectorstore.filter.Filter.Expression;
 import org.springframework.ai.vectorstore.filter.Filter.Group;
 import org.springframework.ai.vectorstore.filter.Filter.Key;
 import org.springframework.ai.vectorstore.filter.converter.AbstractFilterExpressionConverter;
+import org.springframework.ai.vectorstore.neo4j.compat.SchemaNames;
 import org.springframework.util.Assert;
 
 /**
@@ -73,7 +72,6 @@ public class Neo4jVectorFilterExpressionConverter extends AbstractFilterExpressi
 			throw new RuntimeException(
 					"Unsupported expression type %s. Only NOT is supported here".formatted(expressionType));
 		}
-
 		// explicitly prefix the embedded expression with NOT
 		context.append("NOT ").append(this.convertOperand(expression.left()));
 	}

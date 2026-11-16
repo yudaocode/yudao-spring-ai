@@ -30,3 +30,14 @@ Concise extract of [CONTRIBUTING.md](CONTRIBUTING.md), which remains the referen
 - Body wrapped at ~72 characters, followed by `Fixes #123`/`Closes #123` (or `See #123`), then a `Signed-off-by: Name <email>` trailer (DCO, use `git commit -s`).
 - Enclose annotations in backticks in commit messages to avoid mentioning GitHub users.
 - PR titles feed the changelog: short, descriptive, types or file names in backticks; reference related issues in the description, not the title.
+
+## Yudao compatibility branches
+
+- `main` tracks upstream Boot 4; keep it available without a working directory until needed.
+- `main-jdk17` targets Boot 3.5, Spring 6.2, Jackson 2, Spring Retry and Java 17.
+- `main-jdk8` targets Boot 2.7, Spring 5.3 and Java 8; it requires source and SDK backports.
+- Retain `org.springframework.ai` coordinates and Java packages; use distinct compatibility versions.
+- Do not introduce Boot 4 / Spring 7 / Jackson 3 dependencies in `main-jdk17`, including transitives.
+- New Java classes, tests and helpers use `@author 芋道源码`; retain existing authors when modifying upstream classes.
+- Compile success, unit tests, integration tests, dependency audits and consumer acceptance are separate gates.
+- Preserve the consumers' unrelated work; use isolated checkouts for acceptance when necessary.

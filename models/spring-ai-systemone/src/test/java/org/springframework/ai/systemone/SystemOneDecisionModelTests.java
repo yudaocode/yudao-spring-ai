@@ -78,7 +78,7 @@ class SystemOneDecisionModelTests {
 
 	private final RestClient.Builder restClientBuilder = RestClient.builder();
 
-	private final MockRestServiceServer server = MockRestServiceServer.bindTo(this.restClientBuilder).build();
+	private final MockRestServiceServer server = bindMockServer(this.restClientBuilder);
 
 	private final TestObservationRegistry observationRegistry = TestObservationRegistry.create();
 
@@ -99,7 +99,9 @@ class SystemOneDecisionModelTests {
 	private void stubResponse(String responseJson, @Nullable String requestId) {
 		DefaultResponseCreator response = withSuccess(responseJson, MediaType.APPLICATION_JSON);
 		if (requestId != null) {
-			response.header(REQUEST_ID_HEADER, requestId);
+			org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
+			headers.add(REQUEST_ID_HEADER, requestId);
+			response.headers(headers);
 		}
 		this.server.expect(requestTo(BASE_URL + "/v1/systemone"))
 			.andExpect(method(HttpMethod.POST))
@@ -466,6 +468,13 @@ class SystemOneDecisionModelTests {
 			.that()
 			.hasLowCardinalityKeyValue(AiObservationAttributes.AI_PROVIDER.value(), "ollama");
 		assertThatThrownBy(() -> model().mutate().provider(" ")).isInstanceOf(IllegalArgumentException.class);
+	}
+
+	private static MockRestServiceServer bindMockServer(RestClient.Builder builder) {
+		org.springframework.web.client.RestTemplate template = new org.springframework.web.client.RestTemplate();
+		MockRestServiceServer server = MockRestServiceServer.bindTo(template).build();
+		builder.requestFactory(template.getRequestFactory());
+		return server;
 	}
 
 }

@@ -17,10 +17,10 @@
 package org.springframework.ai.mcp.server.common.autoconfigure;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import io.modelcontextprotocol.spec.McpSchema;
-import tools.jackson.databind.DeserializationFeature;
-import tools.jackson.databind.SerializationFeature;
-import tools.jackson.databind.json.JsonMapper;
 
 import org.springframework.ai.mcp.server.common.autoconfigure.properties.McpServerProperties;
 import org.springframework.ai.util.JacksonUtils;
@@ -30,7 +30,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 
-@AutoConfiguration
+@AutoConfiguration(after = org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration.class)
 @ConditionalOnClass(McpSchema.class)
 @ConditionalOnProperty(prefix = McpServerProperties.CONFIG_PREFIX, name = "enabled", havingValue = "true",
 		matchIfMissing = true)
@@ -52,20 +52,32 @@ public class McpServerJsonMapperAutoConfiguration {
 	 * name "mcpServerJsonMapper".
 	 * @return configured {@link JsonMapper} instance for MCP server operations
 	 */
-	// NOTE: defaultCandidate=false prevents this MCP specific mapper from being injected
-	// in code that doesn't explicitly qualify injection point by name.
-	@Bean(name = "mcpServerJsonMapper", defaultCandidate = false)
+	// Boot2 registers the application mapper first and restores qualified injection
+	// through the candidate resolver below. Ordinary injection ignores this mapper.
+	@Bean(name = "mcpServerJsonMapper", autowireCandidate = false)
 	public JsonMapper mcpServerJsonMapper() {
 		return JsonMapper.builder()
 			// Deserialization configuration
+			.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
 			.enable(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT)
 			// Serialization configuration
 			.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS)
 			// Register Jackson modules via server loader
 			.addModules(JacksonUtils.instantiateAvailableModules())
-			.changeDefaultPropertyInclusion(
-					incl -> JsonInclude.Value.construct(JsonInclude.Include.NON_NULL, JsonInclude.Include.NON_NULL))
+			.defaultPropertyInclusion(
+					JsonInclude.Value.construct(JsonInclude.Include.NON_NULL, JsonInclude.Include.NON_NULL))
 			.build();
+	}
+
+	@Bean
+	static org.springframework.beans.factory.config.BeanFactoryPostProcessor mcpJsonMapperCandidateResolver() {
+		return beanFactory -> {
+			org.springframework.beans.factory.support.DefaultListableBeanFactory factory = (org.springframework.beans.factory.support.DefaultListableBeanFactory) beanFactory;
+			if (!(factory.getAutowireCandidateResolver() instanceof NonDefaultJsonMapperCandidateResolver)) {
+				factory.setAutowireCandidateResolver(
+						new NonDefaultJsonMapperCandidateResolver(factory.getAutowireCandidateResolver()));
+			}
+		};
 	}
 
 }

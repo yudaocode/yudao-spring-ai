@@ -27,8 +27,7 @@ import org.junit.jupiter.api.Test;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import redis.clients.jedis.DefaultJedisClientConfig;
-import redis.clients.jedis.RedisClient;
-import redis.clients.jedis.RedisProtocol;
+import redis.clients.jedis.JedisPooled;
 
 import org.springframework.ai.document.Document;
 import org.springframework.ai.document.DocumentMetadata;
@@ -115,10 +114,9 @@ public class RedisVectorStoreUpsertIT extends AbstractVectorStoreUpsertTests {
 	void upsertIntoExistingIndexOverResp2() {
 		executeTest(vectorStore -> {
 			// Over RESP2, FT.INFO describes each field as a flat list rather than a map.
-			RedisClient resp2Client = RedisClient.builder()
-				.hostAndPort(redisContainer.getHost(), redisContainer.getFirstMappedPort())
-				.clientConfig(DefaultJedisClientConfig.builder().protocol(RedisProtocol.RESP2).build())
-				.build();
+			JedisPooled resp2Client = new JedisPooled(
+					new redis.clients.jedis.HostAndPort(redisContainer.getHost(), redisContainer.getFirstMappedPort()),
+					DefaultJedisClientConfig.builder().build());
 			try {
 				CallCountingEmbeddingModel embeddingModel = new CallCountingEmbeddingModel(EMBEDDING_DIMENSIONS);
 				RedisVectorStore writer = RedisVectorStore.builder(resp2Client, embeddingModel)
@@ -159,9 +157,7 @@ public class RedisVectorStoreUpsertIT extends AbstractVectorStoreUpsertTests {
 		@Bean
 		public RedisVectorStore vectorStore(EmbeddingModel embeddingModel) {
 			return RedisVectorStore
-				.builder(RedisClient.builder()
-					.hostAndPort(redisContainer.getHost(), redisContainer.getFirstMappedPort())
-					.build(), embeddingModel)
+				.builder(new JedisPooled(redisContainer.getHost(), redisContainer.getFirstMappedPort()), embeddingModel)
 				// Redis returns only the fields declared here, so the suite's "tag" and
 				// "removed" and the content_ref pointer have to be declared to survive a
 				// read.

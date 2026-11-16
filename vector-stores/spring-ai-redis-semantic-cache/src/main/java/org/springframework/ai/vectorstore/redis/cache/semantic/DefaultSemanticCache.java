@@ -40,8 +40,7 @@ import com.google.gson.JsonSerializer;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jspecify.annotations.Nullable;
-import redis.clients.jedis.Pipeline;
-import redis.clients.jedis.RedisClient;
+import redis.clients.jedis.JedisPooled;
 import redis.clients.jedis.search.Query;
 import redis.clients.jedis.search.SearchResult;
 
@@ -50,6 +49,7 @@ import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.model.Generation;
+import org.springframework.ai.compat.jedis.internal.Pipeline;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.embedding.EmbeddingModel;
 import org.springframework.ai.vectorstore.SearchRequest;
@@ -112,9 +112,11 @@ public final class DefaultSemanticCache implements SemanticCache {
 	 * Creates a customized Gson instance with type adapters for special types.
 	 */
 	private Gson createGson() {
-		return new GsonBuilder() //
-			.registerTypeAdapter(Duration.class, new DurationAdapter()) //
-			.registerTypeAdapter(ChatResponse.class, new ChatResponseAdapter()) //
+		return //
+		new GsonBuilder().registerTypeAdapter(Duration.class, //
+				new DurationAdapter())
+			.registerTypeAdapter(ChatResponse.class, //
+					new ChatResponseAdapter())
 			.create();
 	}
 
@@ -129,24 +131,19 @@ public final class DefaultSemanticCache implements SemanticCache {
 		String responseJson = this.gson.toJson(response);
 		Assert.state(response.getResult() != null, "expected a non-empty response");
 		String responseText = response.getResult().getOutput().getText();
-
 		// Create metadata map for the document
 		Map<String, Object> metadata = new HashMap<>();
 		metadata.put("response", responseJson);
 		metadata.put("response_text", Objects.requireNonNullElse(responseText, ""));
-
 		// Create document with query as text (for embedding) and response in metadata
 		Document document = Document.builder().text(query).metadata(metadata).build();
-
 		// Check for and remove any existing similar documents using optimized search
 		// where possible
 		List<Document> existing;
-
 		if (this.vectorStore instanceof org.springframework.ai.vectorstore.redis.RedisVectorStore redisVectorStore) {
 			// Use the optimized VECTOR_RANGE query which handles thresholding at the DB
 			// level
 			existing = redisVectorStore.searchByRange(query, this.similarityThreshold);
-
 			logger
 				.debug("Using RedisVectorStore's native VECTOR_RANGE query to find similar documents for replacement");
 		}
@@ -155,7 +152,6 @@ public final class DefaultSemanticCache implements SemanticCache {
 			existing = this.vectorStore.similaritySearch(
 					SearchRequest.builder().query(query).topK(1).similarityThreshold(this.similarityThreshold).build());
 		}
-
 		// If similar document exists, delete it first
 		if (!existing.isEmpty()) {
 			if (logger.isDebugEnabled()) {
@@ -164,7 +160,6 @@ public final class DefaultSemanticCache implements SemanticCache {
 			}
 			this.vectorStore.delete(List.of(existing.get(0).getId()));
 		}
-
 		// Add new document to vector store
 		this.vectorStore.add(List.of(document));
 	}
@@ -173,29 +168,23 @@ public final class DefaultSemanticCache implements SemanticCache {
 	public void set(String query, ChatResponse response, Duration ttl) {
 		// Generate a unique ID for the document
 		String docId = UUID.randomUUID().toString();
-
 		// Convert response to JSON
 		String responseJson = this.gson.toJson(response);
 		Assert.state(response.getResult() != null, "expected a non-empty response");
 		String responseText = response.getResult().getOutput().getText();
-
 		// Create metadata
 		Map<String, Object> metadata = new HashMap<>();
 		metadata.put("response", responseJson);
 		metadata.put("response_text", Objects.requireNonNullElse(responseText, ""));
-
 		// Create document with generated ID
 		Document document = Document.builder().id(docId).text(query).metadata(metadata).build();
-
 		// Check for and remove any existing similar documents using optimized search
 		// where possible
 		List<Document> existing;
-
 		if (this.vectorStore instanceof RedisVectorStore redisVectorStore) {
 			// Use the optimized VECTOR_RANGE query which handles thresholding at the DB
 			// level
 			existing = redisVectorStore.searchByRange(query, this.similarityThreshold);
-
 			logger.debug(
 					"Using RedisVectorStore's native VECTOR_RANGE query to find similar documents for replacement (TTL version)");
 		}
@@ -204,7 +193,6 @@ public final class DefaultSemanticCache implements SemanticCache {
 			existing = this.vectorStore.similaritySearch(
 					SearchRequest.builder().query(query).topK(1).similarityThreshold(this.similarityThreshold).build());
 		}
-
 		// If similar document exists, delete it first
 		if (!existing.isEmpty()) {
 			if (logger.isDebugEnabled()) {
@@ -213,10 +201,8 @@ public final class DefaultSemanticCache implements SemanticCache {
 			}
 			this.vectorStore.delete(List.of(existing.get(0).getId()));
 		}
-
 		// Add document to vector store
 		this.vectorStore.add(List.of(document));
-
 		// Get access to Redis client and set TTL
 		if (this.vectorStore instanceof RedisVectorStore redisStore) {
 			String key = this.prefix + docId;
@@ -229,7 +215,6 @@ public final class DefaultSemanticCache implements SemanticCache {
 		// Use RedisVectorStore's searchByRange to utilize the VECTOR_RANGE command
 		// for direct threshold filtering at the database level
 		List<Document> similar;
-
 		// Convert distance threshold to similarity threshold if needed
 		double effectiveThreshold = this.similarityThreshold;
 		if (this.useDistanceThreshold) {
@@ -242,12 +227,10 @@ public final class DefaultSemanticCache implements SemanticCache {
 						+ effectiveThreshold);
 			}
 		}
-
 		if (this.vectorStore instanceof org.springframework.ai.vectorstore.redis.RedisVectorStore redisVectorStore) {
 			// Use the optimized VECTOR_RANGE query which handles thresholding at the DB
 			// level
 			similar = redisVectorStore.searchByRange(query, effectiveThreshold);
-
 			if (logger.isDebugEnabled()) {
 				logger.debug("Using RedisVectorStore's native VECTOR_RANGE query with threshold " + effectiveThreshold);
 			}
@@ -258,12 +241,10 @@ public final class DefaultSemanticCache implements SemanticCache {
 			similar = this.vectorStore.similaritySearch(
 					SearchRequest.builder().query(query).topK(5).similarityThreshold(effectiveThreshold).build());
 		}
-
 		if (similar.isEmpty()) {
 			logger.debug("No documents met the similarity threshold criteria");
 			return Optional.empty();
 		}
-
 		// Log results for debugging
 		if (logger.isDebugEnabled()) {
 			logger.debug("Query: '" + query + "', found " + similar.size() + " matches with similarity >= "
@@ -273,21 +254,17 @@ public final class DefaultSemanticCache implements SemanticCache {
 						+ doc.getMetadata().getOrDefault("vector_score", "N/A"));
 			}
 		}
-
 		// Get the most similar document (already filtered by threshold at DB level)
 		Document mostSimilar = similar.get(0);
-
 		if (logger.isDebugEnabled()) {
 			logger
 				.debug("Using most similar document: id=" + mostSimilar.getId() + ", score=" + mostSimilar.getScore());
 		}
-
 		// Get stored response JSON from metadata
 		String responseJson = (String) mostSimilar.getMetadata().get("response");
 		if (responseJson == null) {
 			return Optional.empty();
 		}
-
 		// Attempt to parse stored response
 		try {
 			ChatResponse response = this.gson.fromJson(responseJson, ChatResponse.class);
@@ -304,7 +281,6 @@ public final class DefaultSemanticCache implements SemanticCache {
 		String responseJson = this.gson.toJson(response);
 		Assert.state(response.getResult() != null, "expected a non-empty response");
 		String responseText = response.getResult().getOutput().getText();
-
 		// Create metadata map for the document
 		Map<String, Object> metadata = new HashMap<>();
 		metadata.put("response", responseJson);
@@ -312,13 +288,10 @@ public final class DefaultSemanticCache implements SemanticCache {
 		if (contextHash != null) {
 			metadata.put("context_hash", contextHash);
 		}
-
 		// Create document with query as text (for embedding) and response in metadata
 		Document document = Document.builder().text(query).metadata(metadata).build();
-
 		// Check for and remove any existing similar documents with the same context
 		List<Document> existing = findSimilarDocuments(query, contextHash);
-
 		// If similar document exists with same context, delete it first
 		if (!existing.isEmpty()) {
 			if (logger.isDebugEnabled()) {
@@ -327,7 +300,6 @@ public final class DefaultSemanticCache implements SemanticCache {
 			}
 			this.vectorStore.delete(List.of(existing.get(0).getId()));
 		}
-
 		// Add new document to vector store
 		this.vectorStore.add(List.of(document));
 	}
@@ -335,14 +307,12 @@ public final class DefaultSemanticCache implements SemanticCache {
 	@Override
 	public Optional<ChatResponse> get(String query, @Nullable String contextHash) {
 		List<Document> similar = findSimilarDocuments(query, contextHash);
-
 		if (similar.isEmpty()) {
 			if (logger.isDebugEnabled()) {
 				logger.debug("No documents met the similarity threshold criteria for context: " + contextHash);
 			}
 			return Optional.empty();
 		}
-
 		// Log results for debugging
 		if (logger.isDebugEnabled()) {
 			logger.debug("Query: '" + query + "', context: '" + contextHash + "', found " + similar.size()
@@ -352,21 +322,17 @@ public final class DefaultSemanticCache implements SemanticCache {
 						+ doc.getMetadata().getOrDefault("context_hash", "N/A"));
 			}
 		}
-
 		// Get the most similar document (already filtered by threshold and context)
 		Document mostSimilar = similar.get(0);
-
 		if (logger.isDebugEnabled()) {
 			logger
 				.debug("Using most similar document: id=" + mostSimilar.getId() + ", score=" + mostSimilar.getScore());
 		}
-
 		// Get stored response JSON from metadata
 		String responseJson = (String) mostSimilar.getMetadata().get("response");
 		if (responseJson == null) {
 			return Optional.empty();
 		}
-
 		// Attempt to parse stored response
 		try {
 			ChatResponse response = this.gson.fromJson(responseJson, ChatResponse.class);
@@ -394,19 +360,16 @@ public final class DefaultSemanticCache implements SemanticCache {
 						+ effectiveThreshold);
 			}
 		}
-
 		// Build filter expression for context hash if provided
 		Filter.Expression filterExpression = null;
 		if (contextHash != null) {
 			filterExpression = new FilterExpressionBuilder().eq("context_hash", contextHash).build();
 		}
-
 		if (this.vectorStore instanceof RedisVectorStore redisVectorStore) {
 			if (logger.isDebugEnabled()) {
 				logger.debug("Using RedisVectorStore's native VECTOR_RANGE query with threshold " + effectiveThreshold
 						+ " and filter: " + filterExpression);
 			}
-
 			if (filterExpression != null) {
 				// Use similarity search with filter for context isolation
 				return redisVectorStore.similaritySearch(SearchRequest.builder()
@@ -428,30 +391,26 @@ public final class DefaultSemanticCache implements SemanticCache {
 				.query(query)
 				.topK(5)
 				.similarityThreshold(effectiveThreshold);
-
 			if (filterExpression != null) {
 				requestBuilder.filterExpression(filterExpression);
 			}
-
 			return this.vectorStore.similaritySearch(requestBuilder.build());
 		}
 	}
 
 	@Override
 	public void clear() {
-		Optional<RedisClient> nativeClient = this.vectorStore.getNativeClient();
+		Optional<JedisPooled> nativeClient = this.vectorStore.getNativeClient();
 		if (nativeClient.isPresent()) {
-			RedisClient redisClient = nativeClient.get();
-
+			JedisPooled redisClient = nativeClient.get();
 			// Delete documents in batches to avoid memory issues
 			boolean moreRecords = true;
 			while (moreRecords) {
 				Query query = new Query("*");
-				query.limit(0, DEFAULT_BATCH_SIZE); // Reasonable batch size
+				// Reasonable batch size
+				query.limit(0, DEFAULT_BATCH_SIZE);
 				query.setNoContent();
-
 				SearchResult searchResult = redisClient.ftSearch(this.indexName, query);
-
 				if (searchResult.getTotalResults() > 0) {
 					try (Pipeline pipeline = redisClient.pipelined()) {
 						for (redis.clients.jedis.search.Document doc : searchResult.getDocuments()) {
@@ -476,9 +435,9 @@ public final class DefaultSemanticCache implements SemanticCache {
 	 */
 	public static class Builder {
 
-		private @Nullable VectorStore vectorStore;
+		@Nullable private VectorStore vectorStore;
 
-		private @Nullable EmbeddingModel embeddingModel;
+		@Nullable private EmbeddingModel embeddingModel;
 
 		private double similarityThreshold = DEFAULT_SIMILARITY_THRESHOLD;
 
@@ -488,7 +447,7 @@ public final class DefaultSemanticCache implements SemanticCache {
 
 		private String prefix = DEFAULT_PREFIX;
 
-		private @Nullable RedisClient jedisClient;
+		@Nullable private JedisPooled jedisClient;
 
 		// Builder methods with validation
 		public Builder vectorStore(VectorStore vectorStore) {
@@ -522,7 +481,7 @@ public final class DefaultSemanticCache implements SemanticCache {
 			return this;
 		}
 
-		public Builder jedisClient(RedisClient jedisClient) {
+		public Builder jedisClient(JedisPooled jedisClient) {
 			this.jedisClient = jedisClient;
 			return this;
 		}
@@ -559,7 +518,7 @@ public final class DefaultSemanticCache implements SemanticCache {
 
 		@Override
 		public JsonElement serialize(Duration duration, Type type, JsonSerializationContext context) {
-			return new JsonPrimitive(duration.toSeconds());
+			return new JsonPrimitive(duration.getSeconds());
 		}
 
 		@Override
@@ -578,7 +537,6 @@ public final class DefaultSemanticCache implements SemanticCache {
 		@Override
 		public JsonElement serialize(ChatResponse response, Type type, JsonSerializationContext context) {
 			JsonObject jsonObject = new JsonObject();
-
 			// Store the exact text of the response
 			String responseText = "";
 			if (response.getResults() != null && !response.getResults().isEmpty()) {
@@ -588,7 +546,6 @@ public final class DefaultSemanticCache implements SemanticCache {
 				}
 			}
 			jsonObject.addProperty("fullText", responseText);
-
 			// Handle generations
 			JsonArray generations = new JsonArray();
 			for (Generation generation : response.getResults()) {
@@ -598,7 +555,6 @@ public final class DefaultSemanticCache implements SemanticCache {
 				generations.add(generationObj);
 			}
 			jsonObject.add("generations", generations);
-
 			return jsonObject;
 		}
 
@@ -606,20 +562,17 @@ public final class DefaultSemanticCache implements SemanticCache {
 		public ChatResponse deserialize(JsonElement json, Type type, JsonDeserializationContext context)
 				throws JsonParseException {
 			JsonObject jsonObject = json.getAsJsonObject();
-
 			// Get the exact stored text for the response
 			String fullText = "";
 			if (jsonObject.has("fullText")) {
 				fullText = jsonObject.get("fullText").getAsString();
 			}
-
 			// If we have the full text, use it directly
 			if (!fullText.isEmpty()) {
 				List<Generation> generations = new ArrayList<>();
 				generations.add(new Generation(new AssistantMessage(fullText)));
 				return ChatResponse.builder().generations(generations).build();
 			}
-
 			// Fallback to the old approach if fullText is not available
 			List<Generation> generations = new ArrayList<>();
 			JsonArray generationsArray = jsonObject.getAsJsonArray("generations");
@@ -628,7 +581,6 @@ public final class DefaultSemanticCache implements SemanticCache {
 				String text = generationObj.get("text").getAsString();
 				generations.add(new Generation(new AssistantMessage(text)));
 			}
-
 			return ChatResponse.builder().generations(generations).build();
 		}
 

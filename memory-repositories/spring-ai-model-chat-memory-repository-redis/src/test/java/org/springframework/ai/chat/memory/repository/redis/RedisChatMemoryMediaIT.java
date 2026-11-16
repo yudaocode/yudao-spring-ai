@@ -27,7 +27,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import redis.clients.jedis.RedisClient;
+import redis.clients.jedis.JedisPooled;
 
 import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.messages.Message;
@@ -62,14 +62,12 @@ class RedisChatMemoryMediaIT {
 
 	private RedisChatMemoryRepository chatMemory;
 
-	private RedisClient jedisClient;
+	private JedisPooled jedisClient;
 
 	@BeforeEach
 	void setUp() {
-		// Create RedisClient directly with container properties for reliable connection
-		this.jedisClient = RedisClient.builder()
-			.hostAndPort(redisContainer.getHost(), redisContainer.getFirstMappedPort())
-			.build();
+		// Create JedisPooled directly with container properties for reliable connection
+		this.jedisClient = new JedisPooled(redisContainer.getHost(), redisContainer.getFirstMappedPort());
 		this.chatMemory = RedisChatMemoryRepository.builder()
 			.jedisClient(this.jedisClient)
 			.indexName("test-media-" + RedisChatMemoryConfig.DEFAULT_INDEX_NAME)
@@ -674,9 +672,7 @@ class RedisChatMemoryMediaIT {
 		@Bean
 		RedisChatMemoryRepository chatMemory() {
 			return RedisChatMemoryRepository.builder()
-				.jedisClient(RedisClient.builder()
-					.hostAndPort(redisContainer.getHost(), redisContainer.getFirstMappedPort())
-					.build())
+				.jedisClient(new JedisPooled(redisContainer.getHost(), redisContainer.getFirstMappedPort()))
 				.indexName("test-media-" + RedisChatMemoryConfig.DEFAULT_INDEX_NAME)
 				.build();
 		}

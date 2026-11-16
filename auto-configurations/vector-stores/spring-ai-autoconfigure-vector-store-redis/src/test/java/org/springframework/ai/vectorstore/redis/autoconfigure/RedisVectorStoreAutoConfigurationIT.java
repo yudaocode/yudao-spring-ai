@@ -38,7 +38,7 @@ import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.ai.vectorstore.observation.VectorStoreObservationContext;
 import org.springframework.ai.vectorstore.redis.RedisVectorStore;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
-import org.springframework.boot.data.redis.autoconfigure.DataRedisAutoConfiguration;
+import org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -63,8 +63,7 @@ class RedisVectorStoreAutoConfigurationIT {
 
 	// Use host and port explicitly since getRedisURI() might not be consistent
 	private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
-		.withConfiguration(
-				AutoConfigurations.of(DataRedisAutoConfiguration.class, RedisVectorStoreAutoConfiguration.class))
+		.withConfiguration(AutoConfigurations.of(RedisAutoConfiguration.class, RedisVectorStoreAutoConfiguration.class))
 		.withUserConfiguration(Config.class)
 		.withPropertyValues("spring.data.redis.host=" + redisContainer.getHost(),
 				"spring.data.redis.port=" + redisContainer.getFirstMappedPort())

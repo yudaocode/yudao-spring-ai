@@ -228,7 +228,7 @@ public class MessageAggregator {
 			}
 
 			var messageMetadata = messageMetadataMapRef.get();
-			if (!thoughtsRef.get().isEmpty()) {
+			if (thoughtsRef.get().length() > 0) {
 				// Deprecated: kept for one release for chat models that still flag
 				// unindexed text chunks with "isThought". Thought text of indexed streams
 				// is a ReasoningPart.

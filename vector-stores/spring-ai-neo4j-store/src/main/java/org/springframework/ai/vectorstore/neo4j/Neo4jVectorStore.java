@@ -28,10 +28,9 @@ import java.util.stream.IntStream;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jspecify.annotations.Nullable;
-import org.neo4j.cypherdsl.support.schema_name.SchemaNames;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.SessionConfig;
-import org.neo4j.driver.TransactionContext;
+import org.neo4j.driver.Transaction;
 import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
 import org.neo4j.driver.summary.ResultSummary;
@@ -47,6 +46,7 @@ import org.springframework.ai.vectorstore.EmbeddedDocument;
 import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.filter.Filter;
 import org.springframework.ai.vectorstore.filter.FilterExpressionConverter;
+import org.springframework.ai.vectorstore.neo4j.compat.SchemaNames;
 import org.springframework.ai.vectorstore.neo4j.filter.Neo4jVectorFilterExpressionConverter;
 import org.springframework.ai.vectorstore.observation.AbstractObservationVectorStore;
 import org.springframework.ai.vectorstore.observation.VectorStoreObservationContext;
@@ -203,9 +203,7 @@ public class Neo4jVectorStore extends AbstractObservationVectorStore implements 
 
 	protected Neo4jVectorStore(Builder builder) {
 		super(builder);
-
 		Assert.notNull(builder.driver, "Neo4j driver must not be null");
-
 		this.driver = builder.driver;
 		this.sessionConfig = builder.sessionConfig;
 		this.embeddingDimension = builder.embeddingDimension.orElse(UNKNOWN_DIMENSIONS);
@@ -223,20 +221,17 @@ public class Neo4jVectorStore extends AbstractObservationVectorStore implements 
 
 	@Override
 	public void doAdd(List<Document> documents) {
-
 		List<float[]> embeddings = this.embeddingModel.embed(documents, EmbeddingOptions.builder().build(),
 				this.batchingStrategy);
-
 		var rows = IntStream.range(0, documents.size())
 			.mapToObj(i -> documentToRecord(documents.get(i), embeddings.get(i), List.of()))
 			.toList();
-
 		try (var session = this.driver.session(this.sessionConfig)) {
-			session.executeWrite(tx -> writeRows(tx, rows));
+			session.writeTransaction(tx -> writeRows(tx, rows));
 		}
 	}
 
-	private ResultSummary writeRows(TransactionContext tx, List<Map<String, Object>> rows) {
+	private ResultSummary writeRows(Transaction tx, List<Map<String, Object>> rows) {
 		var statement = """
 					UNWIND $rows AS row
 					MERGE (u:%s {%2$s: row.id})
@@ -265,7 +260,6 @@ public class Neo4jVectorStore extends AbstractObservationVectorStore implements 
 		for (int i = 0; i < entries.size(); i++) {
 			checkDimensions("Embedding at index " + i, entries.get(i).embedding().length, expected);
 		}
-
 		// Writing the same id twice in a batch leaves the later entry, so only that one
 		// is written
 		Map<String, EmbeddedDocument> latest = new LinkedHashMap<>();
@@ -273,7 +267,7 @@ public class Neo4jVectorStore extends AbstractObservationVectorStore implements 
 		List<String> ids = latest.keySet().stream().sorted().toList();
 		try (var session = this.driver.session(this.sessionConfig)) {
 			// One transaction, so the batch is written completely or not at all
-			session.executeWrite(tx -> {
+			session.writeTransaction(tx -> {
 				lockNodes(tx, ids);
 				Map<String, List<String>> storedKeys = storedMetadataKeys(tx, ids);
 				var rows = latest.values()
@@ -291,7 +285,7 @@ public class Neo4jVectorStore extends AbstractObservationVectorStore implements 
 	 * the same id waits until this one commits and then sees its metadata keys. The ids
 	 * are sorted so that two batches lock in the same order.
 	 */
-	private void lockNodes(TransactionContext tx, List<String> ids) {
+	private void lockNodes(Transaction tx, List<String> ids) {
 		var statement = """
 				UNWIND $ids AS id
 				MERGE (u:%s {%2$s: id})
@@ -304,7 +298,7 @@ public class Neo4jVectorStore extends AbstractObservationVectorStore implements 
 	 * The metadata properties each node has now, so that a replacement can remove the
 	 * keys the new document no longer has.
 	 */
-	private Map<String, List<String>> storedMetadataKeys(TransactionContext tx, List<String> ids) {
+	private Map<String, List<String>> storedMetadataKeys(Transaction tx, List<String> ids) {
 		var statement = """
 				MATCH (u:%s) WHERE u.%2$s IN $ids
 				RETURN u.%2$s AS id, [k IN keys(u) WHERE k STARTS WITH $prefix] AS keys
@@ -317,9 +311,7 @@ public class Neo4jVectorStore extends AbstractObservationVectorStore implements 
 
 	@Override
 	public void doDelete(List<String> idList) {
-
 		try (var session = this.driver.session(this.sessionConfig)) {
-
 			// Those queries with internal, cypher based transaction management cannot be
 			// run with executeWrite
 			session
@@ -335,18 +327,14 @@ public class Neo4jVectorStore extends AbstractObservationVectorStore implements 
 	@Override
 	protected void doDelete(Filter.Expression filterExpression) {
 		Assert.notNull(filterExpression, "Filter expression must not be null");
-
 		try (var session = this.driver.session(this.sessionConfig)) {
 			String whereClause = this.filterExpressionConverter.convertExpression(filterExpression);
-
 			// Create Cypher query with transaction batching
 			String cypher = """
 					MATCH (node:%s) WHERE %s
 					CALL { WITH node DETACH DELETE node } IN TRANSACTIONS OF $transactionSize ROWS
 					""".formatted(this.label, whereClause);
-
 			var summary = session.run(cypher, Map.of("transactionSize", DEFAULT_TRANSACTION_SIZE)).consume();
-
 			if (logger.isDebugEnabled()) {
 				logger.debug("Deleted " + summary.counters().nodesDeleted() + " nodes matching filter expression");
 			}
@@ -364,7 +352,6 @@ public class Neo4jVectorStore extends AbstractObservationVectorStore implements 
 		Assert.isTrue(request.getTopK() > 0, "The number of documents to returned must be greater than zero");
 		Assert.isTrue(request.getSimilarityThreshold() >= 0 && request.getSimilarityThreshold() <= 1,
 				"The similarity score is bounded between 0 and 1; least to most similar respectively.");
-
 		// Convert the filter first, so an invalid one fails before the model is called
 		String condition = searchCondition(request);
 		float[] embedding = this.embeddingModel.embed(request.getQuery());
@@ -402,8 +389,7 @@ public class Neo4jVectorStore extends AbstractObservationVectorStore implements 
 					YIELD node, score
 					WHERE %s
 					RETURN node, score""".formatted(condition);
-
-			return session.executeRead(tx -> tx
+			return session.readTransaction(tx -> tx
 				.run(query,
 						Map.of("indexName", this.indexNameNotSanitized, "numberOfNearestNeighbours", request.getTopK(),
 								"embeddingValue", embedding, "threshold", request.getSimilarityThreshold()))
@@ -413,18 +399,16 @@ public class Neo4jVectorStore extends AbstractObservationVectorStore implements 
 
 	@Override
 	public void afterPropertiesSet() {
-
 		if (!this.initializeSchema) {
 			return;
 		}
-
 		try (var session = this.driver.session(this.sessionConfig)) {
-			session.executeWriteWithoutResult(tx -> tx
-				.run("CREATE CONSTRAINT %s IF NOT EXISTS FOR (n:%s) REQUIRE n.%s IS UNIQUE"
-					.formatted(this.constraintName, this.label, this.idProperty))
-				.consume());
+			session.writeTransaction(
+					tx -> tx
+						.run("CREATE CONSTRAINT %s IF NOT EXISTS FOR (n:%s) REQUIRE n.%s IS UNIQUE"
+							.formatted(this.constraintName, this.label, this.idProperty))
+						.consume());
 		}
-
 		// Ask the model for the size only when the index is known to be missing. Any
 		// other lookup failure fails startup, since the index may well exist.
 		Value existing;
@@ -435,7 +419,6 @@ public class Neo4jVectorStore extends AbstractObservationVectorStore implements 
 			throw new IllegalStateException(
 					"Could not check whether vector index " + this.indexNameNotSanitized + " exists", ex);
 		}
-
 		try (var session = this.driver.session(this.sessionConfig)) {
 			if (existing == null) {
 				int dimensions = (this.embeddingDimension > 0) ? this.embeddingDimension
@@ -448,13 +431,11 @@ public class Neo4jVectorStore extends AbstractObservationVectorStore implements 
 								}}
 						""".formatted(this.indexName, this.label, this.embeddingProperty, dimensions,
 						this.distanceType.name);
-				session.executeWriteWithoutResult(tx -> tx.run(statement).consume());
+				session.writeTransaction(tx -> tx.run(statement).consume());
 			}
-
 			// Bad idea to retry this...
 			session.run("CALL db.awaitIndexes()").consume();
 		}
-
 		if (existing == null) {
 			// Another process may have created the index first with a different size,
 			// and IF NOT EXISTS keeps that one, so the size is read back.
@@ -510,12 +491,12 @@ public class Neo4jVectorStore extends AbstractObservationVectorStore implements 
 	 * @return the option, which is a null value when the index has none, or {@code null}
 	 * when there is no such index
 	 */
-	private @Nullable Value readIndexDimensions() {
+	@Nullable private Value readIndexDimensions() {
 		var statement = """
 				SHOW VECTOR INDEXES YIELD name, options WHERE name = $name
 				RETURN options['indexConfig']['vector.dimensions'] AS dimensions""";
 		try (var session = this.driver.session(this.sessionConfig)) {
-			List<Value> rows = session.executeRead(
+			List<Value> rows = session.readTransaction(
 					tx -> tx.run(statement, Map.of("name", this.indexNameNotSanitized)).list(r -> r.get("dimensions")));
 			return rows.isEmpty() ? null : rows.get(0);
 		}
@@ -529,19 +510,14 @@ public class Neo4jVectorStore extends AbstractObservationVectorStore implements 
 
 	private Map<String, Object> documentToRecord(Document document, float[] embedding,
 			Collection<String> storedMetadataKeys) {
-
 		var row = new HashMap<String, Object>();
-
 		row.put("id", document.getId());
-
 		var properties = new HashMap<String, Object>();
 		properties.put(this.textProperty, Objects.requireNonNullElse(document.getText(), ""));
-
 		document.getMetadata().forEach((k, v) -> properties.put(METADATA_PREFIX + k, Values.value(v)));
 		// Setting a property to null removes it
 		storedMetadataKeys.forEach(key -> properties.putIfAbsent(key, Values.NULL));
 		row.put("properties", properties);
-
 		row.put(this.embeddingProperty, Values.value(embedding));
 		return row;
 	}
@@ -556,7 +532,6 @@ public class Neo4jVectorStore extends AbstractObservationVectorStore implements 
 				metaData.put(key.substring(key.indexOf(".") + 1), node.get(key).asObject());
 			}
 		});
-
 		return Document.builder()
 			.id(node.get(this.idProperty).asString())
 			.text(node.get(this.textProperty).asString())
@@ -567,7 +542,6 @@ public class Neo4jVectorStore extends AbstractObservationVectorStore implements 
 
 	@Override
 	public VectorStoreObservationContext.Builder createObservationContextBuilder(String operationName) {
-
 		VectorStoreObservationContext.Builder builder = VectorStoreObservationContext
 			.builder(VectorStoreProvider.NEO4J.value(), operationName)
 			.collectionName(this.indexName)
@@ -593,6 +567,10 @@ public class Neo4jVectorStore extends AbstractObservationVectorStore implements 
 		return Optional.of(client);
 	}
 
+	public static Builder builder(Driver driver, EmbeddingModel embeddingModel) {
+		return new Builder(driver, embeddingModel);
+	}
+
 	/**
 	 * An enum to configure the distance function used in the Neo4j vector index.
 	 */
@@ -606,10 +584,6 @@ public class Neo4jVectorStore extends AbstractObservationVectorStore implements 
 			this.name = name;
 		}
 
-	}
-
-	public static Builder builder(Driver driver, EmbeddingModel embeddingModel) {
-		return new Builder(driver, embeddingModel);
 	}
 
 	public static class Builder extends AbstractVectorStoreBuilder<Builder> {

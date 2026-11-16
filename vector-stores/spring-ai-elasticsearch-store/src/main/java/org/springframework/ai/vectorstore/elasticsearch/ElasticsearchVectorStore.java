@@ -33,17 +33,17 @@ import co.elastic.clients.elasticsearch.core.bulk.BulkResponseItem;
 import co.elastic.clients.elasticsearch.core.search.Hit;
 import co.elastic.clients.elasticsearch.indices.GetMappingResponse;
 import co.elastic.clients.elasticsearch.indices.get_mapping.IndexMappingRecord;
-import co.elastic.clients.json.jackson.Jackson3JsonpMapper;
+import co.elastic.clients.json.jackson.JacksonJsonpMapper;
 import co.elastic.clients.transport.Version;
-import co.elastic.clients.transport.rest5_client.Rest5ClientTransport;
-import co.elastic.clients.transport.rest5_client.low_level.Rest5Client;
+import co.elastic.clients.transport.rest_client.RestClientTransport;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.json.JsonMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.elasticsearch.client.RestClient;
 import org.jspecify.annotations.Nullable;
-import tools.jackson.databind.DeserializationFeature;
-import tools.jackson.databind.cfg.DateTimeFeature;
-import tools.jackson.databind.json.JsonMapper;
-import tools.jackson.databind.node.ObjectNode;
 
 import org.springframework.ai.document.Document;
 import org.springframework.ai.document.DocumentMetadata;
@@ -163,7 +163,7 @@ public class ElasticsearchVectorStore extends AbstractObservationVectorStore imp
 
 	private final JsonMapper jsonMapper = JsonMapper.builder()
 		.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-		.enable(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS)
+		.enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
 		.build();
 
 	private final ElasticsearchClient elasticsearchClient;
@@ -188,7 +188,7 @@ public class ElasticsearchVectorStore extends AbstractObservationVectorStore imp
 
 		String version = Version.VERSION == null ? "Unknown" : Version.VERSION.toString();
 		this.elasticsearchClient = new ElasticsearchClient(
-				new Rest5ClientTransport(builder.restClient, new Jackson3JsonpMapper(this.jsonMapper)))
+				new RestClientTransport(builder.restClient, new JacksonJsonpMapper(this.jsonMapper)))
 			.withTransportOptions(t -> t.addHeader("user-agent", "spring-ai elastic-java/" + version));
 	}
 
@@ -348,14 +348,14 @@ public class ElasticsearchVectorStore extends AbstractObservationVectorStore imp
 		ObjectNode source = hit.source();
 		Assert.notNull(source, "source unexpectedly null");
 		Assert.notNull(source.get("id"), "id must not be null");
-		String id = source.get("id").asString();
+		String id = source.get("id").asText();
 		Assert.notNull(id, "id must not be null");
-		String content = source.has("content") ? source.get("content").asString() : null;
+		String content = source.has("content") ? source.get("content").asText() : null;
 		Map<String, Object> metadata = new HashMap<>();
 		if (source.has("metadata")) {
-			tools.jackson.databind.JsonNode metadataNode = source.get("metadata");
+			com.fasterxml.jackson.databind.JsonNode metadataNode = source.get("metadata");
 			Map<String, Object> extractedMetadata = this.jsonMapper.convertValue(metadataNode,
-					new tools.jackson.core.type.TypeReference<Map<String, Object>>() {
+					new com.fasterxml.jackson.core.type.TypeReference<Map<String, Object>>() {
 					});
 			metadata.putAll(extractedMetadata);
 		}
@@ -481,8 +481,8 @@ public class ElasticsearchVectorStore extends AbstractObservationVectorStore imp
 		// The response is keyed by concrete index name, which differs from the configured
 		// name when that name is an alias.
 		IndexMappingRecord record = response.get(indexName);
-		if (record == null && response.mappings().size() == 1) {
-			record = response.mappings().values().iterator().next();
+		if (record == null && response.result().size() == 1) {
+			record = response.result().values().iterator().next();
 		}
 		if (record == null || record.mappings() == null) {
 			return -1;
@@ -528,13 +528,13 @@ public class ElasticsearchVectorStore extends AbstractObservationVectorStore imp
 	 * Creates a new builder instance for ElasticsearchVectorStore.
 	 * @return a new ElasticsearchBuilder instance
 	 */
-	public static Builder builder(Rest5Client restClient, EmbeddingModel embeddingModel) {
+	public static Builder builder(RestClient restClient, EmbeddingModel embeddingModel) {
 		return new Builder(restClient, embeddingModel);
 	}
 
 	public static class Builder extends AbstractVectorStoreBuilder<Builder> {
 
-		private final Rest5Client restClient;
+		private final RestClient restClient;
 
 		private ElasticsearchVectorStoreOptions options = new ElasticsearchVectorStoreOptions();
 
@@ -547,7 +547,7 @@ public class ElasticsearchVectorStore extends AbstractObservationVectorStore imp
 		 * @param restClient the Elasticsearch REST client
 		 * @param embeddingModel the Embedding Model to be used
 		 */
-		public Builder(Rest5Client restClient, EmbeddingModel embeddingModel) {
+		public Builder(RestClient restClient, EmbeddingModel embeddingModel) {
 			super(embeddingModel);
 			Assert.notNull(restClient, "RestClient must not be null");
 			this.restClient = restClient;

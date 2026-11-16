@@ -23,8 +23,8 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import org.jspecify.annotations.Nullable;
-import tools.jackson.databind.annotation.JsonSerialize;
 
 /**
  * Default implementation of the {@link Usage} interface.

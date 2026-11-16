@@ -30,6 +30,7 @@ import java.util.stream.Stream;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.openai.client.OpenAIClient;
 import com.openai.client.OpenAIClientAsync;
@@ -79,7 +80,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jspecify.annotations.Nullable;
 import reactor.core.publisher.Flux;
-import tools.jackson.databind.JsonNode;
 
 import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.messages.Message;
@@ -283,31 +283,33 @@ public final class OpenAiChatModel implements ChatModel {
 			.provider(AiProvider.OPENAI.value())
 			.build();
 
-		return ChatModelObservationDocumentation.CHAT_MODEL_OPERATION
-			.observation(this.observationConvention, DEFAULT_OBSERVATION_CONVENTION, () -> observationContext,
-					this.observationRegistry)
-			.observe(() -> {
+		return java.util.Objects.requireNonNull(
+				ChatModelObservationDocumentation.CHAT_MODEL_OPERATION
+					.observation(this.observationConvention, DEFAULT_OBSERVATION_CONVENTION, () -> observationContext,
+							this.observationRegistry)
+					.observe(() -> {
 
-				// The raw response carries the x-ratelimit-* headers alongside the parsed
-				// body; the plain create(...) call discards them.
-				HttpResponseFor<ChatCompletion> rawResponse = this.openAiClient.chat()
-					.completions()
-					.withRawResponse()
-					.create(request, requestOptions);
-				ChatCompletion chatCompletion = rawResponse.parse();
-				RateLimit rateLimit = OpenAiRateLimit.from(rawResponse.headers());
+						// The raw response carries the x-ratelimit-* headers alongside
+						// the parsed
+						// body; the plain create(...) call discards them.
+						HttpResponseFor<ChatCompletion> rawResponse = this.openAiClient.chat()
+							.completions()
+							.withRawResponse()
+							.create(request, requestOptions);
+						ChatCompletion chatCompletion = rawResponse.parse();
+						RateLimit rateLimit = OpenAiRateLimit.from(rawResponse.headers());
 
-				if (chatCompletion.choices().isEmpty()) {
-					if (logger.isWarnEnabled()) {
-						logger.warn("No choices returned for prompt: " + prompt);
-					}
-					return new ChatResponse(List.of());
-				}
+						if (chatCompletion.choices().isEmpty()) {
+							if (logger.isWarnEnabled()) {
+								logger.warn("No choices returned for prompt: " + prompt);
+							}
+							return new ChatResponse(List.of());
+						}
 
-				ChatResponse chatResponse = toChatResponse(chatCompletion, request, rateLimit);
-				observationContext.setResponse(chatResponse);
-				return chatResponse;
-			});
+						ChatResponse chatResponse = toChatResponse(chatCompletion, request, rateLimit);
+						observationContext.setResponse(chatResponse);
+						return chatResponse;
+					}));
 	}
 
 	private ChatResponse toChatResponse(ChatCompletion chatCompletion, ChatCompletionCreateParams request,
@@ -641,7 +643,7 @@ public final class OpenAiChatModel implements ChatModel {
 	 */
 	private static @Nullable ChatCompletionAudio audioOutput(ChatCompletionMessage message,
 			ChatCompletionCreateParams request) {
-		if (request.audio().isEmpty()) {
+		if (!request.audio().isPresent()) {
 			return null;
 		}
 		return message.audio().filter(audio -> StringUtils.hasText(audio.data())).orElse(null);
@@ -667,7 +669,7 @@ public final class OpenAiChatModel implements ChatModel {
 		return message.toolCalls()
 			.orElse(List.of())
 			.stream()
-			.flatMap(toolCall -> toolCall.function().stream())
+			.flatMap(toolCall -> org.springframework.ai.util.Java8Platform.optionalStream(toolCall.function()))
 			.map(functionToolCall -> toolCallPart(functionToolCall, toolCallAdditionalProperties))
 			.toList();
 	}
@@ -1353,7 +1355,7 @@ public final class OpenAiChatModel implements ChatModel {
 	private static ChatCompletionToolChoiceOption parseToolChoiceJson(String json) {
 		try {
 			// Jackson 3 rather than the Jackson 2 objectMapper field: the public
-			// parseToolChoice(JsonNode) takes a tools.jackson tree.
+			// parseToolChoice(JsonNode) takes a com.fasterxml.jackson tree.
 			return parseToolChoice(JacksonUtils.getDefaultJsonMapper().readTree(json));
 		}
 		catch (Exception e) {
@@ -1410,10 +1412,10 @@ public final class OpenAiChatModel implements ChatModel {
 	}
 
 	public static ChatCompletionToolChoiceOption parseToolChoice(JsonNode node) {
-		String type = node.get("type").asString();
+		String type = node.get("type").asText();
 		switch (type) {
 			case "function":
-				String functionName = node.get("function").get("name").asString();
+				String functionName = node.get("function").get("name").asText();
 				ChatCompletionNamedToolChoice.Function func = ChatCompletionNamedToolChoice.Function.builder()
 					.name(functionName)
 					.build();
@@ -1717,7 +1719,7 @@ public final class OpenAiChatModel implements ChatModel {
 			// merged without reading its index, and streaming no delta for it keeps the
 			// stream from failing.
 			Optional<Long> index = delta._index().asKnown();
-			if (index.isEmpty()) {
+			if (!index.isPresent()) {
 				return null;
 			}
 			String key = responseId + ":" + choiceIndex + ":" + index.get();
@@ -1772,8 +1774,8 @@ public final class OpenAiChatModel implements ChatModel {
 		private static Choice mergeChoices(Choice c1, Choice c2) {
 			return Choice.builder()
 				.index(c1.index())
-				.finishReason(c1.finishReason().or(c2::finishReason))
-				.logprobs(c1.logprobs().or(c2::logprobs))
+				.finishReason(org.springframework.ai.util.Java8Platform.optionalOr(c1.finishReason(), c2::finishReason))
+				.logprobs(org.springframework.ai.util.Java8Platform.optionalOr(c1.logprobs(), c2::logprobs))
 				.delta(mergeDeltas(c1.delta(), c2.delta()))
 				.build();
 		}
@@ -1833,7 +1835,9 @@ public final class OpenAiChatModel implements ChatModel {
 		}
 
 		private static String firstWithText(Optional<String> first, Optional<String> second) {
-			return first.filter(StringUtils::hasText).or(() -> second.filter(StringUtils::hasText)).orElse("");
+			return org.springframework.ai.util.Java8Platform
+				.optionalOr(first.filter(StringUtils::hasText), () -> second.filter(StringUtils::hasText))
+				.orElse("");
 		}
 
 		/**
@@ -1869,7 +1873,7 @@ public final class OpenAiChatModel implements ChatModel {
 		}
 
 		private static ChatCompletion.Choice.Logprobs toLogprobs(Choice choice) {
-			if (choice.logprobs().isEmpty()) {
+			if (!choice.logprobs().isPresent()) {
 				return ChatCompletion.Choice.Logprobs.builder().content(List.of()).refusal(List.of()).build();
 			}
 			var logprobs = choice.logprobs().get();

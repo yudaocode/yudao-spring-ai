@@ -40,7 +40,6 @@ import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.ai.vectorstore.opensearch.OpenSearchVectorStore;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
-import org.springframework.boot.autoconfigure.ssl.SslAutoConfiguration;
 import org.springframework.boot.ssl.SslBundles;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Bean;
@@ -142,13 +141,14 @@ class AwsOpenSearchVectorStoreAutoConfigurationIT {
 
 	@Test
 	public void autoConfigurationWithSslBundles() {
-		this.contextRunner.withConfiguration(AutoConfigurations.of(SslAutoConfiguration.class)).run(context -> {
-			assertThat(context.getBeansOfType(SslBundles.class)).isNotEmpty();
-			assertThat(context.getBeansOfType(OpenSearchClient.class)).isNotEmpty();
-			assertThat(context.getBeansOfType(OpenSearchVectorStoreProperties.class)).isNotEmpty();
-			assertThat(context.getBeansOfType(VectorStore.class)).isNotEmpty();
-			assertThat(context.getBean(VectorStore.class)).isInstanceOf(OpenSearchVectorStore.class);
-		});
+		this.contextRunner.withBean(SslBundles.class, org.springframework.boot.ssl.DefaultSslBundleRegistry::new)
+			.run(context -> {
+				assertThat(context.getBeansOfType(SslBundles.class)).isNotEmpty();
+				assertThat(context.getBeansOfType(OpenSearchClient.class)).isNotEmpty();
+				assertThat(context.getBeansOfType(OpenSearchVectorStoreProperties.class)).isNotEmpty();
+				assertThat(context.getBeansOfType(VectorStore.class)).isNotEmpty();
+				assertThat(context.getBean(VectorStore.class)).isInstanceOf(OpenSearchVectorStore.class);
+			});
 	}
 
 	private String getText(String uri) {

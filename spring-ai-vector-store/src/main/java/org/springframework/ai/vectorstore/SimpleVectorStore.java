@@ -33,13 +33,13 @@ import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectWriter;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jspecify.annotations.Nullable;
-import tools.jackson.core.JacksonException;
-import tools.jackson.core.type.TypeReference;
-import tools.jackson.databind.ObjectWriter;
-import tools.jackson.databind.json.JsonMapper;
 
 import org.springframework.ai.document.Document;
 import org.springframework.ai.embedding.EmbeddingModel;
@@ -219,7 +219,12 @@ public class SimpleVectorStore extends AbstractObservationVectorStore {
 		TypeReference<HashMap<String, SimpleVectorStoreContent>> typeRef = new TypeReference<>() {
 
 		};
-		this.store = this.jsonMapper.readValue(file, typeRef);
+		try {
+			this.store = this.jsonMapper.readValue(file, typeRef);
+		}
+		catch (IOException ex) {
+			throw new IllegalStateException("Cannot load vector store from " + file, ex);
+		}
 	}
 
 	/**
@@ -243,7 +248,7 @@ public class SimpleVectorStore extends AbstractObservationVectorStore {
 		try {
 			return objectWriter.writeValueAsString(this.store);
 		}
-		catch (JacksonException ex) {
+		catch (JsonProcessingException ex) {
 			throw new RuntimeException("Error serializing documentMap to JSON.", ex);
 		}
 	}

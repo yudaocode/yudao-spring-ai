@@ -16,10 +16,10 @@
 
 package org.springframework.ai.model.bedrock.titan.autoconfigure;
 
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import io.micrometer.observation.ObservationRegistry;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.regions.providers.AwsRegionProvider;
-import tools.jackson.databind.json.JsonMapper;
 
 import org.springframework.ai.bedrock.titan.BedrockTitanEmbeddingModel;
 import org.springframework.ai.bedrock.titan.api.TitanEmbeddingBedrockApi;

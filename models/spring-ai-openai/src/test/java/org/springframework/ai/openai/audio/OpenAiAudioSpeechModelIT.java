@@ -200,7 +200,7 @@ class OpenAiAudioSpeechModelIT {
 		// than draining it, which is what lets the underlying OpenAI HTTP
 		// connection be released immediately instead of waiting for EOF.
 		try (InputStream audioInputStream = new FluxInputStream(audioByteFlux)) {
-			byte[] firstBytes = audioInputStream.readNBytes(16);
+			byte[] firstBytes = org.springframework.ai.util.Java8Platform.readNBytes(audioInputStream, 16);
 			assertThat(firstBytes).hasSize(16);
 		}
 	}

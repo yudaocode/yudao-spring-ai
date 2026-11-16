@@ -32,9 +32,9 @@ import org.springframework.ai.session.SessionRepository;
 import org.springframework.ai.session.SessionService;
 import org.springframework.ai.session.jdbc.JdbcSessionRepository;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
-import org.springframework.boot.jdbc.autoconfigure.DataSourceAutoConfiguration;
-import org.springframework.boot.jdbc.autoconfigure.JdbcTemplateAutoConfiguration;
-import org.springframework.boot.jdbc.init.DatabaseInitializationProperties;
+import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
+import org.springframework.boot.autoconfigure.jdbc.JdbcTemplateAutoConfiguration;
+import org.springframework.boot.jdbc.init.DataSourceScriptDatabaseInitializer;
 import org.springframework.boot.sql.init.DatabaseInitializationMode;
 import org.springframework.boot.test.context.FilteredClassLoader;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
@@ -66,6 +66,28 @@ class JdbcSessionRepositoryAutoConfigurationTests {
 		.withPropertyValues("spring.datasource.url=jdbc:h2:mem:sessionautoconfig;DB_CLOSE_DELAY=-1")
 		.withConfiguration(AutoConfigurations.of(DataSourceAutoConfiguration.class, JdbcTemplateAutoConfiguration.class,
 				JdbcSessionRepositoryAutoConfiguration.class, SessionServiceAutoConfiguration.class));
+
+	@Test
+	void schemaErrorsStopStartupWhenContinueOnErrorIsFalse() {
+		this.contextRunner
+			.withPropertyValues("spring.datasource.url=jdbc:h2:mem:sessioninitfailure",
+					JdbcSessionRepositoryProperties.CONFIG_PREFIX + ".schema=classpath:schema-error.sql",
+					JdbcSessionRepositoryProperties.CONFIG_PREFIX + ".continue-on-error=false")
+			.run(context -> assertThat(context).hasFailed());
+	}
+
+	@Test
+	void schemaErrorsAllowFollowingStatementsWhenContinueOnErrorIsTrue() {
+		this.contextRunner
+			.withPropertyValues("spring.datasource.url=jdbc:h2:mem:sessioninitcontinues",
+					JdbcSessionRepositoryProperties.CONFIG_PREFIX + ".schema=classpath:schema-error.sql",
+					JdbcSessionRepositoryProperties.CONFIG_PREFIX + ".continue-on-error=true")
+			.run(context -> {
+				assertThat(context).hasNotFailed();
+				assertThat(context.getBean(JdbcTemplate.class)
+					.queryForObject("SELECT COUNT(*) FROM AI_COMPAT_INIT_AFTER_ERROR", Integer.class)).isZero();
+			});
+	}
 
 	@Test
 	void jdbcSessionRepositoryBeanIsCreated() {
@@ -194,7 +216,7 @@ class JdbcSessionRepositoryAutoConfigurationTests {
 		// starter (and supplies its own DataSource) must not fail at startup.
 		new ApplicationContextRunner()
 			.withConfiguration(AutoConfigurations.of(JdbcSessionRepositoryAutoConfiguration.class))
-			.withClassLoader(new FilteredClassLoader(DatabaseInitializationProperties.class))
+			.withClassLoader(new FilteredClassLoader(DataSourceScriptDatabaseInitializer.class))
 			.withBean(DataSource.class, () -> new DriverManagerDataSource("jdbc:h2:mem:nobootjdbc;DB_CLOSE_DELAY=-1"))
 			.run(context -> {
 				assertThat(context).hasNotFailed();

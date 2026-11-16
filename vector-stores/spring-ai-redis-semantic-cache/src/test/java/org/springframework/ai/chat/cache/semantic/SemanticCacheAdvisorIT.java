@@ -34,7 +34,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import redis.clients.jedis.RedisClient;
+import redis.clients.jedis.JedisPooled;
 
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.SafeGuardAdvisor;
@@ -52,7 +52,7 @@ import org.springframework.ai.vectorstore.redis.cache.semantic.DefaultSemanticCa
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
-import org.springframework.boot.data.redis.autoconfigure.DataRedisAutoConfiguration;
+import org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Bean;
@@ -78,7 +78,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 class SemanticCacheAdvisorIT {
 
 	@Container
-	static RedisStackContainer redisContainer = new RedisStackContainer("redis/redis-stack:latest")
+	static RedisStackContainer redisContainer = new RedisStackContainer(
+			org.testcontainers.utility.DockerImageName.parse("redis/redis-stack:latest"))
 		.withExposedPorts(6379);
 
 	@Autowired
@@ -96,7 +97,7 @@ class SemanticCacheAdvisorIT {
 
 	// ApplicationContextRunner for better test isolation and configuration testing
 	private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
-		.withConfiguration(AutoConfigurations.of(DataRedisAutoConfiguration.class))
+		.withConfiguration(AutoConfigurations.of(RedisAutoConfiguration.class))
 		.withUserConfiguration(TestApplication.class)
 		.withPropertyValues("spring.data.redis.host=" + redisContainer.getHost(),
 				"spring.data.redis.port=" + redisContainer.getFirstMappedPort());
@@ -282,9 +283,7 @@ class SemanticCacheAdvisorIT {
 		assertThat(similarResponse.getResult().getOutput().getText()).containsIgnoringCase("Paris");
 
 		// Test with stricter threshold
-		RedisClient jedisClient = RedisClient.builder()
-			.hostAndPort(redisContainer.getHost(), redisContainer.getFirstMappedPort())
-			.build();
+		JedisPooled jedisClient = new JedisPooled(redisContainer.getHost(), redisContainer.getFirstMappedPort());
 		SemanticCache strictCache = DefaultSemanticCache.builder()
 			.embeddingModel(this.embeddingModel)
 			.jedisClient(jedisClient)
@@ -331,9 +330,9 @@ class SemanticCacheAdvisorIT {
 		assertThat(cached).isPresent();
 
 		// Verify TTL is set in Redis
-		Optional<RedisClient> nativeClient = this.semanticCache.getStore().getNativeClient();
+		Optional<JedisPooled> nativeClient = this.semanticCache.getStore().getNativeClient();
 		assertThat(nativeClient).isPresent();
-		RedisClient redisClient = nativeClient.get();
+		JedisPooled redisClient = nativeClient.get();
 
 		Set<String> keys = redisClient.keys("semantic-cache:*");
 		assertThat(keys).hasSize(1);
@@ -358,12 +357,8 @@ class SemanticCacheAdvisorIT {
 		String webQuestion = "What are the best programming languages for web development?";
 
 		// Create isolated caches for different users
-		RedisClient jedisClient1 = RedisClient.builder()
-			.hostAndPort(redisContainer.getHost(), redisContainer.getFirstMappedPort())
-			.build();
-		RedisClient jedisClient2 = RedisClient.builder()
-			.hostAndPort(redisContainer.getHost(), redisContainer.getFirstMappedPort())
-			.build();
+		JedisPooled jedisClient1 = new JedisPooled(redisContainer.getHost(), redisContainer.getFirstMappedPort());
+		JedisPooled jedisClient2 = new JedisPooled(redisContainer.getHost(), redisContainer.getFirstMappedPort());
 
 		SemanticCache user1Cache = DefaultSemanticCache.builder()
 			.embeddingModel(this.embeddingModel)
@@ -435,9 +430,7 @@ class SemanticCacheAdvisorIT {
 	@Test
 	void testMultipleSimilarQueries() {
 		// Test with a more lenient threshold for semantic similarity
-		RedisClient jedisClient = RedisClient.builder()
-			.hostAndPort(redisContainer.getHost(), redisContainer.getFirstMappedPort())
-			.build();
+		JedisPooled jedisClient = new JedisPooled(redisContainer.getHost(), redisContainer.getFirstMappedPort());
 
 		SemanticCache testCache = DefaultSemanticCache.builder()
 			.embeddingModel(this.embeddingModel)
@@ -489,9 +482,7 @@ class SemanticCacheAdvisorIT {
 	void testRedisVectorSearchBehavior() {
 		// This test demonstrates the difference between KNN and VECTOR_RANGE search
 		String indexName = "test-vector-search-" + System.currentTimeMillis();
-		RedisClient jedisClient = RedisClient.builder()
-			.hostAndPort(redisContainer.getHost(), redisContainer.getFirstMappedPort())
-			.build();
+		JedisPooled jedisClient = new JedisPooled(redisContainer.getHost(), redisContainer.getFirstMappedPort());
 
 		try {
 			// Create a vector store for testing
@@ -614,9 +605,7 @@ class SemanticCacheAdvisorIT {
 	void testKnnSearchWithClientSideThreshold() {
 		// This test demonstrates client-side threshold filtering with KNN search
 		String indexName = "test-knn-threshold-" + System.currentTimeMillis();
-		RedisClient jedisClient = RedisClient.builder()
-			.hostAndPort(redisContainer.getHost(), redisContainer.getFirstMappedPort())
-			.build();
+		JedisPooled jedisClient = new JedisPooled(redisContainer.getHost(), redisContainer.getFirstMappedPort());
 
 		try {
 			// Create a vector store for testing
@@ -948,9 +937,7 @@ class SemanticCacheAdvisorIT {
 
 		// Test with custom configuration (different similarity threshold)
 		this.contextRunner.run(context -> {
-			RedisClient jedisClient = RedisClient.builder()
-				.hostAndPort(redisContainer.getHost(), redisContainer.getFirstMappedPort())
-				.build();
+			JedisPooled jedisClient = new JedisPooled(redisContainer.getHost(), redisContainer.getFirstMappedPort());
 			EmbeddingModel embModel = context.getBean(EmbeddingModel.class);
 
 			// Create cache with very strict threshold
@@ -993,9 +980,7 @@ class SemanticCacheAdvisorIT {
 
 		@Bean
 		public SemanticCache semanticCache(EmbeddingModel embeddingModel) {
-			RedisClient jedisClient = RedisClient.builder()
-				.hostAndPort(redisContainer.getHost(), redisContainer.getFirstMappedPort())
-				.build();
+			JedisPooled jedisClient = new JedisPooled(redisContainer.getHost(), redisContainer.getFirstMappedPort());
 
 			return DefaultSemanticCache.builder()
 				.embeddingModel(embeddingModel)

@@ -252,7 +252,7 @@ public final class OpenAiAudioTranscriptionModel implements TranscriptionModel {
 						new AudioTranscriptionResponseMetadata());
 			})
 				.doOnComplete(() -> observationContext.setResponse(new AudioTranscriptionResponse(
-						new AudioTranscription(deltas.isEmpty() ? segments.toString() : deltas.toString()),
+						new AudioTranscription((deltas.length() == 0) ? segments.toString() : deltas.toString()),
 						new AudioTranscriptionResponseMetadata())));
 			return observed(responses, observation);
 		});

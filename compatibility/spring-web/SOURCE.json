@@ -1,0 +1,21 @@
+{
+  "source": "org.springframework:spring-web:6.2.19:sources",
+  "sha256": "40b02dbbcbfd7bdbe03f934dc8f173f37e3cc578f2c79974a59342ebf4818fad",
+  "files": [
+    "org/springframework/web/client/RestClient.java",
+    "org/springframework/web/client/DefaultRestClient.java",
+    "org/springframework/web/client/DefaultRestClientBuilder.java",
+    "org/springframework/web/client/RestClientUtils.java",
+    "org/springframework/web/client/StatusHandler.java",
+    "org/springframework/web/client/IntrospectingClientHttpResponse.java",
+    "org/springframework/web/client/ClientHttpResponseDecorator.java",
+    "org/springframework/http/HttpStatusCode.java",
+    "org/springframework/http/DefaultHttpStatusCode.java",
+    "org/springframework/http/converter/SmartHttpMessageConverter.java",
+    "org/springframework/http/client/observation/package-info.java",
+    "org/springframework/http/client/observation/ClientRequestObservationConvention.java",
+    "org/springframework/http/client/observation/ClientHttpObservationDocumentation.java",
+    "org/springframework/http/client/observation/ClientRequestObservationContext.java",
+    "org/springframework/http/client/observation/DefaultClientRequestObservationConvention.java"
+  ]
+}

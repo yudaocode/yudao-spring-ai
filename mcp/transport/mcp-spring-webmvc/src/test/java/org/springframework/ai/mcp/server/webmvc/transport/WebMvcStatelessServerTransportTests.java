@@ -23,7 +23,6 @@ import reactor.core.publisher.Mono;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.reactive.server.WebTestClient;
-import org.springframework.test.web.servlet.client.MockMvcWebTestClient;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -35,6 +34,7 @@ import static org.mockito.Mockito.when;
  *
  * @author Dimitar Proynov
  */
+@org.junit.jupiter.api.extension.ExtendWith(Spring5RouterFunctionTestSupport.class)
 class WebMvcStatelessServerTransportTests {
 
 	private static final String SENSITIVE_DETAIL = "/opt/app/config/prod-secrets.yaml (No such file or directory)";
@@ -67,7 +67,8 @@ class WebMvcStatelessServerTransportTests {
 		WebMvcStatelessServerTransport transport = WebMvcStatelessServerTransport.builder().build();
 		transport.setMcpHandler(handler);
 
-		WebTestClient client = MockMvcWebTestClient.bindToRouterFunction(transport.getRouterFunction()).build();
+		WebTestClient client = Spring5RouterFunctionTestSupport.bindToRouterFunction(transport.getRouterFunction())
+			.build();
 
 		client.post()
 			.uri("/mcp")

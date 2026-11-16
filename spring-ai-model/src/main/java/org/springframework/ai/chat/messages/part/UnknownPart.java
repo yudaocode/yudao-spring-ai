@@ -18,13 +18,13 @@ package org.springframework.ai.chat.messages.part;
 
 import java.util.Map;
 
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import org.jspecify.annotations.Nullable;
-import tools.jackson.core.JsonParser;
-import tools.jackson.core.type.TypeReference;
-import tools.jackson.databind.DeserializationContext;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.annotation.JsonDeserialize;
-import tools.jackson.databind.deser.std.StdDeserializer;
 
 import org.springframework.util.Assert;
 
@@ -84,7 +84,7 @@ public record UnknownPart(String provider, String kind, String rawJson, @Nullabl
 		}
 
 		@Override
-		public UnknownPart deserialize(JsonParser parser, DeserializationContext context) {
+		public UnknownPart deserialize(JsonParser parser, DeserializationContext context) throws java.io.IOException {
 			JsonNode node = parser.readValueAsTree();
 			if (node.has("rawJson")) {
 				OpaquePayload payload = node.hasNonNull("payload")
@@ -92,10 +92,10 @@ public record UnknownPart(String provider, String kind, String rawJson, @Nullabl
 				Map<String, String> attributes = node.hasNonNull("attributes")
 						? context.readTreeAsValue(node.get("attributes"), context.constructType(ATTRIBUTES.getType()))
 						: Map.of();
-				return new UnknownPart(node.path("provider").asString(SPRING_AI_PROVIDER),
-						node.path("kind").asString("unknown"), node.path("rawJson").asString(""), payload, attributes);
+				return new UnknownPart(node.path("provider").asText(SPRING_AI_PROVIDER),
+						node.path("kind").asText("unknown"), node.path("rawJson").asText(""), payload, attributes);
 			}
-			return new UnknownPart(SPRING_AI_PROVIDER, node.path("type").asString("unknown"), node.toString(), null,
+			return new UnknownPart(SPRING_AI_PROVIDER, node.path("type").asText("unknown"), node.toString(), null,
 					Map.of());
 		}
 

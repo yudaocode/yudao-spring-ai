@@ -21,11 +21,11 @@ import java.util.List;
 import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper.DefaultTyping;
+import com.fasterxml.jackson.databind.json.JsonMapper;
+import com.fasterxml.jackson.databind.jsontype.BasicPolymorphicTypeValidator;
 import org.junit.jupiter.api.Test;
-import tools.jackson.databind.DefaultTyping;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.json.JsonMapper;
-import tools.jackson.databind.jsontype.BasicPolymorphicTypeValidator;
 
 import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.model.ChatResponse;
@@ -39,14 +39,14 @@ public class DefaultUsageTests {
 	@Test
 	void testSerializationWithAllFields() throws Exception {
 		DefaultUsage usage = new DefaultUsage(Integer.valueOf(100), Integer.valueOf(50), Integer.valueOf(150));
-		String json = JsonMapper.shared().writeValueAsString(usage);
+		String json = JsonMapper.builder().findAndAddModules().build().writeValueAsString(usage);
 		assertThat(json).isEqualTo("{\"promptTokens\":100,\"completionTokens\":50,\"totalTokens\":150}");
 	}
 
 	@Test
 	void testDeserializationWithAllFields() throws Exception {
 		String json = "{\"promptTokens\":100,\"completionTokens\":50,\"totalTokens\":150}";
-		DefaultUsage usage = JsonMapper.shared().readValue(json, DefaultUsage.class);
+		DefaultUsage usage = JsonMapper.builder().findAndAddModules().build().readValue(json, DefaultUsage.class);
 		assertThat(usage.getPromptTokens()).isEqualTo(100);
 		assertThat(usage.getCompletionTokens()).isEqualTo(50);
 		assertThat(usage.getTotalTokens()).isEqualTo(150);
@@ -55,14 +55,14 @@ public class DefaultUsageTests {
 	@Test
 	void testSerializationWithNullFields() throws Exception {
 		DefaultUsage usage = new DefaultUsage((Integer) null, (Integer) null, (Integer) null);
-		String json = JsonMapper.shared().writeValueAsString(usage);
+		String json = JsonMapper.builder().findAndAddModules().build().writeValueAsString(usage);
 		assertThat(json).isEqualTo("{\"promptTokens\":0,\"completionTokens\":0,\"totalTokens\":0}");
 	}
 
 	@Test
 	void testDeserializationWithMissingFields() throws Exception {
 		String json = "{\"promptTokens\":100}";
-		DefaultUsage usage = JsonMapper.shared().readValue(json, DefaultUsage.class);
+		DefaultUsage usage = JsonMapper.builder().findAndAddModules().build().readValue(json, DefaultUsage.class);
 		assertThat(usage.getPromptTokens()).isEqualTo(100);
 		assertThat(usage.getCompletionTokens()).isEqualTo(0);
 		assertThat(usage.getTotalTokens()).isEqualTo(100);
@@ -71,7 +71,7 @@ public class DefaultUsageTests {
 	@Test
 	void testDeserializationWithNullFields() throws Exception {
 		String json = "{\"promptTokens\":null,\"completionTokens\":null,\"totalTokens\":null}";
-		DefaultUsage usage = JsonMapper.shared().readValue(json, DefaultUsage.class);
+		DefaultUsage usage = JsonMapper.builder().findAndAddModules().build().readValue(json, DefaultUsage.class);
 		assertThat(usage.getPromptTokens()).isEqualTo(0);
 		assertThat(usage.getCompletionTokens()).isEqualTo(0);
 		assertThat(usage.getTotalTokens()).isEqualTo(0);
@@ -80,8 +80,11 @@ public class DefaultUsageTests {
 	@Test
 	void testRoundTripSerialization() throws Exception {
 		DefaultUsage original = new DefaultUsage(Integer.valueOf(100), Integer.valueOf(50), Integer.valueOf(150));
-		String json = JsonMapper.shared().writeValueAsString(original);
-		DefaultUsage deserialized = JsonMapper.shared().readValue(json, DefaultUsage.class);
+		String json = JsonMapper.builder().findAndAddModules().build().writeValueAsString(original);
+		DefaultUsage deserialized = JsonMapper.builder()
+			.findAndAddModules()
+			.build()
+			.readValue(json, DefaultUsage.class);
 		assertThat(deserialized.getPromptTokens()).isEqualTo(original.getPromptTokens());
 		assertThat(deserialized.getCompletionTokens()).isEqualTo(original.getCompletionTokens());
 		assertThat(deserialized.getTotalTokens()).isEqualTo(original.getTotalTokens());
@@ -97,11 +100,14 @@ public class DefaultUsageTests {
 		assertThat(usage.getTotalTokens()).isEqualTo(150); // 100 + 50 = 150
 
 		// Test serialization
-		String json = JsonMapper.shared().writeValueAsString(usage);
+		String json = JsonMapper.builder().findAndAddModules().build().writeValueAsString(usage);
 		assertThat(json).isEqualTo("{\"promptTokens\":100,\"completionTokens\":50,\"totalTokens\":150}");
 
 		// Test deserialization
-		DefaultUsage deserializedUsage = JsonMapper.shared().readValue(json, DefaultUsage.class);
+		DefaultUsage deserializedUsage = JsonMapper.builder()
+			.findAndAddModules()
+			.build()
+			.readValue(json, DefaultUsage.class);
 		assertThat(deserializedUsage.getPromptTokens()).isEqualTo(100);
 		assertThat(deserializedUsage.getCompletionTokens()).isEqualTo(50);
 		assertThat(deserializedUsage.getTotalTokens()).isEqualTo(150);
@@ -117,11 +123,14 @@ public class DefaultUsageTests {
 		assertThat(usage.getTotalTokens()).isEqualTo(0);
 
 		// Test serialization
-		String json = JsonMapper.shared().writeValueAsString(usage);
+		String json = JsonMapper.builder().findAndAddModules().build().writeValueAsString(usage);
 		assertThat(json).isEqualTo("{\"promptTokens\":0,\"completionTokens\":0,\"totalTokens\":0}");
 
 		// Test deserialization
-		DefaultUsage deserializedUsage = JsonMapper.shared().readValue(json, DefaultUsage.class);
+		DefaultUsage deserializedUsage = JsonMapper.builder()
+			.findAndAddModules()
+			.build()
+			.readValue(json, DefaultUsage.class);
 		assertThat(deserializedUsage.getPromptTokens()).isEqualTo(0);
 		assertThat(deserializedUsage.getCompletionTokens()).isEqualTo(0);
 		assertThat(deserializedUsage.getTotalTokens()).isEqualTo(0);
@@ -130,7 +139,7 @@ public class DefaultUsageTests {
 	@Test
 	void testDeserializationWithDifferentPropertyOrder() throws Exception {
 		String json = "{\"totalTokens\":150,\"completionTokens\":50,\"promptTokens\":100}";
-		DefaultUsage usage = JsonMapper.shared().readValue(json, DefaultUsage.class);
+		DefaultUsage usage = JsonMapper.builder().findAndAddModules().build().readValue(json, DefaultUsage.class);
 		assertThat(usage.getPromptTokens()).isEqualTo(100);
 		assertThat(usage.getCompletionTokens()).isEqualTo(50);
 		assertThat(usage.getTotalTokens()).isEqualTo(150);
@@ -143,7 +152,7 @@ public class DefaultUsageTests {
 		customNativeUsage.put("custom_number", 42);
 
 		DefaultUsage usage = new DefaultUsage(100, 50, 150, customNativeUsage);
-		String json = JsonMapper.shared().writeValueAsString(usage);
+		String json = JsonMapper.builder().findAndAddModules().build().writeValueAsString(usage);
 		assertThat(json).isEqualTo(
 				"{\"promptTokens\":100,\"completionTokens\":50,\"totalTokens\":150,\"nativeUsage\":{\"custom_field\":\"custom_value\",\"custom_number\":42}}");
 	}
@@ -151,7 +160,7 @@ public class DefaultUsageTests {
 	@Test
 	void testDeserializationWithCustomNativeUsage() throws Exception {
 		String json = "{\"promptTokens\":100,\"completionTokens\":50,\"totalTokens\":150,\"nativeUsage\":{\"custom_field\":\"custom_value\",\"custom_number\":42}}";
-		DefaultUsage usage = JsonMapper.shared().readValue(json, DefaultUsage.class);
+		DefaultUsage usage = JsonMapper.builder().findAndAddModules().build().readValue(json, DefaultUsage.class);
 		assertThat(usage.getPromptTokens()).isEqualTo(100);
 		assertThat(usage.getCompletionTokens()).isEqualTo(50);
 		assertThat(usage.getTotalTokens()).isEqualTo(150);
@@ -173,8 +182,11 @@ public class DefaultUsageTests {
 
 		DefaultUsage usage = new DefaultUsage(100, 50, 150, arbitraryMap);
 
-		String json = JsonMapper.shared().writeValueAsString(usage);
-		DefaultUsage deserialized = JsonMapper.shared().readValue(json, DefaultUsage.class);
+		String json = JsonMapper.builder().findAndAddModules().build().writeValueAsString(usage);
+		DefaultUsage deserialized = JsonMapper.builder()
+			.findAndAddModules()
+			.build()
+			.readValue(json, DefaultUsage.class);
 
 		assertThat(deserialized.getPromptTokens()).isEqualTo(usage.getPromptTokens());
 		assertThat(deserialized.getCompletionTokens()).isEqualTo(usage.getCompletionTokens());
@@ -249,7 +261,7 @@ public class DefaultUsageTests {
 		assertThat(usage.getCompletionTokens()).isEqualTo(-2);
 		assertThat(usage.getTotalTokens()).isEqualTo(-3);
 
-		String json = JsonMapper.shared().writeValueAsString(usage);
+		String json = JsonMapper.builder().findAndAddModules().build().writeValueAsString(usage);
 		assertThat(json).isEqualTo("{\"promptTokens\":-1,\"completionTokens\":-2,\"totalTokens\":-3}");
 	}
 
@@ -277,7 +289,7 @@ public class DefaultUsageTests {
 	@Test
 	void testSerializationWithCacheFields() throws Exception {
 		DefaultUsage usage = new DefaultUsage(100, 50, 150, null, 500L, 200L);
-		String json = JsonMapper.shared().writeValueAsString(usage);
+		String json = JsonMapper.builder().findAndAddModules().build().writeValueAsString(usage);
 		assertThat(json).contains("\"cacheReadInputTokens\":500");
 		assertThat(json).contains("\"cacheWriteInputTokens\":200");
 	}
@@ -286,7 +298,7 @@ public class DefaultUsageTests {
 	void testDeserializationWithCacheFields() throws Exception {
 		String json = "{\"promptTokens\":100,\"completionTokens\":50,\"totalTokens\":150,"
 				+ "\"cacheReadInputTokens\":500,\"cacheWriteInputTokens\":200}";
-		DefaultUsage usage = JsonMapper.shared().readValue(json, DefaultUsage.class);
+		DefaultUsage usage = JsonMapper.builder().findAndAddModules().build().readValue(json, DefaultUsage.class);
 		assertThat(usage.getCacheReadInputTokens()).isEqualTo(500L);
 		assertThat(usage.getCacheWriteInputTokens()).isEqualTo(200L);
 	}
@@ -294,7 +306,7 @@ public class DefaultUsageTests {
 	@Test
 	void testDeserializationWithoutCacheFields() throws Exception {
 		String json = "{\"promptTokens\":100,\"completionTokens\":50,\"totalTokens\":150}";
-		DefaultUsage usage = JsonMapper.shared().readValue(json, DefaultUsage.class);
+		DefaultUsage usage = JsonMapper.builder().findAndAddModules().build().readValue(json, DefaultUsage.class);
 		assertThat(usage.getCacheReadInputTokens()).isNull();
 		assertThat(usage.getCacheWriteInputTokens()).isNull();
 	}
@@ -317,7 +329,7 @@ public class DefaultUsageTests {
 	@Test
 	void testSerializationFallsBackToToStringForNonSerializableNativeUsage() throws Exception {
 		DefaultUsage usage = new DefaultUsage(100, 50, 150, new ThrowingNativeUsage());
-		String json = JsonMapper.shared().writeValueAsString(usage);
+		String json = JsonMapper.builder().findAndAddModules().build().writeValueAsString(usage);
 		assertThat(json).isEqualTo(
 				"{\"promptTokens\":100,\"completionTokens\":50,\"totalTokens\":150,\"nativeUsage\":\"ThrowingNativeUsage{tokens=7}\"}");
 	}
@@ -325,7 +337,7 @@ public class DefaultUsageTests {
 	@Test
 	void testSerializationFallsBackToToStringForSelfReferencingNativeUsage() throws Exception {
 		DefaultUsage usage = new DefaultUsage(100, 50, 150, new SelfReferencingNativeUsage());
-		String json = JsonMapper.shared().writeValueAsString(usage);
+		String json = JsonMapper.builder().findAndAddModules().build().writeValueAsString(usage);
 		assertThat(json).isEqualTo(
 				"{\"promptTokens\":100,\"completionTokens\":50,\"totalTokens\":150,\"nativeUsage\":\"SelfReferencingNativeUsage\"}");
 	}
@@ -333,7 +345,7 @@ public class DefaultUsageTests {
 	@Test
 	void testSerializationOfSerializableNativeUsageIsUnchanged() throws Exception {
 		DefaultUsage usage = new DefaultUsage(100, 50, 150, new PlainNativeUsage(7));
-		String json = JsonMapper.shared().writeValueAsString(usage);
+		String json = JsonMapper.builder().findAndAddModules().build().writeValueAsString(usage);
 		assertThat(json).isEqualTo(
 				"{\"promptTokens\":100,\"completionTokens\":50,\"totalTokens\":150,\"nativeUsage\":{\"tokens\":7}}");
 	}
@@ -359,7 +371,7 @@ public class DefaultUsageTests {
 	void testSerializationWithDefaultTypingKeepsTypeIdForSerializableNativeUsage() throws Exception {
 		DefaultUsage usage = new DefaultUsage(100, 50, 150, new PlainNativeUsage(7));
 		JsonNode json = defaultTypingJsonMapper().readTree(defaultTypingJsonMapper().writeValueAsString(usage));
-		assertThat(json.get("nativeUsage").get("@class").asString()).isEqualTo(PlainNativeUsage.class.getName());
+		assertThat(json.get("nativeUsage").get("@class").asText()).isEqualTo(PlainNativeUsage.class.getName());
 		assertThat(json.get("nativeUsage").get("tokens").asInt()).isEqualTo(7);
 	}
 
@@ -367,7 +379,7 @@ public class DefaultUsageTests {
 	void testSerializationWithDefaultTypingFallsBackToToStringForNonSerializableNativeUsage() throws Exception {
 		DefaultUsage usage = new DefaultUsage(100, 50, 150, new ThrowingNativeUsage());
 		JsonNode json = defaultTypingJsonMapper().readTree(defaultTypingJsonMapper().writeValueAsString(usage));
-		assertThat(json.get("nativeUsage").asString()).isEqualTo("ThrowingNativeUsage{tokens=7}");
+		assertThat(json.get("nativeUsage").asText()).isEqualTo("ThrowingNativeUsage{tokens=7}");
 		assertThat(json.get("promptTokens").asInt()).isEqualTo(100);
 	}
 
@@ -385,7 +397,7 @@ public class DefaultUsageTests {
 	@Test
 	void testDeserializationWithLegacyGenerationTokens() throws Exception {
 		String json = "{\"promptTokens\":100,\"generationTokens\":50,\"totalTokens\":150}";
-		DefaultUsage usage = JsonMapper.shared().readValue(json, DefaultUsage.class);
+		DefaultUsage usage = JsonMapper.builder().findAndAddModules().build().readValue(json, DefaultUsage.class);
 		assertThat(usage.getPromptTokens()).isEqualTo(100);
 		assertThat(usage.getCompletionTokens()).isEqualTo(50);
 		assertThat(usage.getTotalTokens()).isEqualTo(150);
@@ -394,7 +406,7 @@ public class DefaultUsageTests {
 	@Test
 	void testDeserializationWithLegacyGenerationTokensAndNoTotalTokens() throws Exception {
 		String json = "{\"promptTokens\":100,\"generationTokens\":50}";
-		DefaultUsage usage = JsonMapper.shared().readValue(json, DefaultUsage.class);
+		DefaultUsage usage = JsonMapper.builder().findAndAddModules().build().readValue(json, DefaultUsage.class);
 		assertThat(usage.getPromptTokens()).isEqualTo(100);
 		assertThat(usage.getCompletionTokens()).isEqualTo(50);
 		assertThat(usage.getTotalTokens()).isEqualTo(150);
@@ -402,9 +414,11 @@ public class DefaultUsageTests {
 
 	@Test
 	void testSerializationUsesCompletionTokensOnly() throws Exception {
-		DefaultUsage usage = JsonMapper.shared()
+		DefaultUsage usage = JsonMapper.builder()
+			.findAndAddModules()
+			.build()
 			.readValue("{\"promptTokens\":100,\"generationTokens\":50,\"totalTokens\":150}", DefaultUsage.class);
-		String json = JsonMapper.shared().writeValueAsString(usage);
+		String json = JsonMapper.builder().findAndAddModules().build().writeValueAsString(usage);
 		assertThat(json).isEqualTo("{\"promptTokens\":100,\"completionTokens\":50,\"totalTokens\":150}");
 	}
 

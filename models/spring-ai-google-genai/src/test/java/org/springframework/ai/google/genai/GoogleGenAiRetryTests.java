@@ -27,10 +27,10 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import org.springframework.ai.retry.RetryUtils;
-import org.springframework.core.retry.RetryListener;
-import org.springframework.core.retry.RetryPolicy;
-import org.springframework.core.retry.RetryTemplate;
-import org.springframework.core.retry.Retryable;
+import org.springframework.retry.RetryCallback;
+import org.springframework.retry.RetryContext;
+import org.springframework.retry.RetryListener;
+import org.springframework.retry.support.RetryTemplate;
 
 /**
  * @author Mark Pollack
@@ -55,7 +55,7 @@ public class GoogleGenAiRetryTests {
 	public void setUp() {
 		this.retryTemplate = RetryUtils.SHORT_RETRY_TEMPLATE;
 		this.retryListener = new TestRetryListener();
-		this.retryTemplate.setRetryListener(this.retryListener);
+		this.retryTemplate.setListeners(new RetryListener[] { this.retryListener });
 
 		this.chatModel = new org.springframework.ai.google.genai.TestGoogleGenAiGeminiChatModel(this.genAiClient,
 				GoogleGenAiChatOptions.builder()
@@ -88,22 +88,26 @@ public class GoogleGenAiRetryTests {
 		// This test would need to be restructured to test error handling differently.
 	}
 
-	private static class TestRetryListener implements RetryListener {
+	private static class TestRetryListener extends org.springframework.retry.listener.RetryListenerSupport {
 
 		int onErrorRetryCount = 0;
 
 		int onSuccessRetryCount = 0;
 
 		@Override
-		public void beforeRetry(final RetryPolicy retryPolicy, final Retryable<?> retryable) {
+		public <T, E extends Throwable> void onError(RetryContext context, RetryCallback<T, E> callback,
+				Throwable throwable) {
 			// Count each retry attempt
 			this.onErrorRetryCount++;
 		}
 
 		@Override
-		public void onRetrySuccess(final RetryPolicy retryPolicy, final Retryable<?> retryable, final Object result) {
-			// Count successful retries - we increment when we succeed after a failure
-			this.onSuccessRetryCount++;
+		public <T, E extends Throwable> void close(RetryContext context, RetryCallback<T, E> callback,
+				Throwable throwable) {
+			if (throwable == null) {
+				// Count successful retries - we increment when we succeed after a failure
+				this.onSuccessRetryCount++;
+			}
 		}
 
 	}

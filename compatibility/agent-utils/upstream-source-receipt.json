@@ -1,0 +1,14 @@
+[
+  {
+    "coordinate": "org.springaicommunity:spring-ai-agent-utils:0.13.0",
+    "sourceJarSha256": "b85e7aee1d8417c933aded2adbd0b272458506b2f376c0d32864d81c5e3fa7d3",
+    "pomSha256": "bb20072482931d62b3e57b305d8cae4cc5d91cc9fde9fa922bbc083787407627",
+    "origin": "https://repo.maven.apache.org/maven2/org/springaicommunity/spring-ai-agent-utils/0.13.0/spring-ai-agent-utils-0.13.0-sources.jar"
+  },
+  {
+    "coordinate": "org.springaicommunity:spring-ai-agent-utils-common:0.13.0",
+    "sourceJarSha256": "a551d66b821495ee0c27fed4094aad149da5c8fa3ca8805f6a973fd0e06aafc7",
+    "pomSha256": "aa6d3736c86024edb3604859e78f2f05d7feb322d10b57f335f630a38750a575",
+    "origin": "https://repo.maven.apache.org/maven2/org/springaicommunity/spring-ai-agent-utils-common/0.13.0/spring-ai-agent-utils-common-0.13.0-sources.jar"
+  }
+]

@@ -26,6 +26,8 @@ import java.util.stream.Stream;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.victools.jsonschema.generator.Module;
 import com.github.victools.jsonschema.generator.Option;
 import com.github.victools.jsonschema.generator.OptionPreset;
@@ -33,20 +35,18 @@ import com.github.victools.jsonschema.generator.SchemaGenerator;
 import com.github.victools.jsonschema.generator.SchemaGeneratorConfig;
 import com.github.victools.jsonschema.generator.SchemaGeneratorConfigBuilder;
 import com.github.victools.jsonschema.generator.SchemaVersion;
+import com.github.victools.jsonschema.module.jackson.JacksonModule;
 import com.github.victools.jsonschema.module.jackson.JacksonOption;
-import com.github.victools.jsonschema.module.jackson.JacksonSchemaModule;
 import com.github.victools.jsonschema.module.swagger2.Swagger2Module;
 import io.swagger.v3.oas.annotations.media.Schema;
 import org.jspecify.annotations.Nullable;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.node.ObjectNode;
 
 import org.springframework.ai.chat.model.ToolContext;
 import org.springframework.ai.model.KotlinModule;
 import org.springframework.ai.tool.annotation.ToolParam;
 import org.springframework.ai.util.JacksonUtils;
+import org.springframework.ai.util.Nullness;
 import org.springframework.core.KotlinDetector;
-import org.springframework.core.Nullness;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
@@ -94,7 +94,7 @@ public final class JsonSchemaGenerator {
 	 * Initialize JSON Schema generators.
 	 */
 	static {
-		Module jacksonModule = new JacksonSchemaModule(JacksonOption.RESPECT_JSONPROPERTY_REQUIRED,
+		Module jacksonModule = new JacksonModule(JacksonOption.RESPECT_JSONPROPERTY_REQUIRED,
 				JacksonOption.RESPECT_JSONPROPERTY_ORDER);
 		Module openApiModule = new Swagger2Module();
 		Module springAiSchemaModule = PROPERTY_REQUIRED_BY_DEFAULT ? new SpringAiSchemaModule()
@@ -327,8 +327,8 @@ public final class JsonSchemaGenerator {
 						}
 					});
 				}
-				else if (value.isString() && entry.getKey().equals("type")) {
-					String oldValue = node.get("type").asString();
+				else if (value.isTextual() && entry.getKey().equals("type")) {
+					String oldValue = node.get("type").asText();
 					node.put("type", oldValue.toUpperCase(Locale.ROOT));
 				}
 			});

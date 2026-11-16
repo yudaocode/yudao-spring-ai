@@ -19,9 +19,9 @@ package org.springframework.ai.mistralai.api.tool;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
-import tools.jackson.databind.json.JsonMapper;
 
 import org.springframework.ai.mistralai.api.MistralAiApi;
 import org.springframework.ai.mistralai.api.MistralAiApi.ChatCompletion;
@@ -55,13 +55,13 @@ class MistralAiApiToolFunctionCallIT {
 		.apiKey(System.getenv("MISTRAL_AI_API_KEY"))
 		.build();
 
-	private static <T> T fromJson(String json, Class<T> targetClass) {
-		return JsonMapper.shared().readValue(json, targetClass);
+	private static <T> T fromJson(String json, Class<T> targetClass) throws Exception {
+		return JsonMapper.builder().findAndAddModules().build().readValue(json, targetClass);
 	}
 
 	@Test
 	@SuppressWarnings("null")
-	void toolFunctionCall() {
+	void toolFunctionCall() throws Exception {
 
 		// Step 1: send the conversation and available functions to the model
 		var message = new ChatCompletionMessage(

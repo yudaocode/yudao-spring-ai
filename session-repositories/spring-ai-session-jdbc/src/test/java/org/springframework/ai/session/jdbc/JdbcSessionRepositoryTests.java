@@ -47,8 +47,8 @@ import org.springframework.ai.session.SessionService;
 import org.springframework.ai.session.compaction.WindowCompactionStrategy;
 import org.springframework.ai.test.session.AbstractSessionRepositoryContractTests;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.jdbc.autoconfigure.DataSourceAutoConfiguration;
-import org.springframework.boot.jdbc.autoconfigure.JdbcTemplateAutoConfiguration;
+import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
+import org.springframework.boot.autoconfigure.jdbc.JdbcTemplateAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
@@ -56,8 +56,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.jdbc.Sql;
-import org.springframework.test.context.jdbc.Sql.ExecutionPhase;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
@@ -73,8 +71,8 @@ import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException
  */
 @SpringBootTest
 @TestPropertySource(properties = { "spring.datasource.url=jdbc:h2:mem:sessiontest;DB_CLOSE_DELAY=-1" })
-@Sql(scripts = "classpath:org/springframework/ai/session/jdbc/schema-h2.sql",
-		executionPhase = ExecutionPhase.BEFORE_TEST_CLASS)
+@TestPropertySource(properties = { "spring.sql.init.mode=always",
+		"spring.sql.init.schema-locations=classpath:org/springframework/ai/session/jdbc/schema-h2.sql" })
 @ContextConfiguration(classes = JdbcSessionRepositoryTests.TestConfig.class)
 class JdbcSessionRepositoryTests {
 
@@ -475,7 +473,8 @@ class JdbcSessionRepositoryTests {
 	// Spring test configuration
 	// -------------------------------------------------------------------------
 
-	@Import({ DataSourceAutoConfiguration.class, JdbcTemplateAutoConfiguration.class })
+	@Import({ DataSourceAutoConfiguration.class, JdbcTemplateAutoConfiguration.class,
+			org.springframework.boot.autoconfigure.sql.init.SqlInitializationAutoConfiguration.class })
 	static class TestConfig {
 
 		@Bean

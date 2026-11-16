@@ -18,10 +18,10 @@ package org.springframework.ai.google.genai.schema;
 
 import java.util.Map;
 
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.node.ArrayNode;
-import tools.jackson.databind.node.JsonNodeFactory;
-import tools.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import org.springframework.ai.util.JacksonUtils;
 import org.springframework.util.Assert;
@@ -122,7 +122,7 @@ public final class JsonSchemaConverter {
 			if (typeNode.isArray()) {
 				ArrayNode nonNullTypes = factory.arrayNode();
 				for (JsonNode typeValue : typeNode) {
-					if (typeValue.isString() && "null".equals(typeValue.asString())) {
+					if (typeValue.isTextual() && "null".equals(typeValue.asText())) {
 						nullable = true;
 					}
 					else {
@@ -136,7 +136,7 @@ public final class JsonSchemaConverter {
 					target.set("type", nonNullTypes);
 				}
 			}
-			else if (typeNode.isString() && "null".equals(typeNode.asString())) {
+			else if (typeNode.isTextual() && "null".equals(typeNode.asText())) {
 				nullable = true;
 			}
 			else {

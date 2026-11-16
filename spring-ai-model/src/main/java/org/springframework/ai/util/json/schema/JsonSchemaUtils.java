@@ -24,18 +24,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.victools.jsonschema.generator.Option;
 import com.github.victools.jsonschema.generator.OptionPreset;
 import com.github.victools.jsonschema.generator.SchemaGenerator;
 import com.github.victools.jsonschema.generator.SchemaGeneratorConfig;
 import com.github.victools.jsonschema.generator.SchemaGeneratorConfigBuilder;
 import com.github.victools.jsonschema.generator.SchemaVersion;
+import com.github.victools.jsonschema.module.jackson.JacksonModule;
 import com.github.victools.jsonschema.module.jackson.JacksonOption;
-import com.github.victools.jsonschema.module.jackson.JacksonSchemaModule;
 import com.github.victools.jsonschema.module.swagger2.Swagger2Module;
 import org.jspecify.annotations.Nullable;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.node.ObjectNode;
 
 import org.springframework.ai.model.KotlinModule;
 import org.springframework.ai.util.JsonHelper;
@@ -57,7 +57,7 @@ public final class JsonSchemaUtils {
 	private static final SchemaGenerator schemaGenerator;
 
 	static {
-		JacksonSchemaModule jacksonModule = new JacksonSchemaModule(JacksonOption.RESPECT_JSONPROPERTY_REQUIRED);
+		JacksonModule jacksonModule = new JacksonModule(JacksonOption.RESPECT_JSONPROPERTY_REQUIRED);
 		Swagger2Module swaggerModule = new Swagger2Module();
 
 		SchemaGeneratorConfigBuilder configBuilder = new SchemaGeneratorConfigBuilder(SchemaVersion.DRAFT_2020_12,
@@ -153,8 +153,8 @@ public final class JsonSchemaUtils {
 		if (node.isObject()) {
 			ObjectNode object = (ObjectNode) node;
 			JsonNode refNode = object.get("$ref");
-			if (refNode != null && refNode.isString()) {
-				String ref = refNode.asString();
+			if (refNode != null && refNode.isTextual()) {
+				String ref = refNode.asText();
 				String prefix = "#/$defs/";
 				if (ref.startsWith(prefix)) {
 					String rest = ref.substring(prefix.length());

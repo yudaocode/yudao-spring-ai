@@ -104,7 +104,10 @@ final class DecisionFanOut {
 		executor.setAllowCoreThreadTimeOut(true);
 		executor.setKeepAliveSeconds(KEEP_ALIVE_SECONDS);
 		executor.setDaemon(true);
-		executor.setVirtualThreads(virtualThreads);
+		if (virtualThreads) {
+			throw new UnsupportedOperationException(
+					"Virtual threads require JDK 21 and are unavailable on the Boot 2 / JDK 8 compatibility branch");
+		}
 		// Observations and MDC follow the work onto the calling threads, as they do in
 		// RetrievalAugmentationAdvisor's own executor.
 		executor.setTaskDecorator(new ContextPropagatingTaskDecorator());

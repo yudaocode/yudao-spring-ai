@@ -16,8 +16,8 @@
 
 package org.springframework.ai.model.bedrock.autoconfigure;
 
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import software.amazon.awssdk.regions.Region;
-import tools.jackson.databind.json.JsonMapper;
 
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Bean;

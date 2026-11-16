@@ -73,7 +73,6 @@ class OllamaDecisionAutoConfigurationTests {
 				var decisionProperties = context.getBean(OllamaDecisionProperties.class);
 				var connectionProperties = context.getBean(OllamaConnectionProperties.class);
 				var initProperties = context.getBean(OllamaInitializationProperties.class);
-
 				assertThat(decisionProperties.getModel()).isEqualTo("MODEL_XYZ");
 				assertThat(connectionProperties.getBaseUrl()).isEqualTo("TEST_BASE_URL");
 				assertThat(initProperties.getDecision().isInclude()).isFalse();
@@ -85,21 +84,19 @@ class OllamaDecisionAutoConfigurationTests {
 	@Test
 	void decisionsAreSentToTheConfiguredOllamaServer() {
 		RestClient.Builder restClientBuilder = RestClient.builder();
-		MockRestServiceServer server = MockRestServiceServer.bindTo(restClientBuilder).build();
+		MockRestServiceServer server = bindMockServer(restClientBuilder);
 		server.expect(requestTo("http://ollama.test:11434/v1/systemone"))
 			.andExpect(method(HttpMethod.POST))
 			.andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer ollama"))
 			.andRespond(withSuccess("""
 					{"model": "d1-omni:600m", "answers": {"defect": {"type": "noul", "noul": 0.97}},
 					"usage": {"input_tokens": 20, "output_tokens": 0}}""", MediaType.APPLICATION_JSON));
-
 		this.contextRunner.withPropertyValues("spring.ai.ollama.base-url=http://ollama.test:11434")
 			.withBean(RestClient.Builder.class, () -> restClientBuilder)
 			.run(context -> {
 				DecisionResponse response = context.getBean(OllamaDecisionModel.class)
 					.call("My new headphones arrived yesterday, but the left side doesn't work. Can I get my money back?",
 							Map.of("defect", YesNoQuestion.of("Does the customer report a defect?")));
-
 				assertThat(response.getYesNo("defect").isYes()).isTrue();
 				server.verify();
 			});
@@ -126,12 +123,20 @@ class OllamaDecisionAutoConfigurationTests {
 				.hasSingleBean(DecisionModelObservationConvention.class));
 	}
 
+	private static MockRestServiceServer bindMockServer(RestClient.Builder builder) {
+		org.springframework.web.client.RestTemplate template = new org.springframework.web.client.RestTemplate();
+		MockRestServiceServer server = MockRestServiceServer.bindTo(template).build();
+		builder.requestFactory(template.getRequestFactory());
+		return server;
+	}
+
 	@Configuration(proxyBeanMethods = false)
 	static class CustomConventionConfiguration {
 
 		@Bean
 		DecisionModelObservationConvention customDecisionModelObservationConvention() {
 			return new DecisionModelObservationConvention() {
+
 				@Override
 				public String getName() {
 					return "custom";

@@ -55,7 +55,7 @@ public final class SchemaUtil {
 	}
 
 	public static void ensureKeyspaceExists(CqlSession session, String keyspaceName) {
-		if (session.getMetadata().getKeyspace(keyspaceName).isEmpty()) {
+		if (!session.getMetadata().getKeyspace(keyspaceName).isPresent()) {
 			SimpleStatement keyspaceStmt = SchemaBuilder.createKeyspace(keyspaceName)
 				.ifNotExists()
 				.withSimpleStrategy(1)

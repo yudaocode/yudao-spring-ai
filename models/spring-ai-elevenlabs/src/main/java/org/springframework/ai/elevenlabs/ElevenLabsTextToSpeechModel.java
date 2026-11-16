@@ -39,7 +39,7 @@ import org.springframework.ai.audio.tts.observation.TextToSpeechModelObservation
 import org.springframework.ai.elevenlabs.api.ElevenLabsApi;
 import org.springframework.ai.observation.conventions.AiProvider;
 import org.springframework.ai.retry.RetryUtils;
-import org.springframework.core.retry.RetryTemplate;
+import org.springframework.retry.support.RetryTemplate;
 import org.springframework.util.Assert;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;

@@ -34,18 +34,18 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonToken;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonDeserializer;
+import com.fasterxml.jackson.databind.JsonSerializer;
+import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import org.jspecify.annotations.Nullable;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import tools.jackson.core.JsonGenerator;
-import tools.jackson.core.JsonParser;
-import tools.jackson.core.JsonToken;
-import tools.jackson.databind.DeserializationContext;
-import tools.jackson.databind.SerializationContext;
-import tools.jackson.databind.ValueDeserializer;
-import tools.jackson.databind.ValueSerializer;
-import tools.jackson.databind.annotation.JsonDeserialize;
-import tools.jackson.databind.annotation.JsonSerialize;
 
 import org.springframework.ai.model.ChatModelDescription;
 import org.springframework.ai.observation.conventions.AiProvider;
@@ -1531,11 +1531,11 @@ public class MistralAiApi {
 
 		}
 
-		public static class ContentSerializer extends ValueSerializer<Object> {
+		public static class ContentSerializer extends JsonSerializer<Object> {
 
 			@Override
-			public void serialize(Object value, JsonGenerator jsonGenerator,
-					SerializationContext serializationContext) {
+			public void serialize(Object value, JsonGenerator jsonGenerator, SerializerProvider serializationContext)
+					throws java.io.IOException {
 				if (value instanceof String text) {
 					jsonGenerator.writeString(text);
 				}
@@ -1561,10 +1561,11 @@ public class MistralAiApi {
 
 		}
 
-		public static class ContentDeserializer extends ValueDeserializer<Object> {
+		public static class ContentDeserializer extends JsonDeserializer<Object> {
 
 			@Override
-			public Object deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) {
+			public Object deserialize(JsonParser jsonParser, DeserializationContext deserializationContext)
+					throws java.io.IOException {
 				var jsonToken = jsonParser.currentToken();
 
 				if (jsonToken == JsonToken.VALUE_STRING) {

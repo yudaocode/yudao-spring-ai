@@ -37,8 +37,8 @@ import org.springframework.ai.moderation.ModerationPrompt;
 import org.springframework.ai.moderation.ModerationResponse;
 import org.springframework.ai.moderation.ModerationResult;
 import org.springframework.ai.retry.RetryUtils;
-import org.springframework.core.retry.RetryTemplate;
 import org.springframework.http.ResponseEntity;
+import org.springframework.retry.support.RetryTemplate;
 import org.springframework.util.Assert;
 
 /**

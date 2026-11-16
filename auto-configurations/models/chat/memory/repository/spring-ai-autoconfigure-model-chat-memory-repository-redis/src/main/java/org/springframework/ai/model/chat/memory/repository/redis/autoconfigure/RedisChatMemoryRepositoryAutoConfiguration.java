@@ -18,7 +18,7 @@ package org.springframework.ai.model.chat.memory.repository.redis.autoconfigure;
 
 import redis.clients.jedis.DefaultJedisClientConfig;
 import redis.clients.jedis.JedisClientConfig;
-import redis.clients.jedis.RedisClient;
+import redis.clients.jedis.JedisPooled;
 
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.memory.ChatMemoryRepository;
@@ -49,7 +49,7 @@ import org.springframework.util.StringUtils;
 @Deprecated(since = "2.1.0", forRemoval = true)
 @SuppressWarnings("removal")
 @AutoConfiguration(before = ChatMemoryAutoConfiguration.class)
-@ConditionalOnClass({ RedisChatMemoryRepository.class, RedisClient.class })
+@ConditionalOnClass({ RedisChatMemoryRepository.class, JedisPooled.class })
 public class RedisChatMemoryRepositoryAutoConfiguration {
 
 	/**
@@ -78,7 +78,7 @@ public class RedisChatMemoryRepositoryAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
-	public RedisClient jedisClient(RedisChatMemoryRepositoryProperties properties) {
+	public JedisPooled jedisClient(RedisChatMemoryRepositoryProperties properties) {
 		if (StringUtils.hasText(properties.getUsername()) || StringUtils.hasText(properties.getPassword())) {
 			DefaultJedisClientConfig.Builder configBuilder = DefaultJedisClientConfig.builder();
 			if (StringUtils.hasText(properties.getUsername())) {
@@ -88,17 +88,15 @@ public class RedisChatMemoryRepositoryAutoConfiguration {
 				configBuilder.password(properties.getPassword());
 			}
 			JedisClientConfig clientConfig = configBuilder.build();
-			return RedisClient.builder()
-				.hostAndPort(properties.getHost(), properties.getPort())
-				.clientConfig(clientConfig)
-				.build();
+			return new JedisPooled(new redis.clients.jedis.HostAndPort(properties.getHost(), properties.getPort()),
+					clientConfig);
 		}
-		return RedisClient.builder().hostAndPort(properties.getHost(), properties.getPort()).build();
+		return new JedisPooled(properties.getHost(), properties.getPort());
 	}
 
 	@Bean
 	@ConditionalOnMissingBean({ RedisChatMemoryRepository.class, ChatMemory.class, ChatMemoryRepository.class })
-	public RedisChatMemoryRepository redisChatMemoryRepository(RedisClient jedisClient,
+	public RedisChatMemoryRepository redisChatMemoryRepository(JedisPooled jedisClient,
 			RedisChatMemoryRepositoryProperties properties) {
 		RedisChatMemoryRepository.Builder builder = RedisChatMemoryRepository.builder().jedisClient(jedisClient);
 
@@ -111,7 +109,7 @@ public class RedisChatMemoryRepositoryAutoConfiguration {
 			builder.keyPrefix(properties.getKeyPrefix());
 		}
 
-		if (properties.getTimeToLive() != null && properties.getTimeToLive().toSeconds() > 0) {
+		if (properties.getTimeToLive() != null && properties.getTimeToLive().getSeconds() > 0) {
 			builder.timeToLive(properties.getTimeToLive());
 		}
 

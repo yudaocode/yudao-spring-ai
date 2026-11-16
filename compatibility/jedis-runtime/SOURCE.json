@@ -1,0 +1,20 @@
+{
+  "strategy": "Isolate Jedis 6 core, pools and JSON implementations; retain native Jedis 3.8 for Spring Data Redis 2.7",
+  "versions": {
+    "jedis": "6.0.0",
+    "commons-pool2": "2.12.1",
+    "gson": "2.12.1",
+    "org.json": "20250107",
+    "error_prone_annotations": "2.36.0",
+    "redis-authx-core": "0.1.1-beta2"
+  },
+  "sha256File": "upstream-sha256.properties",
+  "publicNewPackages": [
+    "redis.clients.jedis.search",
+    "redis.clients.jedis.json"
+  ],
+  "sdkRepository": "https://github.com/redis/jedis",
+  "sdkTag": "v6.0.0",
+  "runtimeJdk": 8,
+  "buildJdk": 17
+}

@@ -138,7 +138,8 @@ public class AzureOpenAiChatClientIT {
 		assertThat(formattedStreamingResponse).isEqualTo(formattedImperativeResponse);
 		assertThat(formattedStreamingResponse).contains("1. Alabama - Montgomery");
 		assertThat(formattedStreamingResponse).contains("50. Wyoming - Cheyenne");
-		assertThat(formattedStreamingResponse.lines().count()).isEqualTo(50);
+		assertThat(org.springframework.ai.util.Java8Platform.stringLines(formattedStreamingResponse).count())
+			.isEqualTo(50);
 	}
 
 	private String extractStatesData(String rawData) {

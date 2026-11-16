@@ -16,12 +16,15 @@
 
 package org.springframework.ai.model.session.jdbc.autoconfigure;
 
-import java.util.Map;
+import java.util.List;
 
 import javax.sql.DataSource;
 
 import org.springframework.boot.jdbc.DatabaseDriver;
-import org.springframework.boot.jdbc.init.PropertiesBasedDataSourceScriptDatabaseInitializer;
+import org.springframework.boot.jdbc.init.DataSourceScriptDatabaseInitializer;
+import org.springframework.boot.jdbc.init.PlatformPlaceholderDatabaseDriverResolver;
+import org.springframework.boot.sql.init.DatabaseInitializationSettings;
+import org.springframework.util.StringUtils;
 
 /**
  * Runs the schema script of the JDBC session repository; MariaDB uses the MySQL script.
@@ -29,13 +32,26 @@ import org.springframework.boot.jdbc.init.PropertiesBasedDataSourceScriptDatabas
  * @author Christian Tzolov
  * @since 2.1.0
  */
-class JdbcSessionRepositorySchemaInitializer
-		extends PropertiesBasedDataSourceScriptDatabaseInitializer<JdbcSessionRepositoryProperties> {
+class JdbcSessionRepositorySchemaInitializer extends DataSourceScriptDatabaseInitializer {
 
 	JdbcSessionRepositorySchemaInitializer(DataSource dataSource, JdbcSessionRepositoryProperties properties) {
 		// MariaDB uses the MySQL schema script; without this mapping the @@platform@@
 		// placeholder resolves to "mariadb" and schema-mariadb.sql does not exist.
-		super(dataSource, properties, Map.of(DatabaseDriver.MARIADB, "mysql"));
+		super(dataSource, getSettings(dataSource, properties));
+	}
+
+	static DatabaseInitializationSettings getSettings(DataSource dataSource,
+			JdbcSessionRepositoryProperties properties) {
+		DatabaseInitializationSettings settings = new DatabaseInitializationSettings();
+		PlatformPlaceholderDatabaseDriverResolver resolver = new PlatformPlaceholderDatabaseDriverResolver()
+			.withDriverPlatform(DatabaseDriver.MARIADB, "mysql");
+		List<String> scripts = StringUtils.hasText(properties.getPlatform())
+				? resolver.resolveAll(properties.getPlatform(), properties.getSchema())
+				: resolver.resolveAll(dataSource, properties.getSchema());
+		settings.setSchemaLocations(scripts);
+		settings.setMode(properties.getInitializeSchema());
+		settings.setContinueOnError(properties.isContinueOnError());
+		return settings;
 	}
 
 }

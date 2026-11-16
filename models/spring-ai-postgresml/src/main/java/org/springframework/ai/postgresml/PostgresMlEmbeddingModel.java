@@ -93,10 +93,10 @@ public class PostgresMlEmbeddingModel extends AbstractEmbeddingModel implements 
 
 	@Override
 	public float[] embed(String text) {
-		return this.jdbcTemplate.queryForObject(
+		return java.util.Objects.requireNonNull(this.jdbcTemplate.queryForObject(
 				"SELECT pgml.embed(?, ?, ?::JSONB)" + this.options.getVectorType().cast + " AS embedding",
 				this.options.getVectorType().rowMapper, this.options.getTransformer(), text,
-				jsonHelper.toJson(this.options.getKwargs()));
+				jsonHelper.toJson(this.options.getKwargs())));
 	}
 
 	@Override
@@ -125,7 +125,7 @@ public class PostgresMlEmbeddingModel extends AbstractEmbeddingModel implements 
 						+ optionsToUse.getVectorType().cast + " AS embedding FROM (SELECT unnest(?) AS text) AS texts");
 				preparedStatement.setString(1, optionsToUse.getTransformer());
 				preparedStatement.setString(2, jsonHelper.toJson(optionsToUse.getKwargs()));
-				preparedStatement.setArray(3, connection.createArrayOf("TEXT", texts.toArray(Object[]::new)));
+				preparedStatement.setArray(3, connection.createArrayOf("TEXT", texts.toArray(new Object[0])));
 				return preparedStatement;
 			}, rs -> {
 				List<float[]> result = new ArrayList<>();

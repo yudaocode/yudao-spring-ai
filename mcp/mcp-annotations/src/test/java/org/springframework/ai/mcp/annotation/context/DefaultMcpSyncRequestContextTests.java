@@ -231,9 +231,6 @@ public class DefaultMcpSyncRequestContextTests {
 		when(capabilities.elicitation()).thenReturn(elicitation);
 		when(this.exchange.getClientCapabilities()).thenReturn(capabilities);
 
-		record Person(String name, int age) {
-		}
-
 		Map<String, Object> contentMap = Map.of("name", "Jane", "age", 25);
 		Map<String, Object> requestMeta = Map.of("key", "value");
 		Map<String, Object> resultMeta = Map.of("resultKey", "resultValue");
@@ -300,11 +297,6 @@ public class DefaultMcpSyncRequestContextTests {
 		ClientCapabilities.Elicitation elicitation = mock(ClientCapabilities.Elicitation.class);
 		when(capabilities.elicitation()).thenReturn(elicitation);
 		when(this.exchange.getClientCapabilities()).thenReturn(capabilities);
-
-		record Address(String street, String city) {
-		}
-		record PersonWithAddress(String name, int age, Address address) {
-		}
 
 		Map<String, Object> addressMap = Map.of("street", "123 Main St", "city", "Springfield");
 		Map<String, Object> contentMap = Map.of("name", "John", "age", 30, "address", addressMap);
@@ -732,6 +724,18 @@ public class DefaultMcpSyncRequestContextTests {
 			.build();
 
 		assertThat(contextWithMeta.requestMeta()).isEqualTo(meta);
+	}
+
+	// Static member DTOs preserve record semantics on Java8; local classes
+	// cannot be deserialized as beans by Jackson2.
+
+	static record Person(String name, int age) {
+	}
+
+	static record Address(String street, String city) {
+	}
+
+	static record PersonWithAddress(String name, int age, Address address) {
 	}
 
 }

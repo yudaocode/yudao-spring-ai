@@ -29,7 +29,8 @@ class AwsOpenSearchEnvironment {
 
 	private final String secretKey;
 
-	AwsOpenSearchEnvironment(Map<String, @Nullable String> env) {
+	AwsOpenSearchEnvironment(Map<String, ? extends @Nullable String> input) {
+		Map<String, @Nullable String> env = new java.util.HashMap<>(input);
 		this.region = Objects.requireNonNull(env.getOrDefault("DEFAULT_REGION", "us-east-1"));
 		this.accessKey = Objects.requireNonNull(env.getOrDefault("AWS_ACCESS_KEY_ID", "test"));
 		this.secretKey = Objects.requireNonNull(env.getOrDefault("AWS_SECRET_ACCESS_KEY", "test"));

@@ -177,7 +177,11 @@ public final class CassandraChatMemoryRepositoryConfig {
 	}
 
 	private void ensureTableExists() {
-		if (this.session.getMetadata().getKeyspace(this.schema.keyspace).get().getTable(this.schema.table).isEmpty()) {
+		if (!this.session.getMetadata()
+			.getKeyspace(this.schema.keyspace)
+			.get()
+			.getTable(this.schema.table)
+			.isPresent()) {
 			CreateTable createTable = null;
 
 			CreateTableStart createTableStart = SchemaBuilder.createTable(this.schema.keyspace, this.schema.table)
@@ -228,7 +232,7 @@ public final class CassandraChatMemoryRepositoryConfig {
 			.getTable(this.schema.table())
 			.get();
 
-		if (tableMetadata.getColumn(this.messagesColumn).isEmpty()) {
+		if (!tableMetadata.getColumn(this.messagesColumn).isPresent()) {
 
 			SimpleStatement stmt = SchemaBuilder.alterTable(this.schema.keyspace(), this.schema.table())
 				.addColumn(this.messagesColumn, DataTypes.frozenListOf(SchemaBuilder.udt(this.messageUDT, true)))
@@ -340,7 +344,7 @@ public final class CassandraChatMemoryRepositoryConfig {
 		/** How long are messages kept for */
 		public Builder withTimeToLive(Duration timeToLive) {
 			Preconditions.checkArgument(0 < timeToLive.getSeconds());
-			this.timeToLiveSeconds = (int) timeToLive.toSeconds();
+			this.timeToLiveSeconds = (int) timeToLive.getSeconds();
 			return this;
 		}
 

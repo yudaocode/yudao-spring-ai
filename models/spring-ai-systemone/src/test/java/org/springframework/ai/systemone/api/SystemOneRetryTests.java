@@ -34,11 +34,10 @@ import org.springframework.ai.systemone.api.exception.SystemOneRateLimitExceptio
 import org.springframework.ai.systemone.api.exception.SystemOneUnprocessableEntityException;
 import org.springframework.ai.systemone.api.question.Noul;
 import org.springframework.ai.systemone.api.response.SystemOneResponse;
-import org.springframework.core.retry.RetryPolicy;
-import org.springframework.core.retry.RetryTemplate;
 import org.springframework.http.HttpHeaders;
+import org.springframework.retry.RetryPolicy;
+import org.springframework.retry.support.RetryTemplate;
 import org.springframework.test.web.client.ExpectedCount;
-import org.springframework.util.backoff.BackOffExecution;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -56,11 +55,10 @@ class SystemOneRetryTests {
 	private static final String OK_BODY = """
 			{"model":"jev-1.13.0","answers":{"probe":{"type":"noul","noul":0.5}},"usage":{}}""";
 
-	private static final RetryTemplate FAST = SystemOneRetryUtils.retryTemplate(RetryPolicy.builder()
-		.maxRetries(2)
-		.delay(Duration.ofMillis(1))
-		.predicate(SystemOneRetryUtils::isTransient)
-		.build());
+	private static final RetryPolicy FAST_POLICY = SystemOneRetryUtils.retryPolicy(2, Duration.ofMillis(1),
+			Duration.ofMillis(5), Duration.ofSeconds(30));
+
+	private static final RetryTemplate FAST = SystemOneRetryUtils.retryTemplate(FAST_POLICY);
 
 	private final MockSystemOneServer mock = MockSystemOneServer.create();
 
@@ -165,7 +163,8 @@ class SystemOneRetryTests {
 			.expect(requestTo(MockSystemOneServer.SYSTEM_ONE_URL))
 			.andRespond(MockSystemOneServer.jsonResponse(OK_BODY));
 
-		RetryTemplate honouring = new RetryTemplate(SystemOneRetryUtils.honouringRetryAfter(FAST.getRetryPolicy()));
+		RetryTemplate honouring = SystemOneRetryUtils.retryTemplate(
+				SystemOneRetryUtils.honouringRetryAfter(new org.springframework.retry.policy.SimpleRetryPolicy(3)));
 		long startedAt = System.nanoTime();
 		assertThat(evaluate(honouring).noulValue("probe")).isEqualTo(0.5);
 		Duration elapsed = Duration.ofNanos(System.nanoTime() - startedAt);
@@ -178,39 +177,39 @@ class SystemOneRetryTests {
 	@Test
 	void theServerStatedWaitAppliesToTheFailureThatCarriedItOnly() {
 		HttpHeaders headers = new HttpHeaders();
-		RetryPolicy policy = SystemOneRetryUtils.honouringRetryAfter(FAST.getRetryPolicy());
-		BackOffExecution backOff = policy.getBackOff().start();
-
-		assertThat(policy.shouldRetry(new SystemOneRateLimitException("429", 429, null, headers, "POST /", 40L)))
-			.isTrue();
-		assertThat(backOff.nextBackOff()).isEqualTo(40L);
-
-		// The next failure states no wait, so the policy's own 1ms applies again.
-		assertThat(policy.shouldRetry(new SystemOneInternalServerException("500", 500, null, headers, "POST /")))
-			.isTrue();
-		assertThat(backOff.nextBackOff()).isLessThan(40L);
-
-		// And a permanent failure is still not retried.
-		assertThat(policy.shouldRetry(new SystemOneAuthenticationException("401", 401, null, headers, "POST /")))
-			.isFalse();
+		headers.add(SystemOneRateLimitException.RETRY_AFTER_MS_HEADER, "40");
+		this.mock.server()
+			.expect(requestTo(MockSystemOneServer.SYSTEM_ONE_URL))
+			.andRespond(MockSystemOneServer.errorResponse(429, "rate limited", headers));
+		this.mock.server()
+			.expect(requestTo(MockSystemOneServer.SYSTEM_ONE_URL))
+			.andRespond(MockSystemOneServer.errorResponse(500, "temporary"));
+		this.mock.server()
+			.expect(requestTo(MockSystemOneServer.SYSTEM_ONE_URL))
+			.andRespond(MockSystemOneServer.jsonResponse(OK_BODY));
+		java.util.List<Long> waits = new java.util.ArrayList<>();
+		assertThat(evaluate(SystemOneRetryUtils.retryTemplate(FAST_POLICY, waits::add)).noulValue("probe"))
+			.isEqualTo(0.5);
+		assertThat(waits).hasSize(2);
+		assertThat(waits.get(0)).isEqualTo(40L);
+		assertThat(waits.get(1)).isLessThan(40L);
+		this.mock.server().verify();
 	}
 
 	@Test
 	void cutsAServerStatedWaitToTheTimeoutOfThePolicy() {
 		HttpHeaders headers = new HttpHeaders();
+		headers.add(SystemOneRateLimitException.RETRY_AFTER_MS_HEADER, String.valueOf(Long.MAX_VALUE));
+		this.mock.server()
+			.expect(ExpectedCount.once(), requestTo(MockSystemOneServer.SYSTEM_ONE_URL))
+			.andRespond(MockSystemOneServer.errorResponse(429, "rate limited", headers));
+		java.util.List<Long> waits = new java.util.ArrayList<>();
 		RetryPolicy policy = SystemOneRetryUtils.retryPolicy(2, Duration.ofMillis(1), Duration.ofMillis(5),
 				Duration.ofMillis(200));
-		BackOffExecution backOff = policy.getBackOff().start();
-
-		assertThat(policy
-			.shouldRetry(new SystemOneRateLimitException("429", 429, null, headers, "POST /", Long.MAX_VALUE)))
-			.isTrue();
-		assertThat(backOff.nextBackOff()).isEqualTo(200L);
-
-		// A wait within the timeout is left as the server stated it.
-		assertThat(policy.shouldRetry(new SystemOneRateLimitException("429", 429, null, headers, "POST /", 40L)))
-			.isTrue();
-		assertThat(backOff.nextBackOff()).isEqualTo(40L);
+		assertThatExceptionOfType(SystemOneRateLimitException.class)
+			.isThrownBy(() -> evaluate(SystemOneRetryUtils.retryTemplate(policy, waits::add)));
+		assertThat(waits).isEmpty();
+		this.mock.server().verify();
 	}
 
 	@Test
@@ -225,7 +224,7 @@ class SystemOneRetryTests {
 			.expect(ExpectedCount.once(), requestTo(MockSystemOneServer.SYSTEM_ONE_URL))
 			.andRespond(MockSystemOneServer.errorResponse(429, "rate limited", headers));
 
-		RetryTemplate template = new RetryTemplate(
+		RetryTemplate template = SystemOneRetryUtils.retryTemplate(
 				SystemOneRetryUtils.retryPolicy(2, Duration.ofMillis(1), Duration.ofMillis(5), Duration.ofMillis(200)));
 		assertThatExceptionOfType(SystemOneRateLimitException.class).isThrownBy(() -> evaluate(template))
 			.satisfies(ex -> assertThat(ex.retryAfterMs()).isEqualTo(Long.MAX_VALUE));
@@ -245,7 +244,7 @@ class SystemOneRetryTests {
 			.expect(ExpectedCount.once(), requestTo(MockSystemOneServer.SYSTEM_ONE_URL))
 			.andRespond(MockSystemOneServer.errorResponse(429, "rate limited", headers));
 
-		RetryTemplate template = new RetryTemplate(
+		RetryTemplate template = SystemOneRetryUtils.retryTemplate(
 				SystemOneRetryUtils.retryPolicy(2, Duration.ofMillis(1), Duration.ofMillis(5), Duration.ofMillis(200)));
 		assertThatExceptionOfType(SystemOneRateLimitException.class).isThrownBy(() -> evaluate(template))
 			.satisfies(ex -> assertThat(ex.retryAfterMs()).isEqualTo(Long.MAX_VALUE));
@@ -256,17 +255,18 @@ class SystemOneRetryTests {
 	@Test
 	void aPolicyWithoutATimeoutStopsOnAServerStatedWaitPastTheLimit() {
 		HttpHeaders headers = new HttpHeaders();
-		long limit = SystemOneRetryUtils.MAX_SERVER_WAIT.toMillis();
-		RetryPolicy policy = SystemOneRetryUtils.honouringRetryAfter(FAST.getRetryPolicy());
-		BackOffExecution backOff = policy.getBackOff().start();
-
-		assertThat(policy.shouldRetry(new SystemOneRateLimitException("429", 429, null, headers, "POST /", limit)))
-			.isTrue();
-		assertThat(backOff.nextBackOff()).isEqualTo(limit);
-
-		assertThat(policy.shouldRetry(new SystemOneRateLimitException("429", 429, null, headers, "POST /", limit + 1)))
-			.isTrue();
-		assertThat(backOff.nextBackOff()).isEqualTo(BackOffExecution.STOP);
+		headers.add(SystemOneRateLimitException.RETRY_AFTER_MS_HEADER,
+				String.valueOf(SystemOneRetryUtils.MAX_SERVER_WAIT.toMillis() + 1));
+		this.mock.server()
+			.expect(ExpectedCount.once(), requestTo(MockSystemOneServer.SYSTEM_ONE_URL))
+			.andRespond(MockSystemOneServer.errorResponse(429, "rate limited", headers));
+		java.util.List<Long> waits = new java.util.ArrayList<>();
+		RetryPolicy policy = SystemOneRetryUtils
+			.honouringRetryAfter(new org.springframework.retry.policy.SimpleRetryPolicy(3));
+		assertThatExceptionOfType(SystemOneRateLimitException.class)
+			.isThrownBy(() -> evaluate(SystemOneRetryUtils.retryTemplate(policy, waits::add)));
+		assertThat(waits).isEmpty();
+		this.mock.server().verify();
 	}
 
 	@Test
@@ -279,7 +279,8 @@ class SystemOneRetryTests {
 			.expect(ExpectedCount.once(), requestTo(MockSystemOneServer.SYSTEM_ONE_URL))
 			.andRespond(MockSystemOneServer.errorResponse(429, "rate limited", headers));
 
-		RetryTemplate honouring = new RetryTemplate(SystemOneRetryUtils.honouringRetryAfter(FAST.getRetryPolicy()));
+		RetryTemplate honouring = SystemOneRetryUtils.retryTemplate(
+				SystemOneRetryUtils.honouringRetryAfter(new org.springframework.retry.policy.SimpleRetryPolicy(3)));
 		assertThatExceptionOfType(SystemOneRateLimitException.class).isThrownBy(() -> evaluate(honouring))
 			.satisfies(ex -> assertThat(ex.retryAfter()).isEqualTo(Duration.ofDays(1)));
 

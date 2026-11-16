@@ -28,8 +28,8 @@ import com.github.victools.jsonschema.generator.SchemaGeneratorConfigPart;
 import io.swagger.v3.oas.annotations.media.Schema;
 import org.jspecify.annotations.Nullable;
 
+import org.springframework.ai.util.Nullness;
 import org.springframework.core.KotlinDetector;
-import org.springframework.core.Nullness;
 
 /**
  * Abstract base for JSON Schema Generator Modules in Spring AI.

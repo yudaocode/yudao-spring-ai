@@ -20,7 +20,6 @@ import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.ai.decision.DecisionResponse;
@@ -31,8 +30,6 @@ import org.springframework.ai.systemone.SystemOneDecisionModel;
 import org.springframework.ai.systemone.api.SystemOneClient;
 import org.springframework.ai.systemone.api.SystemOneRetryUtils;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
-import org.springframework.boot.http.client.ClientHttpRequestFactoryBuilder;
-import org.springframework.boot.http.client.HttpClientSettings;
 import org.springframework.boot.test.context.FilteredClassLoader;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Bean;
@@ -40,7 +37,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
-import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestClient;
 
@@ -97,12 +93,9 @@ class SystemOneDecisionAutoConfigurationTests {
 				assertThat(connection.getRetry().getInitialBackoff()).isEqualTo(Duration.ofMillis(200));
 				assertThat(connection.getRetry().getMaxBackoff()).isEqualTo(Duration.ofSeconds(2));
 				assertThat(connection.getRetry().getTimeout()).isEqualTo(Duration.ofMinutes(1));
-				assertThat(connection.getRetry().toRetryPolicy().getTimeout()).isEqualTo(Duration.ofMinutes(1));
-
 				SystemOneDecisionProperties decision = context.getBean(SystemOneDecisionProperties.class);
 				assertThat(decision.getModel()).isEqualTo("english");
 				assertThat(decision.getProvider()).isEqualTo("laya");
-
 				SystemOneDecisionModel model = context.getBean(SystemOneDecisionModel.class);
 				assertThat(model.getOptions().getModel()).isEqualTo("english");
 				assertThat(model.getProvider()).isEqualTo("laya");
@@ -113,9 +106,17 @@ class SystemOneDecisionAutoConfigurationTests {
 	@Test
 	void theRetrySettingsKeepTheSystemOneClassification() {
 		SystemOneConnectionProperties.Retry retry = new SystemOneConnectionProperties.Retry();
-		retry.setMaxRetries(0);
-
-		assertThat(retry.toRetryPolicy().shouldRetry(new IllegalStateException("not ours"))).isFalse();
+		retry.setMaxRetries(1);
+		org.springframework.retry.RetryPolicy policy = retry.toRetryPolicy();
+		org.springframework.retry.RetryContext context = policy.open(null);
+		policy.registerThrowable(context, new IllegalStateException("not ours"));
+		assertThat(policy.canRetry(context)).isFalse();
+		policy.close(context);
+		context = policy.open(null);
+		policy.registerThrowable(context,
+				new org.springframework.ai.systemone.api.exception.SystemOneApiConnectionException("temporary", null));
+		assertThat(policy.canRetry(context)).isTrue();
+		policy.close(context);
 		assertThat(SystemOneRetryUtils.isTransient(new IllegalStateException("not ours"))).isFalse();
 	}
 
@@ -199,7 +200,7 @@ class SystemOneDecisionAutoConfigurationTests {
 	@Test
 	void sendsTheDefaultModelOfAUserDefinedClientWhenNoModelIsConfigured() {
 		RestClient.Builder restClientBuilder = RestClient.builder();
-		MockRestServiceServer server = MockRestServiceServer.bindTo(restClientBuilder).build();
+		MockRestServiceServer server = bindMockServer(restClientBuilder);
 		server.expect(jsonPath("$.model").value("own-model"))
 			.andRespond(withSuccess(OK_BODY, MediaType.APPLICATION_JSON));
 		SystemOneClient own = SystemOneClient.builder()
@@ -207,11 +208,9 @@ class SystemOneDecisionAutoConfigurationTests {
 			.defaultModel("own-model")
 			.restClientBuilder(restClientBuilder)
 			.build();
-
 		this.contextRunner.withBean(SystemOneClient.class, () -> own).run(context -> {
 			SystemOneDecisionModel model = context.getBean(SystemOneDecisionModel.class);
 			assertThat(model.getOptions().getModel()).isEqualTo("own-model");
-
 			model.call("My new headphones arrived yesterday, but the left side doesn't work.",
 					Map.of("defect", YesNoQuestion.of("Does the customer report a defect?")));
 			server.verify();
@@ -221,7 +220,7 @@ class SystemOneDecisionAutoConfigurationTests {
 	@Test
 	void sendsTheConfiguredModelOverTheDefaultModelOfAUserDefinedClient() {
 		RestClient.Builder restClientBuilder = RestClient.builder();
-		MockRestServiceServer server = MockRestServiceServer.bindTo(restClientBuilder).build();
+		MockRestServiceServer server = bindMockServer(restClientBuilder);
 		server.expect(jsonPath("$.model").value("configured-model"))
 			.andRespond(withSuccess(OK_BODY, MediaType.APPLICATION_JSON));
 		SystemOneClient own = SystemOneClient.builder()
@@ -229,14 +228,12 @@ class SystemOneDecisionAutoConfigurationTests {
 			.defaultModel("own-model")
 			.restClientBuilder(restClientBuilder)
 			.build();
-
 		this.contextRunner.withPropertyValues("spring.ai.systemone.decision.model=configured-model")
 			.withBean(SystemOneClient.class, () -> own)
 			.run(context -> {
 				SystemOneDecisionModel model = context.getBean(SystemOneDecisionModel.class);
 				assertThat(model.getOptions().getModel()).isEqualTo("configured-model");
 				assertThat(context.getBean(SystemOneClient.class).defaultModel()).isEqualTo("own-model");
-
 				model.call("My new headphones arrived yesterday, but the left side doesn't work.",
 						Map.of("defect", YesNoQuestion.of("Does the customer report a defect?")));
 				server.verify();
@@ -262,57 +259,54 @@ class SystemOneDecisionAutoConfigurationTests {
 	@Test
 	void sendsDecisionsToTheConfiguredServerThroughTheApplicationRestClientBuilder() {
 		RestClient.Builder restClientBuilder = RestClient.builder();
-		MockRestServiceServer server = MockRestServiceServer.bindTo(restClientBuilder).build();
+		MockRestServiceServer server = bindMockServer(restClientBuilder);
 		server.expect(requestTo("http://systemone.test:8002/v1/systemone"))
 			.andExpect(method(HttpMethod.POST))
 			.andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer test-key"))
 			.andRespond(withSuccess(OK_BODY, MediaType.APPLICATION_JSON));
-
 		this.contextRunner.withPropertyValues("spring.ai.systemone.base-url=http://systemone.test:8002")
 			.withBean(RestClient.Builder.class, () -> restClientBuilder)
 			.run(context -> {
 				DecisionResponse response = context.getBean(SystemOneDecisionModel.class)
 					.call("My new headphones arrived yesterday, but the left side doesn't work.",
 							Map.of("defect", YesNoQuestion.of("Does the customer report a defect?")));
-
 				assertThat(response.getYesNo("defect").isYes()).isTrue();
 				server.verify();
 			});
 	}
 
 	@Test
-	void appliesTheReadTimeoutOnTopOfTheApplicationHttpClientSettings() {
-		AtomicReference<@Nullable HttpClientSettings> used = new AtomicReference<>();
-		ClientHttpRequestFactoryBuilder<JdkClientHttpRequestFactory> factoryBuilder = settings -> {
-			used.set(settings);
-			return new JdkClientHttpRequestFactory();
-		};
-		HttpClientSettings applicationSettings = HttpClientSettings.defaults()
-			.withConnectTimeout(Duration.ofSeconds(3));
-
+	void appliesTheReadTimeoutOnTopOfTheApplicationRestTemplateBuilder() {
+		AtomicReference<TrackingRequestFactory> used = new AtomicReference<>();
+		org.springframework.boot.web.client.RestTemplateBuilder applicationBuilder = new org.springframework.boot.web.client.RestTemplateBuilder()
+			.requestFactory(() -> {
+				TrackingRequestFactory factory = new TrackingRequestFactory();
+				used.set(factory);
+				return factory;
+			})
+			.setConnectTimeout(Duration.ofSeconds(3));
 		this.contextRunner.withPropertyValues("spring.ai.systemone.timeout=7s")
 			.withBean(RestClient.Builder.class, RestClient::builder)
-			.withBean(ClientHttpRequestFactoryBuilder.class, () -> factoryBuilder)
-			.withBean(HttpClientSettings.class, () -> applicationSettings)
+			.withBean(org.springframework.boot.web.client.RestTemplateBuilder.class, () -> applicationBuilder)
 			.run(context -> {
 				assertThat(context).hasSingleBean(SystemOneClient.class);
-				HttpClientSettings settings = used.get();
-				assertThat(settings).isNotNull();
-				assertThat(settings.readTimeout()).isEqualTo(Duration.ofSeconds(7));
-				assertThat(settings.connectTimeout()).isEqualTo(Duration.ofSeconds(3));
+				assertThat(used.get()).isNotNull();
+				assertThat(used.get().readTimeoutMillis).isEqualTo(7000);
+				assertThat(used.get().connectTimeoutMillis).isEqualTo(3000);
 			});
 	}
 
 	@Test
 	void leavesTheApplicationTransportAloneWhenNoTimeoutIsSet() {
-		AtomicReference<@Nullable HttpClientSettings> used = new AtomicReference<>();
-		ClientHttpRequestFactoryBuilder<JdkClientHttpRequestFactory> factoryBuilder = settings -> {
-			used.set(settings);
-			return new JdkClientHttpRequestFactory();
-		};
-
+		AtomicReference<TrackingRequestFactory> used = new AtomicReference<>();
+		org.springframework.boot.web.client.RestTemplateBuilder applicationBuilder = new org.springframework.boot.web.client.RestTemplateBuilder()
+			.requestFactory(() -> {
+				TrackingRequestFactory factory = new TrackingRequestFactory();
+				used.set(factory);
+				return factory;
+			});
 		this.contextRunner.withBean(RestClient.Builder.class, RestClient::builder)
-			.withBean(ClientHttpRequestFactoryBuilder.class, () -> factoryBuilder)
+			.withBean(org.springframework.boot.web.client.RestTemplateBuilder.class, () -> applicationBuilder)
 			.run(context -> {
 				assertThat(context).hasSingleBean(SystemOneClient.class);
 				assertThat(used.get()).isNull();
@@ -333,14 +327,12 @@ class SystemOneDecisionAutoConfigurationTests {
 		assertThatIllegalStateException().isThrownBy(retry::toRetryPolicy)
 			.withMessageContaining("spring.ai.systemone.retry")
 			.withMessageContaining("maxBackoff");
-
 		retry.setMaxBackoff(Duration.ofSeconds(1));
 		retry.setInitialBackoff(Duration.ofSeconds(10));
 		assertThatIllegalStateException().isThrownBy(retry::toRetryPolicy)
 			.withMessageContaining("spring.ai.systemone.retry")
 			.withMessageContaining("maxBackoff")
 			.withMessageContaining("initialBackoff");
-
 		this.contextRunner.withPropertyValues("spring.ai.systemone.retry.timeout=0s").run(context -> {
 			assertThat(context).hasFailed();
 			assertThat(context.getStartupFailure()).rootCause()
@@ -354,6 +346,13 @@ class SystemOneDecisionAutoConfigurationTests {
 		this.contextRunner.withUserConfiguration(CustomConventionConfiguration.class)
 			.run(context -> assertThat(context).hasSingleBean(SystemOneDecisionModel.class)
 				.hasSingleBean(DecisionModelObservationConvention.class));
+	}
+
+	private static MockRestServiceServer bindMockServer(RestClient.Builder builder) {
+		org.springframework.web.client.RestTemplate template = new org.springframework.web.client.RestTemplate();
+		MockRestServiceServer server = MockRestServiceServer.bindTo(template).build();
+		builder.requestFactory(template.getRequestFactory());
+		return server;
 	}
 
 	@Configuration(proxyBeanMethods = false)
@@ -383,6 +382,7 @@ class SystemOneDecisionAutoConfigurationTests {
 		@Bean
 		DecisionModelObservationConvention customDecisionModelObservationConvention() {
 			return new DecisionModelObservationConvention() {
+
 				@Override
 				public String getName() {
 					return "custom";
@@ -393,6 +393,30 @@ class SystemOneDecisionAutoConfigurationTests {
 					return "custom";
 				}
 			};
+		}
+
+	}
+
+	/**
+	 * @author 芋道源码
+	 */
+	public static final class TrackingRequestFactory
+			extends org.springframework.http.client.SimpleClientHttpRequestFactory {
+
+		private int connectTimeoutMillis;
+
+		private int readTimeoutMillis;
+
+		@Override
+		public void setConnectTimeout(int millis) {
+			super.setConnectTimeout(millis);
+			this.connectTimeoutMillis = millis;
+		}
+
+		@Override
+		public void setReadTimeout(int millis) {
+			super.setReadTimeout(millis);
+			this.readTimeoutMillis = millis;
 		}
 
 	}

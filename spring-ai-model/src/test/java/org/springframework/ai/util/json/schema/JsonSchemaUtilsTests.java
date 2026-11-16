@@ -28,8 +28,8 @@ import java.util.concurrent.TimeUnit;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.jupiter.api.Test;
-import tools.jackson.databind.node.ObjectNode;
 
 import org.springframework.ai.util.JsonHelper;
 

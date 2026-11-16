@@ -313,20 +313,20 @@ public abstract class AbstractToolSearchToolCallingAdvisorIT {
 				result.append("San Francisco: 30°C");
 			}
 			if (loc.contains("tokyo")) {
-				if (!result.isEmpty()) {
+				if (result.length() != 0) {
 					result.append(", ");
 				}
 				result.append("Tokyo: 10°C");
 			}
 			if (loc.contains("paris")) {
-				if (!result.isEmpty()) {
+				if (result.length() != 0) {
 					result.append(", ");
 				}
 				result.append("Paris: 15°C");
 			}
 			// If the LLM passed an unrecognised location string, return all readings so
 			// the test can still verify the end-to-end flow.
-			return result.isEmpty() ? "San Francisco: 30°C, Tokyo: 10°C, Paris: 15°C" : result.toString();
+			return (result.length() == 0) ? "San Francisco: 30°C, Tokyo: 10°C, Paris: 15°C" : result.toString();
 		}
 
 	}

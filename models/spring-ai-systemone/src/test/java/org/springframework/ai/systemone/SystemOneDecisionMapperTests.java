@@ -20,9 +20,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import net.javacrumbs.jsonunit.assertj.JsonAssertions;
 import org.junit.jupiter.api.Test;
-import tools.jackson.databind.json.JsonMapper;
 
 import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.messages.ToolResponseMessage;
@@ -227,7 +227,7 @@ class SystemOneDecisionMapperTests {
 	}
 
 	private static String toJson(Object value) {
-		return jsonMapper.writeValueAsString(value);
+		return new org.springframework.ai.util.JsonHelper(jsonMapper).toJson(value);
 	}
 
 }

@@ -22,7 +22,7 @@ import java.util.Map;
 import org.jspecify.annotations.Nullable;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.context.properties.bind.ConstructorBinding;
+import org.springframework.boot.context.properties.ConstructorBinding;
 
 /**
  * Configuration properties for Streamable Http client connections.

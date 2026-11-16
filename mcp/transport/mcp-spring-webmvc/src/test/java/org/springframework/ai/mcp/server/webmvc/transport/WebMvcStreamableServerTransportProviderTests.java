@@ -28,7 +28,6 @@ import reactor.core.publisher.Mono;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.reactive.server.WebTestClient;
-import org.springframework.test.web.servlet.client.MockMvcWebTestClient;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -42,6 +41,7 @@ import static org.mockito.Mockito.when;
  *
  * @author Dimitar Proynov
  */
+@org.junit.jupiter.api.extension.ExtendWith(Spring5RouterFunctionTestSupport.class)
 class WebMvcStreamableServerTransportProviderTests {
 
 	private static final String INITIALIZE_REQUEST = """
@@ -62,7 +62,8 @@ class WebMvcStreamableServerTransportProviderTests {
 					Mono.error(new RuntimeException(sensitiveDetail)));
 		});
 
-		WebTestClient client = MockMvcWebTestClient.bindToRouterFunction(provider.getRouterFunction()).build();
+		WebTestClient client = Spring5RouterFunctionTestSupport.bindToRouterFunction(provider.getRouterFunction())
+			.build();
 
 		client.post()
 			.uri("/mcp")
@@ -103,7 +104,8 @@ class WebMvcStreamableServerTransportProviderTests {
 		provider.setSessionFactory(initializeRequest -> new McpStreamableServerSession.McpStreamableServerSessionInit(
 				session, Mono.just(initResult)));
 
-		WebTestClient client = MockMvcWebTestClient.bindToRouterFunction(provider.getRouterFunction()).build();
+		WebTestClient client = Spring5RouterFunctionTestSupport.bindToRouterFunction(provider.getRouterFunction())
+			.build();
 
 		client.post()
 			.uri("/mcp")
@@ -137,7 +139,8 @@ class WebMvcStreamableServerTransportProviderTests {
 			return new McpStreamableServerSession.McpStreamableServerSessionInit(session, Mono.just(initResult));
 		});
 
-		WebTestClient client = MockMvcWebTestClient.bindToRouterFunction(provider.getRouterFunction()).build();
+		WebTestClient client = Spring5RouterFunctionTestSupport.bindToRouterFunction(provider.getRouterFunction())
+			.build();
 
 		// The first initialize request fills the single available session slot.
 		client.post()
@@ -176,7 +179,8 @@ class WebMvcStreamableServerTransportProviderTests {
 			return new McpStreamableServerSession.McpStreamableServerSessionInit(session, Mono.just(initResult));
 		});
 
-		WebTestClient client = MockMvcWebTestClient.bindToRouterFunction(provider.getRouterFunction()).build();
+		WebTestClient client = Spring5RouterFunctionTestSupport.bindToRouterFunction(provider.getRouterFunction())
+			.build();
 
 		// An initialize request must not carry a session id yet; the server rejects it
 		// rather than silently starting a fresh session.

@@ -20,9 +20,9 @@ import java.util.UUID;
 
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.Test;
+import org.testcontainers.containers.MSSQLServerContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.mssqlserver.MSSQLServerContainer;
 
 import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.ai.session.EventFilter;
@@ -31,8 +31,8 @@ import org.springframework.ai.session.SessionAttributes;
 import org.springframework.ai.session.SessionEvent;
 import org.springframework.ai.session.jdbc.JdbcSessionRepository;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
-import org.springframework.boot.jdbc.autoconfigure.DataSourceAutoConfiguration;
-import org.springframework.boot.jdbc.autoconfigure.JdbcTemplateAutoConfiguration;
+import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
+import org.springframework.boot.autoconfigure.jdbc.JdbcTemplateAutoConfiguration;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -51,7 +51,8 @@ class JdbcSessionRepositorySqlServerAutoConfigurationIT {
 	// through a file on the classpath. One database for all tests, so every context
 	// after the first starts against the existing schema.
 	@Container
-	static final MSSQLServerContainer sqlServer = new MSSQLServerContainer("mcr.microsoft.com/mssql/server:2022-latest")
+	static final MSSQLServerContainer sqlServer = new MSSQLServerContainer<>(
+			"mcr.microsoft.com/mssql/server:2022-latest")
 		.acceptLicense();
 
 	// continue-on-error is true by default and would hide a statement that fails, on the

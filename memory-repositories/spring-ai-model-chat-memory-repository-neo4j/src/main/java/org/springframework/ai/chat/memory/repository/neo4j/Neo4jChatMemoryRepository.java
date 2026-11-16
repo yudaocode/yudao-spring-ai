@@ -27,7 +27,6 @@ import java.util.stream.Collectors;
 
 import org.neo4j.driver.Session;
 import org.neo4j.driver.Transaction;
-import org.neo4j.driver.TransactionContext;
 
 import org.springframework.ai.chat.memory.ChatMemoryRepository;
 import org.springframework.ai.chat.messages.AssistantMessage;
@@ -55,7 +54,6 @@ import org.springframework.util.MimeType;
  */
 @Deprecated(since = "2.1.0", forRemoval = true)
 @SuppressWarnings("removal")
-
 public final class Neo4jChatMemoryRepository implements ChatMemoryRepository {
 
 	private final Neo4jChatMemoryRepositoryConfig config;
@@ -66,10 +64,9 @@ public final class Neo4jChatMemoryRepository implements ChatMemoryRepository {
 
 	@Override
 	public List<String> findConversationIds() {
-		return this.config.getDriver()
-			.executableQuery("MATCH (conversation:$($sessionLabel)) RETURN conversation.id")
-			.withParameters(Map.of("sessionLabel", this.config.getSessionLabel()))
-			.execute(Collectors.mapping(r -> r.get("conversation.id").asString(), Collectors.toList()));
+		return this.executeQuery("MATCH (conversation:$($sessionLabel)) RETURN conversation.id",
+				Map.of("sessionLabel", this.config.getSessionLabel()),
+				Collectors.mapping(r -> r.get("conversation.id").asString(), Collectors.toList()));
 	}
 
 	@Override
@@ -85,60 +82,57 @@ public final class Neo4jChatMemoryRepository implements ChatMemoryRepository {
 				RETURN m, metadata, collect(tr) as toolResponses, collect(tc) as toolCalls, collect(media) as medias
 				ORDER BY m.idx ASC
 				""";
-
-		return this.config.getDriver()
-			.executableQuery(statement)
-			.withParameters(Map.of("conversationId", conversationId, "sessionLabel", this.config.getSessionLabel(),
-					"messageLabel", this.config.getMessageLabel(), "metadataLabel", this.config.getMetadataLabel(),
-					"mediaLabel", this.config.getMediaLabel(), "toolResponseLabel", this.config.getToolResponseLabel(),
-					"toolCallLabel", this.config.getToolCallLabel()))
-			.execute(Collectors.mapping(record -> {
-				Map<String, Object> messageMap = record.get("m").asMap();
-				String msgType = MessageAttributes.MESSAGE_TYPE.stringFrom(messageMap);
-				Message message = null;
-				List<Media> mediaList = List.of();
-				if (!record.get("medias").isNull()) {
-					mediaList = getMedia(record);
-				}
-				if (msgType.equals(MessageType.USER.getValue())) {
-					message = buildUserMessage(record, messageMap, mediaList);
-				}
-				else if (msgType.equals(MessageType.ASSISTANT.getValue())) {
-					message = buildAssistantMessage(record, messageMap, mediaList);
-				}
-				else if (msgType.equals(MessageType.SYSTEM.getValue())) {
-					SystemMessage.Builder systemMessageBuilder = SystemMessage.builder()
-						.text(MessageAttributes.TEXT_CONTENT.stringFrom(messageMap));
-					if (!record.get("metadata").isNull()) {
-						Map<String, Object> retrievedMetadata = record.get("metadata").asMap();
-						systemMessageBuilder.metadata(retrievedMetadata);
+		return this.executeQuery(statement,
+				Map.of("conversationId", conversationId, "sessionLabel", this.config.getSessionLabel(), "messageLabel",
+						this.config.getMessageLabel(), "metadataLabel", this.config.getMetadataLabel(), "mediaLabel",
+						this.config.getMediaLabel(), "toolResponseLabel", this.config.getToolResponseLabel(),
+						"toolCallLabel", this.config.getToolCallLabel()),
+				Collectors.mapping(record -> {
+					Map<String, Object> messageMap = record.get("m").asMap();
+					String msgType = MessageAttributes.MESSAGE_TYPE.stringFrom(messageMap);
+					Message message = null;
+					List<Media> mediaList = List.of();
+					if (!record.get("medias").isNull()) {
+						mediaList = getMedia(record);
 					}
-					message = systemMessageBuilder.build();
-				}
-				else if (msgType.equals(MessageType.TOOL.getValue())) {
-					message = buildToolMessage(record);
-				}
-				if (message == null) {
-					throw new IllegalArgumentException("%s messages are not supported"
-						.formatted(record.get(MessageAttributes.MESSAGE_TYPE.getValue()).asString()));
-				}
-				message.getMetadata().put("messageType", message.getMessageType());
-				return message;
-			}, Collectors.toList()));
-
+					if (msgType.equals(MessageType.USER.getValue())) {
+						message = buildUserMessage(record, messageMap, mediaList);
+					}
+					else if (msgType.equals(MessageType.ASSISTANT.getValue())) {
+						message = buildAssistantMessage(record, messageMap, mediaList);
+					}
+					else if (msgType.equals(MessageType.SYSTEM.getValue())) {
+						SystemMessage.Builder systemMessageBuilder = SystemMessage.builder()
+							.text(MessageAttributes.TEXT_CONTENT.stringFrom(messageMap));
+						if (!record.get("metadata").isNull()) {
+							Map<String, Object> retrievedMetadata = record.get("metadata").asMap();
+							systemMessageBuilder.metadata(retrievedMetadata);
+						}
+						message = systemMessageBuilder.build();
+					}
+					else if (msgType.equals(MessageType.TOOL.getValue())) {
+						message = buildToolMessage(record);
+					}
+					if (message == null) {
+						throw new IllegalArgumentException("%s messages are not supported"
+							.formatted(record.get(MessageAttributes.MESSAGE_TYPE.getValue()).asString()));
+					}
+					message.getMetadata().put("messageType", message.getMessageType());
+					return message;
+				}, Collectors.toList()));
 	}
 
 	@Override
 	public void saveAll(String conversationId, List<Message> messages) {
 		// First delete existing messages for this conversation
 		deleteByConversationId(conversationId);
-
 		// Then add the new messages
 		try (Session s = this.config.getDriver().session()) {
-			s.executeWriteWithoutResult(tx -> {
+			s.writeTransaction(tx -> {
 				for (Message m : messages) {
 					addMessageToTransaction(tx, conversationId, m);
 				}
+				return null;
 			});
 		}
 	}
@@ -153,17 +147,14 @@ public final class Neo4jChatMemoryRepository implements ChatMemoryRepository {
 				OPTIONAL MATCH (m)-[:HAS_TOOL_CALL]->(tc:$($toolCallLabel))
 				DETACH DELETE m, metadata, media, tr, tc
 				""";
-
 		String deleteConversationStatement = """
 				MATCH (s:$($sessionLabel) {id:$conversationId})
 				DETACH DELETE s
 				""";
-
 		Map<String, Object> params = Map.of("conversationId", conversationId, "sessionLabel",
 				this.config.getSessionLabel(), "messageLabel", this.config.getMessageLabel(), "metadataLabel",
 				this.config.getMetadataLabel(), "mediaLabel", this.config.getMediaLabel(), "toolResponseLabel",
 				this.config.getToolResponseLabel(), "toolCallLabel", this.config.getToolCallLabel());
-
 		try (Session s = this.config.getDriver().session()) {
 			try (Transaction t = s.beginTransaction()) {
 				t.run(deleteMessagesStatement, params);
@@ -236,12 +227,11 @@ public final class Neo4jChatMemoryRepository implements ChatMemoryRepository {
 				mediaBuilder.data(bytes);
 			}
 			return mediaBuilder.build();
-
 		});
 		return mediaList;
 	}
 
-	private void addMessageToTransaction(TransactionContext t, String conversationId, Message message) {
+	private void addMessageToTransaction(Transaction t, String conversationId, Message message) {
 		Map<String, Object> queryParameters = new HashMap<>();
 		queryParameters.put("conversationId", conversationId);
 		StringBuilder statementBuilder = new StringBuilder();
@@ -253,14 +243,12 @@ public final class Neo4jChatMemoryRepository implements ChatMemoryRepository {
 				SET msg.idx = totalMsg + 1
 				""");
 		Map<String, Object> attributes = new HashMap<>();
-
 		attributes.put(MessageAttributes.MESSAGE_TYPE.getValue(), message.getMessageType().getValue());
 		attributes.put(MessageAttributes.TEXT_CONTENT.getValue(), message.getText());
 		attributes.put("id", UUID.randomUUID().toString());
 		queryParameters.put("messageProperties", attributes);
 		queryParameters.put("sessionLabel", this.config.getSessionLabel());
 		queryParameters.put("messageLabel", this.config.getMessageLabel());
-
 		if (!Optional.ofNullable(message.getMetadata()).orElse(Map.of()).isEmpty()) {
 			statementBuilder.append("""
 					WITH msg
@@ -339,6 +327,13 @@ public final class Neo4jChatMemoryRepository implements ChatMemoryRepository {
 			mediaMaps.add(mediaMap);
 		}
 		return mediaMaps;
+	}
+
+	private <T> T executeQuery(String query, Map<String, Object> parameters,
+			java.util.stream.Collector<org.neo4j.driver.Record, ?, T> collector) {
+		try (Session session = this.config.getDriver().session()) {
+			return session.writeTransaction(tx -> tx.run(query, parameters).stream().collect(collector));
+		}
 	}
 
 }

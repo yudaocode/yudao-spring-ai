@@ -389,7 +389,7 @@ final class ModernChangeStreams<L> {
 
 		private String retryNote() {
 			return "it is opened again until the server accepts it, with pauses that grow up to "
-					+ ModernChangeStreams.this.maxReopenDelay.toSeconds() + " seconds";
+					+ ModernChangeStreams.this.maxReopenDelay.getSeconds() + " seconds";
 		}
 
 		private void log(int failures, String message) {

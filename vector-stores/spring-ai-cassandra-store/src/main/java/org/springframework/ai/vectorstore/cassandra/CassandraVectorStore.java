@@ -393,7 +393,7 @@ public class CassandraVectorStore extends AbstractObservationVectorStore impleme
 
 		Optional<IndexMetadata> indexMetadata = metadata.getIndex(this.schema.index());
 
-		if (indexMetadata.isEmpty()) {
+		if (!indexMetadata.isPresent()) {
 			throw new IllegalStateException(
 					String.format("Index %s does not exist in table %s", this.schema.index(), this.schema.table));
 		}
@@ -618,7 +618,11 @@ public class CassandraVectorStore extends AbstractObservationVectorStore impleme
 	}
 
 	private void ensureTableExists(int vectorDimension) {
-		if (this.session.getMetadata().getKeyspace(this.schema.keyspace).get().getTable(this.schema.table).isEmpty()) {
+		if (!this.session.getMetadata()
+			.getKeyspace(this.schema.keyspace)
+			.get()
+			.getTable(this.schema.table)
+			.isPresent()) {
 
 			CreateTable createTable = null;
 
@@ -657,8 +661,8 @@ public class CassandraVectorStore extends AbstractObservationVectorStore impleme
 			.get();
 
 		Set<SchemaColumn> newColumns = new HashSet<>();
-		boolean addContent = tableMetadata.getColumn(this.schema.content).isEmpty();
-		boolean addEmbedding = tableMetadata.getColumn(this.schema.embedding).isEmpty();
+		boolean addContent = !tableMetadata.getColumn(this.schema.content).isPresent();
+		boolean addEmbedding = !tableMetadata.getColumn(this.schema.embedding).isPresent();
 
 		for (SchemaColumn metadata : this.schema.metadataColumns) {
 			Optional<ColumnMetadata> column = tableMetadata.getColumn(metadata.name());

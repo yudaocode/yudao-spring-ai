@@ -21,8 +21,8 @@ import java.util.stream.Stream;
 
 import org.springframework.ai.model.tool.autoconfigure.ToolCallingAutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
-import org.springframework.boot.restclient.autoconfigure.RestClientAutoConfiguration;
-import org.springframework.boot.webclient.autoconfigure.WebClientAutoConfiguration;
+import org.springframework.boot.autoconfigure.web.client.RestClientAutoConfiguration;
+import org.springframework.boot.autoconfigure.web.reactive.function.client.WebClientAutoConfiguration;
 
 /**
  * Base utility class for DeepSeek integration tests.

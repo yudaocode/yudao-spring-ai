@@ -166,6 +166,15 @@ public class DeepSeekAssistantMessage extends AssistantMessage {
 	}
 
 	/**
+	 * Whether an explicit setter override takes precedence over the immutable parts.
+	 * @return whether the reasoning content was explicitly overridden
+	 */
+	@com.fasterxml.jackson.annotation.JsonIgnore
+	public boolean hasReasoningContentOverride() {
+		return this.isReasoningContentOverridden;
+	}
+
+	/**
 	 * A builder pre-populated with this message's parts and metadata, the prefix flag
 	 * included. A reasoning content set through {@link #setReasoningContent(String)}
 	 * replaces the {@link ReasoningPart}s.

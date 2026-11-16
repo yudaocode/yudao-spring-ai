@@ -35,10 +35,11 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class DecisionAnswerTests {
 
 	@Test
-	void answerKindsAreSealed() {
-		assertThat(DecisionAnswer.class.isSealed()).isTrue();
-		assertThat(DecisionAnswer.class.getPermittedSubclasses()).containsExactly(YesNoAnswer.class, ChoiceAnswer.class,
-				ScoreAnswer.class, RefusalAnswer.class);
+	void builtInKindsImplementContract() {
+		assertThat(DecisionAnswer.class.isAssignableFrom(YesNoAnswer.class)).isTrue();
+		assertThat(DecisionAnswer.class.isAssignableFrom(ChoiceAnswer.class)).isTrue();
+		assertThat(DecisionAnswer.class.isAssignableFrom(ScoreAnswer.class)).isTrue();
+		assertThat(DecisionAnswer.class.isAssignableFrom(RefusalAnswer.class)).isTrue();
 	}
 
 	@Test

@@ -23,11 +23,12 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.jdbc.test.autoconfigure.JdbcTest;
-import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
+import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 
 import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 import static org.assertj.core.api.Assertions.assertThatNoException;
@@ -37,9 +38,10 @@ import static org.assertj.core.api.Assertions.assertThatNoException;
  */
 @Testcontainers
 @JdbcTest
+@org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase(
+		replace = org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase.Replace.NONE)
 public class MariaDBSchemaValidatorIT {
 
-	@ServiceConnection
 	@Container
 	@SuppressWarnings("resource")
 	static MariaDBContainer<?> mariadbContainer = new MariaDBContainer<>(MariaDBImage.DEFAULT_IMAGE)
@@ -83,6 +85,14 @@ public class MariaDBSchemaValidatorIT {
 			.isThrownBy(() -> this.schemaValidator.validateTableSchema(null, "missing_vector_store", "id", "content",
 					"metadata", "embedding", 1536))
 			.withMessageContaining("Table 'missing_vector_store' does not exist in schema 'testdb'");
+	}
+
+	@DynamicPropertySource
+	static void datasourceProperties(DynamicPropertyRegistry registry) {
+		registry.add("spring.datasource.url", mariadbContainer::getJdbcUrl);
+		registry.add("spring.datasource.username", mariadbContainer::getUsername);
+		registry.add("spring.datasource.password", mariadbContainer::getPassword);
+		registry.add("spring.datasource.driver-class-name", mariadbContainer::getDriverClassName);
 	}
 
 	@Configuration(proxyBeanMethods = false)

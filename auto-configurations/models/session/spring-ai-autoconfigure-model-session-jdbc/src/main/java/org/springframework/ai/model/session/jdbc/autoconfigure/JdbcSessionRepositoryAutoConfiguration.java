@@ -26,9 +26,9 @@ import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnSingleCandidate;
+import org.springframework.boot.autoconfigure.sql.init.OnDatabaseInitializationCondition;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.boot.jdbc.init.DatabaseInitializationProperties;
-import org.springframework.boot.sql.autoconfigure.init.OnDatabaseInitializationCondition;
+import org.springframework.boot.jdbc.init.DataSourceScriptDatabaseInitializer;
 import org.springframework.boot.sql.init.dependency.DependsOnDatabaseInitialization;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
@@ -52,11 +52,9 @@ import org.springframework.util.ClassUtils;
  * @author Christian Tzolov
  * @since 2.1.0
  */
-@AutoConfiguration(afterName = "org.springframework.boot.jdbc.autoconfigure.DataSourceAutoConfiguration")
-// DatabaseInitializationProperties (spring-boot-jdbc, an optional dependency) is the base
-// class of JdbcSessionRepositoryProperties and must be present too.
+@AutoConfiguration(afterName = "org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration")
 @ConditionalOnClass({ JdbcSessionRepository.class, DataSource.class, JdbcTemplate.class,
-		DatabaseInitializationProperties.class })
+		DataSourceScriptDatabaseInitializer.class })
 @ConditionalOnSingleCandidate(DataSource.class)
 @EnableConfigurationProperties(JdbcSessionRepositoryProperties.class)
 public class JdbcSessionRepositoryAutoConfiguration {
