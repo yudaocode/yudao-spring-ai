@@ -4,9 +4,9 @@
 		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
-		<groupId>org.springframework.ai</groupId>
+		<groupId>cn.iocoder.spring-ai</groupId>
 		<artifactId>spring-ai-parent</artifactId>
-		<version>2.1.0-boot4-SNAPSHOT</version>
+		<version>4.0.0-SNAPSHOT</version>
 	</parent>
 	<artifactId>spring-ai-spring-boot-testcontainers</artifactId>
 	<packaging>jar</packaging>
@@ -23,50 +23,50 @@
 		<!-- TODO: Once all the per module autoconfigurations are updated, the following autoconfiguration should be removed -->
 
 		<dependency>
-			<groupId>org.springframework.ai</groupId>
+			<groupId>cn.iocoder.spring-ai</groupId>
 			<artifactId>spring-ai-autoconfigure-model-ollama</artifactId>
 			<version>${project.parent.version}</version>
 			<optional>true</optional>
 		</dependency>
 		<dependency>
-			<groupId>org.springframework.ai</groupId>
+			<groupId>cn.iocoder.spring-ai</groupId>
 			<artifactId>spring-ai-autoconfigure-vector-store-opensearch</artifactId>
 			<version>${project.parent.version}</version>
 			<optional>true</optional>
 		</dependency>
 		<dependency>
-			<groupId>org.springframework.ai</groupId>
+			<groupId>cn.iocoder.spring-ai</groupId>
 			<artifactId>spring-ai-autoconfigure-vector-store-chroma</artifactId>
 			<version>${project.parent.version}</version>
 			<optional>true</optional>
 		</dependency>
 		<dependency>
-			<groupId>org.springframework.ai</groupId>
+			<groupId>cn.iocoder.spring-ai</groupId>
 			<artifactId>spring-ai-autoconfigure-vector-store-mongodb-atlas</artifactId>
 			<version>${project.parent.version}</version>
 			<optional>true</optional>
 		</dependency>
 		<dependency>
-			<groupId>org.springframework.ai</groupId>
+			<groupId>cn.iocoder.spring-ai</groupId>
 			<artifactId>spring-ai-autoconfigure-vector-store-milvus</artifactId>
 			<version>${project.parent.version}</version>
 			<optional>true</optional>
 		</dependency>
 		<dependency>
-			<groupId>org.springframework.ai</groupId>
+			<groupId>cn.iocoder.spring-ai</groupId>
 			<artifactId>spring-ai-autoconfigure-vector-store-qdrant</artifactId>
 			<version>${project.parent.version}</version>
 			<optional>true</optional>
 		</dependency>
 		<dependency>
-			<groupId>org.springframework.ai</groupId>
+			<groupId>cn.iocoder.spring-ai</groupId>
 			<artifactId>spring-ai-autoconfigure-vector-store-weaviate</artifactId>
 			<version>${project.parent.version}</version>
 			<optional>true</optional>
 		</dependency>
 
 		<dependency>
-			<groupId>org.springframework.ai</groupId>
+			<groupId>cn.iocoder.spring-ai</groupId>
 			<artifactId>spring-ai-autoconfigure-vector-store-typesense</artifactId>
 			<version>${project.parent.version}</version>
 			<optional>true</optional>
@@ -79,21 +79,21 @@
 		</dependency>
 
 		<dependency>
-			<groupId>org.springframework.ai</groupId>
+			<groupId>cn.iocoder.spring-ai</groupId>
 			<artifactId>spring-ai-autoconfigure-mcp-client-common</artifactId>
 			<version>${project.parent.version}</version>
 			<optional>true</optional>
 		</dependency>
 
 		<dependency>
-			<groupId>org.springframework.ai</groupId>
+			<groupId>cn.iocoder.spring-ai</groupId>
 			<artifactId>spring-ai-autoconfigure-mcp-client-httpclient</artifactId>
 			<version>${project.parent.version}</version>
 			<optional>true</optional>
 		</dependency>
 
 		<dependency>
-			<groupId>org.springframework.ai</groupId>
+			<groupId>cn.iocoder.spring-ai</groupId>
 			<artifactId>spring-ai-autoconfigure-mcp-client-webflux</artifactId>
 			<version>${project.parent.version}</version>
 			<optional>true</optional>
@@ -113,14 +113,14 @@
 		</dependency>
 
 		<dependency>
-			<groupId>org.springframework.ai</groupId>
+			<groupId>cn.iocoder.spring-ai</groupId>
 			<artifactId>spring-ai-openai</artifactId>
 			<version>${project.parent.version}</version>
 			<optional>true</optional>
 		</dependency>
 
 		<dependency>
-			<groupId>org.springframework.ai</groupId>
+			<groupId>cn.iocoder.spring-ai</groupId>
 			<artifactId>spring-ai-ollama</artifactId>
 			<version>${project.parent.version}</version>
 			<optional>true</optional>
@@ -128,7 +128,7 @@
 
 		<!-- Transformers Embedding Model -->
 		<dependency>
-			<groupId>org.springframework.ai</groupId>
+			<groupId>cn.iocoder.spring-ai</groupId>
 			<artifactId>spring-ai-transformers</artifactId>
 			<version>${project.parent.version}</version>
 			<optional>true</optional>
@@ -136,7 +136,7 @@
 
 		<!-- Milvus Vector Store -->
 		<dependency>
-			<groupId>org.springframework.ai</groupId>
+			<groupId>cn.iocoder.spring-ai</groupId>
 			<artifactId>spring-ai-milvus-store</artifactId>
 			<version>${project.parent.version}</version>
 			<optional>true</optional>
@@ -144,7 +144,7 @@
 
 		<!-- Chroma Vector Store -->
 		<dependency>
-			<groupId>org.springframework.ai</groupId>
+			<groupId>cn.iocoder.spring-ai</groupId>
 			<artifactId>spring-ai-chroma-store</artifactId>
 			<version>${project.parent.version}</version>
 			<optional>true</optional>
@@ -152,7 +152,7 @@
 
 		<!-- Weaviate Vector Store -->
 		<dependency>
-			<groupId>org.springframework.ai</groupId>
+			<groupId>cn.iocoder.spring-ai</groupId>
 			<artifactId>spring-ai-weaviate-store</artifactId>
 			<version>${project.parent.version}</version>
 			<optional>true</optional>
@@ -160,7 +160,7 @@
 
 		<!-- Redis Vector Store-->
 		<dependency>
-			<groupId>org.springframework.ai</groupId>
+			<groupId>cn.iocoder.spring-ai</groupId>
 			<artifactId>spring-ai-redis-store</artifactId>
 			<version>${project.parent.version}</version>
 			<optional>true</optional>
@@ -175,7 +175,7 @@
 
 		<!-- Qdrant Vector Store-->
 		<dependency>
-			<groupId>org.springframework.ai</groupId>
+			<groupId>cn.iocoder.spring-ai</groupId>
 			<artifactId>spring-ai-qdrant-store</artifactId>
 			<version>${project.parent.version}</version>
 			<optional>true</optional>
@@ -183,7 +183,7 @@
 
 		<!-- Typesense Vector Store-->
 		<dependency>
-			<groupId>org.springframework.ai</groupId>
+			<groupId>cn.iocoder.spring-ai</groupId>
 			<artifactId>spring-ai-typesense-store</artifactId>
 			<version>${project.parent.version}</version>
 			<optional>true</optional>
@@ -191,14 +191,14 @@
 
 		<!-- OpenSearch Vector Store-->
 		<dependency>
-			<groupId>org.springframework.ai</groupId>
+			<groupId>cn.iocoder.spring-ai</groupId>
 			<artifactId>spring-ai-opensearch-store</artifactId>
 			<version>${project.parent.version}</version>
 			<optional>true</optional>
 		</dependency>
 
 		<dependency>
-			<groupId>org.springframework.ai</groupId>
+			<groupId>cn.iocoder.spring-ai</groupId>
 			<artifactId>spring-ai-mongodb-atlas-store</artifactId>
 			<version>${project.parent.version}</version>
 			<optional>true</optional>
@@ -207,7 +207,7 @@
 		<!-- test dependencies -->
 
 		<dependency>
-			<groupId>org.springframework.ai</groupId>
+			<groupId>cn.iocoder.spring-ai</groupId>
 			<artifactId>spring-ai-test</artifactId>
 			<version>${project.parent.version}</version>
 			<scope>test</scope>
@@ -347,7 +347,7 @@
 		</dependency>
 
 		<dependency>
-			<groupId>org.springframework.ai</groupId>
+			<groupId>cn.iocoder.spring-ai</groupId>
 			<artifactId>spring-ai-mcp</artifactId>
 			<version>${project.parent.version}</version>
 			<scope>test</scope>
