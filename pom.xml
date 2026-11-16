@@ -3,9 +3,9 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<groupId>org.springframework.ai</groupId>
+	<groupId>cn.iocoder.spring-ai</groupId>
 	<artifactId>spring-ai-parent</artifactId>
-	<version>2.1.0-boot3-SNAPSHOT</version>
+	<version>3.0.0-SNAPSHOT</version>
 
 	<packaging>pom</packaging>
 	<url>https://github.com/spring-projects/spring-ai</url>
@@ -860,7 +860,7 @@
 											<includes>
 												<include>*:*:*:*:test:*</include>
 												<include>
-													org.springframework.ai:spring-ai-autoconfigure-*</include>
+													cn.iocoder.spring-ai:spring-ai-autoconfigure-*</include>
 												<!-- for some reason, which likely has to do with
 												classifiers, without this include, the rule fails -->
 												<!-- with a false positive on
@@ -1014,7 +1014,7 @@
 							</includes>
 
 							<dependenciesToScan>
-								<dependency>org.springframework.ai:spring-ai-anthropic-legacy</dependency>
+								<dependency>cn.iocoder.spring-ai:spring-ai-anthropic-legacy</dependency>
 							</dependenciesToScan> -->
 						</configuration>
 						<executions>

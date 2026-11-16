@@ -3,9 +3,9 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
-		<groupId>org.springframework.ai</groupId>
+		<groupId>cn.iocoder.spring-ai</groupId>
 		<artifactId>spring-ai-parent</artifactId>
-		<version>2.1.0-boot3-SNAPSHOT</version>
+		<version>3.0.0-SNAPSHOT</version>
 		<relativePath>../../../pom.xml</relativePath>
 	</parent>
 	<artifactId>spring-ai-autoconfigure-tool-search-advisor</artifactId>
@@ -17,14 +17,14 @@
 	<dependencies>
 
 		<dependency>
-			<groupId>org.springframework.ai</groupId>
+			<groupId>cn.iocoder.spring-ai</groupId>
 			<artifactId>spring-ai-tool-search-advisor</artifactId>
 			<version>${project.parent.version}</version>
 			<optional>true</optional>
 		</dependency>
 
 		<dependency>
-			<groupId>org.springframework.ai</groupId>
+			<groupId>cn.iocoder.spring-ai</groupId>
 			<artifactId>spring-ai-autoconfigure-model-chat-client</artifactId>
 			<version>${project.parent.version}</version>
 			<optional>true</optional>
@@ -34,7 +34,7 @@
 		     ToolCallingAutoConfiguration.class for ordering (afterName equivalent).
 		     Marked optional to avoid leaking onto consumers' classpaths. -->
 		<dependency>
-			<groupId>org.springframework.ai</groupId>
+			<groupId>cn.iocoder.spring-ai</groupId>
 			<artifactId>spring-ai-autoconfigure-model-tool</artifactId>
 			<version>${project.parent.version}</version>
 			<optional>true</optional>
@@ -42,7 +42,7 @@
 
 		<!-- Optional: VectorStore support for VectorToolIndex auto-configuration -->
 		<dependency>
-			<groupId>org.springframework.ai</groupId>
+			<groupId>cn.iocoder.spring-ai</groupId>
 			<artifactId>spring-ai-vector-store</artifactId>
 			<version>${project.parent.version}</version>
 			<optional>true</optional>
@@ -50,7 +50,7 @@
 
 		<!-- Optional: DecisionModel support for DecisionToolIndex auto-configuration -->
 		<dependency>
-			<groupId>org.springframework.ai</groupId>
+			<groupId>cn.iocoder.spring-ai</groupId>
 			<artifactId>spring-ai-model</artifactId>
 			<version>${project.parent.version}</version>
 			<optional>true</optional>
@@ -75,7 +75,7 @@
 
 		<!-- Test dependencies -->
 		<dependency>
-			<groupId>org.springframework.ai</groupId>
+			<groupId>cn.iocoder.spring-ai</groupId>
 			<artifactId>spring-ai-test</artifactId>
 			<version>${project.parent.version}</version>
 			<scope>test</scope>
