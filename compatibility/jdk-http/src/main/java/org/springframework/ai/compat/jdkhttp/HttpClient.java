@@ -206,6 +206,22 @@ public final class HttpClient implements AutoCloseable {
 		return java.util.Optional.ofNullable(this.connectTimeout);
 	}
 
+	/**
+	 * Return this client's configured HTTP protocol preference.
+	 * @since 2.0.0
+	 */
+	public Version version() {
+		return this.version;
+	}
+
+	/**
+	 * Return this client's configured redirect policy.
+	 * @since 2.0.0
+	 */
+	public Redirect followRedirects() {
+		return this.redirects;
+	}
+
 	public static Builder newBuilder() {
 		return new Builder();
 	}

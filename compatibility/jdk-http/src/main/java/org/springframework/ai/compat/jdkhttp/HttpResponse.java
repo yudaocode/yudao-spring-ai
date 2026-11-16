@@ -71,6 +71,14 @@ public interface HttpResponse<T> {
 			return publisher -> CompletableFuture.completedFuture(new PublisherInputStream(publisher));
 		}
 
+		/**
+		 * Consume and discard all body buffers without retaining the response payload.
+		 * @since 2.0.0
+		 */
+		public static BodyHandler<Void> discarding() {
+			return publisher -> FlowAdapters.flowPublisherToFlux(publisher).then().toFuture();
+		}
+
 		public static BodyHandler<byte[]> ofByteArray() {
 			return publisher -> FlowAdapters.flowPublisherToFlux(publisher)
 				.flatMapIterable(chunks -> chunks)

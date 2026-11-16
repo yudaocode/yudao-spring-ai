@@ -42,6 +42,7 @@ import org.junit.jupiter.api.Timeout;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -415,6 +416,38 @@ class HttpBridgeTests {
 				upper.map().get("x-test"));
 		org.junit.jupiter.api.Assertions.assertEquals(upper, lower);
 		org.junit.jupiter.api.Assertions.assertEquals(upper.hashCode(), lower.hashCode());
+	}
+
+	@Test
+	void exposesIndependentProtocolAndRedirectConfiguration() {
+		HttpClient.Builder builder = HttpClient.newBuilder()
+			.version(HttpClient.Version.HTTP_1_1)
+			.followRedirects(HttpClient.Redirect.ALWAYS);
+		try (HttpClient client = builder.build(); HttpClient defaults = HttpClient.newHttpClient()) {
+			builder.version(HttpClient.Version.HTTP_2).followRedirects(HttpClient.Redirect.NEVER);
+			assertEquals(HttpClient.Version.HTTP_1_1, client.version());
+			assertEquals(HttpClient.Redirect.ALWAYS, client.followRedirects());
+			// The Java8 bridge deliberately defaults to HTTP/1.1.
+			assertEquals(HttpClient.Version.HTTP_1_1, defaults.version());
+			assertEquals(HttpClient.Redirect.NEVER, defaults.followRedirects());
+		}
+	}
+
+	@Test
+	void drainsDiscardedBodiesAndCanSendAnotherRequest() throws Exception {
+		this.server.enqueue(new MockResponse().setBody(new String(new char[256 * 1024]).replace('\0', 'x')));
+		this.server.enqueue(new MockResponse().setBody("next"));
+		try (HttpClient client = HttpClient.newHttpClient()) {
+			HttpResponse<Void> discarded = client.send(
+					HttpRequest.newBuilder(this.server.url("/discard").uri()).build(),
+					HttpResponse.BodyHandlers.discarding());
+			assertEquals(200, discarded.statusCode());
+			assertNull(discarded.body());
+			HttpResponse<String> next = client.send(HttpRequest.newBuilder(this.server.url("/next").uri()).build(),
+					HttpResponse.BodyHandlers.ofString());
+			assertEquals("next", next.body());
+			assertEquals(2, this.server.getRequestCount());
+		}
 	}
 
 }
