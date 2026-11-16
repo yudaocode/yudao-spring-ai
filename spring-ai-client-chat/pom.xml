@@ -27,6 +27,10 @@
 			<artifactId>json-schema-validator</artifactId>
 			<exclusions>
 				<exclusion>
+					<groupId>com.ethlo.time</groupId>
+					<artifactId>itu</artifactId>
+				</exclusion>
+				<exclusion>
 					<groupId>com.fasterxml.jackson.dataformat</groupId>
 					<artifactId>jackson-dataformat-yaml</artifactId>
 				</exclusion>

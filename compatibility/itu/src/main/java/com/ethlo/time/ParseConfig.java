@@ -1,0 +1,178 @@
+package com.ethlo.time;
+
+/*-
+ * #%L
+ * Internet Time Utility
+ * %%
+ * Copyright (C) 2017 - 2024 Morten Haraldsen (ethlo)
+ * %%
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * #L%
+ */
+
+import static com.ethlo.time.internal.fixed.ITUParser.SEPARATOR_LOWER;
+import static com.ethlo.time.internal.fixed.ITUParser.SEPARATOR_SPACE;
+import static com.ethlo.time.internal.fixed.ITUParser.SEPARATOR_UPPER;
+
+import java.util.Arrays;
+import java.util.Optional;
+
+public class ParseConfig
+{
+    private static final char[] DEFAULT_DATE_TIME_SEPARATORS = new char[]{SEPARATOR_UPPER, SEPARATOR_LOWER, SEPARATOR_SPACE};
+    private static final char[] RFC_3339_FRACTION_SEPARATOR = new char[]{'.'};
+    public static final ParseConfig DEFAULT = new ParseConfig(DEFAULT_DATE_TIME_SEPARATORS, RFC_3339_FRACTION_SEPARATOR);
+    public static final ParseConfig STRICT = new ParseConfig(new char[]{SEPARATOR_UPPER}, RFC_3339_FRACTION_SEPARATOR);
+
+    private final char[] dateTimeSeparators;
+    private final char[] fractionSeparators;
+    private final boolean failOnTrailingJunk;
+    /**
+     * The separators of each kind as a 128-bit set over ASCII (bit {@code c} of {@code lo} for {@code c < 64}, of
+     * {@code hi} for {@code 64 <= c < 128}). A membership test is then a shift and a mask; only a non-ASCII candidate
+     * consults the array. Without this the parser ran a loop with a safepoint poll for every 'Z' after the seconds
+     */
+    private final long dateTimeSeparatorsLo;
+    private final long dateTimeSeparatorsHi;
+    private final long fractionSeparatorsLo;
+    private final long fractionSeparatorsHi;
+    /**
+     * The first configured separator of each kind, tested with a plain compare before the set is consulted. An int so
+     * that "none" (-1) can never equal a char. The compare is not a shortcut for its own sake: C2's range-check
+     * smearing does not see through the set test, so with the set alone every bounds check of the fraction and the
+     * zone offset stayed in the parser's hot path, and with them the array length and index temporaries (perf-log S6.3)
+     */
+    private final int primaryDateTimeSeparator;
+    private final int primaryFractionSeparator;
+
+    protected ParseConfig(char[] dateTimeSeparators, char[] allowedFractionSeparators)
+    {
+        this(dateTimeSeparators, allowedFractionSeparators, true);
+    }
+
+    protected ParseConfig(char[] dateTimeSeparators, char[] allowedFractionSeparators, boolean failOnTrailingJunk)
+    {
+        this.dateTimeSeparators = Optional.ofNullable(dateTimeSeparators).orElse(DEFAULT_DATE_TIME_SEPARATORS).clone();
+        this.fractionSeparators = Optional.ofNullable(allowedFractionSeparators).orElse(RFC_3339_FRACTION_SEPARATOR).clone();
+        this.failOnTrailingJunk = failOnTrailingJunk;
+        this.dateTimeSeparatorsLo = asciiMask(this.dateTimeSeparators, 0);
+        this.dateTimeSeparatorsHi = asciiMask(this.dateTimeSeparators, 64);
+        this.fractionSeparatorsLo = asciiMask(this.fractionSeparators, 0);
+        this.fractionSeparatorsHi = asciiMask(this.fractionSeparators, 64);
+        this.primaryDateTimeSeparator = this.dateTimeSeparators.length > 0 ? this.dateTimeSeparators[0] : -1;
+        this.primaryFractionSeparator = this.fractionSeparators.length > 0 ? this.fractionSeparators[0] : -1;
+    }
+
+    private static long asciiMask(final char[] chars, final int base)
+    {
+        long mask = 0;
+        for (final char c : chars)
+        {
+            if (c >= base && c < base + 64)
+            {
+                mask |= 1L << (c - base);
+            }
+        }
+        return mask;
+    }
+
+    private static boolean isSet(final long lo, final long hi, final char c)
+    {
+        // NOTE: The shift count is taken modulo 64 by the JVM, which is exactly the bit wanted in each half
+        if (c < 64)
+        {
+            return ((lo >>> c) & 1) != 0;
+        }
+        if (c < 128)
+        {
+            return ((hi >>> c) & 1) != 0;
+        }
+        return false;
+    }
+
+    public char[] getFractionSeparators()
+    {
+        return fractionSeparators.clone();
+    }
+
+    public ParseConfig withDateTimeSeparators(char... allowed)
+    {
+        assertChars(allowed);
+        return new ParseConfig(allowed, fractionSeparators, failOnTrailingJunk);
+    }
+
+    private void assertChars(char[] chars)
+    {
+        if (chars == null)
+        {
+            throw new IllegalArgumentException("Cannot have null array of characters");
+        }
+        if (chars.length == 0)
+        {
+            throw new IllegalArgumentException("Must have at least one character in allowed list");
+        }
+    }
+
+    public ParseConfig withFractionSeparators(char... allowed)
+    {
+        assertChars(allowed);
+        return new ParseConfig(dateTimeSeparators, allowed, failOnTrailingJunk);
+    }
+
+    public ParseConfig withFailOnTrailingJunk(boolean failOnTrailingJunk)
+    {
+        return new ParseConfig(dateTimeSeparators, fractionSeparators, failOnTrailingJunk);
+    }
+
+    public boolean isFailOnTrailingJunk()
+    {
+        return failOnTrailingJunk;
+    }
+
+    public char[] getDateTimeSeparators()
+    {
+        return dateTimeSeparators.clone();
+    }
+
+    public boolean isDateTimeSeparator(char needle)
+    {
+        return needle == primaryDateTimeSeparator || (needle < 128 ? isSet(dateTimeSeparatorsLo, dateTimeSeparatorsHi, needle) : contains(dateTimeSeparators, needle));
+    }
+
+    public boolean isFractionSeparator(char needle)
+    {
+        return needle == primaryFractionSeparator || (needle < 128 ? isSet(fractionSeparatorsLo, fractionSeparatorsHi, needle) : contains(fractionSeparators, needle));
+    }
+
+    private static boolean contains(final char[] haystack, final char needle)
+    {
+        for (char c : haystack)
+        {
+            if (c == needle)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public String toString()
+    {
+        return "ParseConfig{" +
+                "dateTimeSeparators=" + Arrays.toString(dateTimeSeparators) +
+                ", fractionSeparators=" + Arrays.toString(fractionSeparators) +
+                ", failOnTrailingJunk=" + failOnTrailingJunk +
+                '}';
+    }
+}

@@ -191,6 +191,7 @@
 		<module>vector-stores/spring-ai-typesense-store</module>
 		<module>vector-stores/spring-ai-weaviate-store</module>
 		<module>compatibility/jspecify</module>
+		<module>compatibility/itu</module>
 		<module>compatibility/spring-web</module>
 		<module>compatibility/jdk-http</module>
 		<module>compatibility/mcp-core</module>

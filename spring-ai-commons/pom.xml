@@ -15,6 +15,12 @@
 	<url>https://github.com/spring-projects/spring-ai</url>
 
 	<dependencies>
+		<dependency>
+			<groupId>cn.iocoder.spring-ai</groupId>
+			<artifactId>spring-ai-itu-compat</artifactId>
+			<version>${project.parent.version}</version>
+		</dependency>
+
 <dependency><groupId>cn.iocoder.spring-ai</groupId><artifactId>spring-ai-jspecify-compat</artifactId><optional>false</optional><version>${project.version}</version></dependency>
 		<!-- Spring Framework -->
 		<dependency>

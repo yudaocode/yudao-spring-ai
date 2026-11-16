@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>cn.iocoder.spring-ai</groupId>
+  <artifactId>spring-ai-itu-compat</artifactId>
+  <version>2.0.0-SNAPSHOT</version>
+  <name>ITU 1.17 Java 8 runtime compatibility</name>
+  <description>Upstream ITU compiled against the Java 8 platform API</description>
+  <url>https://github.com/yudaocode/yudao-spring-ai</url>
+  <licenses><license><name>Apache License, Version 2.0</name><url>https://www.apache.org/licenses/LICENSE-2.0</url></license></licenses>
+  <developers><developer><id>yudaocode</id><name>芋道源码</name><url>https://github.com/yudaocode</url></developer></developers>
+  <scm><connection>scm:git:https://github.com/yudaocode/yudao-spring-ai.git</connection><developerConnection>scm:git:ssh://git@github.com/yudaocode/yudao-spring-ai.git</developerConnection><url>https://github.com/yudaocode/yudao-spring-ai/tree/main-jdk8</url></scm>
+  <properties><project.build.sourceEncoding>UTF-8</project.build.sourceEncoding><jvm>${java.home}/bin/java</jvm></properties>
+  <dependencies><dependency><groupId>org.junit.jupiter</groupId><artifactId>junit-jupiter</artifactId><version>5.13.4</version><scope>test</scope></dependency></dependencies>
+  <build><plugins>
+    <plugin><groupId>org.apache.maven.plugins</groupId><artifactId>maven-compiler-plugin</artifactId><version>3.14.1</version><configuration><release>8</release></configuration></plugin>
+    <plugin><groupId>org.apache.maven.plugins</groupId><artifactId>maven-surefire-plugin</artifactId><version>3.6.1</version><configuration><jvm>${jvm}</jvm></configuration></plugin>
+    <plugin><groupId>org.apache.maven.plugins</groupId><artifactId>maven-source-plugin</artifactId><version>3.4.0</version><executions><execution><id>attach-sources</id><goals><goal>jar-no-fork</goal></goals></execution></executions></plugin>
+  </plugins></build>
+</project>

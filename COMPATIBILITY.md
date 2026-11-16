@@ -46,3 +46,7 @@ Java8CompatibilityTests 和 RestClientJava8Tests 会断言实际运行 VM 为 1.
 ## Redis public API migration
 
 This older-Boot branch uses `redis.clients.jedis.JedisPooled` in the public builders for `RedisVectorStore`, `RedisChatMemoryRepository` / `RedisChatMemoryConfig`, and `DefaultSemanticCache` / `RedisVectorStoreHelper`. Upstream Spring AI 2.1 and the Boot 4 `main` branch use `RedisClient` in these positions. Applications constructing these low-level objects must supply the native branch's `JedisPooled`; an upstream `RedisClient` bean cannot be passed unchanged. High-level Spring AI interfaces remain the preferred integration boundary. This deliberate dependency adaptation is not a claim of identical low-level Redis APIs across branches.
+
+## ITU duration parsing on Java 8
+
+`spring-ai-commons` supplies `spring-ai-itu-compat` (ITU 1.17.0 sources compiled with `--release 8`). The chat client excludes the original ITU jar. Its original major-52 binaries call a Java 9-only Math overload when parsing durations; native Java 8 regression tests cover duration/date parsing and overflow. See [provenance](compatibility/itu/UPSTREAM.md). Do not include the original `com.ethlo.time:itu` alongside this compatibility artifact.

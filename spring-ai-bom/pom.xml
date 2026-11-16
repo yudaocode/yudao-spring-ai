@@ -52,6 +52,11 @@
 	</properties>
 	<dependencyManagement>
 		<dependencies>
+			<dependency>
+				<groupId>cn.iocoder.spring-ai</groupId>
+				<artifactId>spring-ai-itu-compat</artifactId>
+				<version>${project.version}</version>
+			</dependency>
 			<dependency><groupId>io.projectreactor</groupId><artifactId>reactor-bom</artifactId><version>2024.0.18</version><type>pom</type><scope>import</scope></dependency><dependency><groupId>io.netty</groupId><artifactId>netty-bom</artifactId><version>4.1.135.Final</version><type>pom</type><scope>import</scope></dependency><dependency>
 				<groupId>org.apache.httpcomponents.core5</groupId>
 				<artifactId>httpcore5-reactive</artifactId>
