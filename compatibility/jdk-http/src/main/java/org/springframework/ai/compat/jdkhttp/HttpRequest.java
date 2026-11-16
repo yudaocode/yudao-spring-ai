@@ -102,6 +102,15 @@ public final class HttpRequest {
 	}
 
 	/**
+	 * A body whose publisher creates a fresh subscription for each transmission.
+	 *
+	 * @author 芋道源码
+	 */
+	interface RepeatableBodyPublisher extends BodyPublisher {
+
+	}
+
+	/**
 	 * @author 芋道源码
 	 */
 	public static final class Builder {
@@ -232,7 +241,7 @@ public final class HttpRequest {
 
 		public static BodyPublisher ofInputStream(java.util.function.Supplier<? extends java.io.InputStream> source) {
 			Objects.requireNonNull(source);
-			return new BodyPublisher() {
+			return new RepeatableBodyPublisher() {
 
 				public long contentLength() {
 					return -1;
@@ -287,7 +296,7 @@ public final class HttpRequest {
 
 		public static BodyPublisher ofByteArray(byte[] body) {
 			final byte[] bytes = body.clone();
-			return new BodyPublisher() {
+			return new RepeatableBodyPublisher() {
 
 				public long contentLength() {
 					return bytes.length;

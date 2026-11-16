@@ -90,6 +90,54 @@ class HttpBridgeTests {
 	}
 
 	@Test
+	void overridesClientProtocolWithoutLosingBodyOrReusingMutableBuilder() throws Exception {
+		this.server.enqueue(new MockResponse().setBody("override"));
+		HttpClient.Builder builder = HttpClient.newBuilder().version(HttpClient.Version.HTTP_2);
+		HttpClient client = builder.build();
+		builder.proxy(new ProxySelector() {
+			public List<Proxy> select(URI uri) {
+				throw new AssertionError("Client must retain the original configuration");
+			}
+
+			public void connectFailed(URI uri, SocketAddress address, java.io.IOException error) {
+			}
+		});
+		try {
+			HttpRequest request = HttpRequest.newBuilder(this.server.url("/override").uri())
+				.version(HttpClient.Version.HTTP_1_1)
+				.POST(HttpRequest.BodyPublishers.ofString("payload"))
+				.build();
+			HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+			assertEquals("override", response.body());
+			assertEquals(HttpClient.Version.HTTP_1_1, response.version());
+			okhttp3.mockwebserver.RecordedRequest sent = this.server.takeRequest(2, TimeUnit.SECONDS);
+			assertEquals("payload", sent.getBody().readUtf8());
+			assertEquals(null, sent.getHeader("Upgrade"));
+			client.close();
+			client.close();
+			ExecutionException error = assertThrows(ExecutionException.class,
+					() -> client.sendAsync(request, HttpResponse.BodyHandlers.ofString()).get(2, TimeUnit.SECONDS));
+			assertTrue(error.getCause() instanceof java.io.IOException);
+			assertEquals(1, this.server.getRequestCount());
+		}
+		finally {
+			client.close();
+		}
+	}
+
+	@Test
+	void allowsRequestToPreferHttp2AndFallsBackToServerHttp1() throws Exception {
+		this.server.enqueue(new MockResponse().setBody("negotiated"));
+		try (HttpClient client = HttpClient.newHttpClient()) {
+			HttpResponse<String> response = client.send(HttpRequest.newBuilder(this.server.url("/prefer2").uri())
+				.version(HttpClient.Version.HTTP_2)
+				.build(), HttpResponse.BodyHandlers.ofString());
+			assertEquals("negotiated", response.body());
+			assertEquals(HttpClient.Version.HTTP_1_1, response.version());
+		}
+	}
+
+	@Test
 	void returnsHeadersBeforeBodyAndHonorsDemandAndCancellation() throws Exception {
 		this.server.enqueue(new MockResponse().setHeader("Content-Type", "text/event-stream")
 			.setBody("data: first\n\ndata: second\n\n")

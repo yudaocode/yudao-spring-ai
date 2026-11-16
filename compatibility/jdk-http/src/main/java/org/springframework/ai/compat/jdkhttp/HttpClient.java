@@ -50,18 +50,9 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
-import org.springframework.core.io.buffer.DataBuffer;
-import org.springframework.core.io.buffer.DataBufferUtils;
-import org.springframework.core.io.buffer.DefaultDataBufferFactory;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.client.reactive.HttpComponentsClientHttpConnector;
-import org.springframework.web.reactive.function.BodyInserters;
-import org.springframework.web.reactive.function.client.ClientResponse;
-import org.springframework.web.reactive.function.client.WebClient;
-
 /**
- * Asynchronous Java 8 HTTP bridge for MCP's JDK HTTP transport surface. Uses Spring 5 and
- * HttpClient 5; response bodies remain demand-driven and cancellable.
+ * Asynchronous Java 8 HTTP bridge for MCP's JDK HTTP transport surface. Uses Apache
+ * HttpClient 5 and Reactor; response bodies remain demand-driven and cancellable.
  *
  * @author 芋道源码
  */
@@ -81,6 +72,12 @@ public final class HttpClient implements AutoCloseable {
 
 	private final Duration connectTimeout;
 
+	private final Builder configuration;
+
+	private HttpClient alternate;
+
+	private boolean closed;
+
 	private HttpClient(Builder builder) {
 		this.cookies = builder.cookies;
 		this.executor = builder.executor;
@@ -94,7 +91,9 @@ public final class HttpClient implements AutoCloseable {
 		catch (java.security.NoSuchAlgorithmException error) {
 			throw new IllegalStateException(error);
 		}
-		final SSLParameters supplied = builder.sslParameters;
+		this.configuration = new Builder(builder);
+		this.configuration.sslContext = ssl;
+		final SSLParameters supplied = this.configuration.sslParameters;
 		DefaultClientTlsStrategy tls = new DefaultClientTlsStrategy(ssl) {
 
 			@Override
@@ -145,9 +144,23 @@ public final class HttpClient implements AutoCloseable {
 					builder.version == Version.HTTP_1_1 ? HttpVersionPolicy.FORCE_HTTP_1 : HttpVersionPolicy.NEGOTIATE)
 			.disableAutomaticRetries()
 			.disableCookieManagement();
-		ProxySelector proxy = builder.proxy == null ? ProxySelector.getDefault() : builder.proxy;
+		ProxySelector proxy = this.configuration.proxy;
 		if (proxy != null) {
 			http.setRoutePlanner(new SystemDefaultRoutePlanner(proxy));
+		}
+		if (builder.proxyUsername != null) {
+			final org.apache.hc.client5.http.auth.UsernamePasswordCredentials credentials = new org.apache.hc.client5.http.auth.UsernamePasswordCredentials(
+					builder.proxyUsername, builder.proxyPassword.clone());
+			http.setDefaultCredentialsProvider((scope, context) -> {
+				org.apache.hc.client5.http.RouteInfo route = HttpClientContext.castOrCreate(context).getHttpRoute();
+				org.apache.hc.core5.http.HttpHost proxyHost = route == null ? null : route.getProxyHost();
+				if (proxyHost != null && proxyHost.getHostName().equalsIgnoreCase(scope.getHost())
+						&& proxyHost.getPort() == scope.getPort()) {
+					return credentials;
+				}
+				return null; // Never offer proxy credentials for a direct/origin-server
+								// challenge.
+			});
 		}
 		final Redirect policy = this.redirects;
 		http.setRedirectStrategy(new org.apache.hc.client5.http.impl.DefaultRedirectStrategy() {
@@ -163,6 +176,28 @@ public final class HttpClient implements AutoCloseable {
 				return super.isRedirectAllowed(current, next, request, context);
 			}
 		});
+		if (this.cookies != null) {
+			http.addRequestInterceptorLast((outgoing, entity, context) -> {
+				URI uri;
+				try {
+					uri = outgoing.getUri();
+				}
+				catch (java.net.URISyntaxException error) {
+					throw new org.apache.hc.core5.http.ProtocolException("Invalid request URI", error);
+				}
+				this.cookies.get(uri, headerMap(outgoing))
+					.forEach((name, values) -> values.forEach(value -> outgoing.addHeader(name, value)));
+			});
+			http.addResponseInterceptorLast((response, entity, context) -> {
+				try {
+					URI uri = HttpClientContext.castOrCreate(context).getRequest().getUri();
+					this.cookies.put(uri, headerMap(response));
+				}
+				catch (java.net.URISyntaxException error) {
+					throw new org.apache.hc.core5.http.ProtocolException("Invalid request URI", error);
+				}
+			});
+		}
 		this.client = http.build();
 		this.client.start();
 	}
@@ -207,78 +242,101 @@ public final class HttpClient implements AutoCloseable {
 	public <T> CompletableFuture<HttpResponse<T>> sendAsync(HttpRequest request, HttpResponse.BodyHandler<T> handler) {
 		Objects.requireNonNull(request);
 		Objects.requireNonNull(handler);
-		if (request.version().isPresent() && request.version().get() != this.version) {
-			throw new IllegalArgumentException("Per-request HTTP version must match the client version");
+		HttpClient selected;
+		synchronized (this) {
+			if (this.closed) {
+				CompletableFuture<HttpResponse<T>> rejected = new CompletableFuture<>();
+				rejected.completeExceptionally(new IOException("HTTP client is closed"));
+				return rejected;
+			}
+			selected = this;
+			if (request.version().isPresent() && request.version().get() != this.version) {
+				// Protocol policy belongs to the connection pool. Keep one lazy pool for
+				// the other protocol instead of reusing a connection with the wrong
+				// policy.
+				if (this.alternate == null) {
+					this.alternate = new HttpClient(new Builder(this.configuration).version(request.version().get()));
+				}
+				selected = this.alternate;
+			}
 		}
-		CompletableFuture<HttpResponse<T>> future = new CompletableFuture<>();
+		if (selected != this) {
+			return selected.sendAsync(request, handler);
+		}
 		HttpClientContext context = HttpClientContext.create();
 		context.setRequestConfig(RequestConfig.custom()
 			.setRedirectsEnabled(this.redirects != Redirect.NEVER)
 			.setExpectContinueEnabled(request.expectContinue())
+			.setHardCancellationEnabled(true)
 			.build());
-		HttpComponentsClientHttpConnector connector = new HttpComponentsClientHttpConnector(this.client,
-				(method, uri) -> context);
-		WebClient web = WebClient.builder().clientConnector(connector).build();
-		WebClient.RequestBodySpec spec = web.method(HttpMethod.valueOf(request.method())).uri(request.uri());
-		request.headers().map().forEach((name, values) -> values.forEach(value -> spec.header(name, value)));
-		try {
-			if (this.cookies != null) {
-				this.cookies.get(request.uri(), request.headers().map())
-					.forEach((name, values) -> values.forEach(value -> spec.header(name, value)));
-			}
-		}
-		catch (IOException error) {
-			future.completeExceptionally(error);
-			return future;
-		}
+		org.apache.hc.core5.http.message.BasicHttpRequest outgoing = new org.apache.hc.core5.http.message.BasicHttpRequest(
+				request.method(), request.uri());
+		request.headers().map().forEach((name, values) -> values.forEach(value -> outgoing.addHeader(name, value)));
+		org.apache.hc.core5.http.nio.AsyncEntityProducer entity = null;
 		if (request.bodyPublisher().isPresent()) {
 			HttpRequest.BodyPublisher body = request.bodyPublisher().get();
-			if (body.contentLength() >= 0) {
-				spec.contentLength(body.contentLength());
+			String contentType = request.headers().firstValue("Content-Type").orElse(null);
+			String encoding = request.headers().firstValue("Content-Encoding").orElse(null);
+			if (contentType == null) {
+				outgoing.setHeader("Content-Type", "application/octet-stream");
 			}
-			Flux<DataBuffer> bytes = FlowAdapters.flowPublisherToFlux(body).map(buffer -> {
-				ByteBuffer copy = buffer.duplicate();
-				byte[] values = new byte[copy.remaining()];
-				copy.get(values);
-				return DefaultDataBufferFactory.sharedInstance.wrap(values);
-			});
-			spec.body(BodyInserters.fromDataBuffers(bytes));
+			entity = new RequestEntityProducer(body, contentType == null ? "application/octet-stream" : contentType,
+					encoding);
 		}
-		// exchangeToMono releases an unconsumed body when its callback finishes. The
-		// SDK receives headers first, then subscribes separately, so retain the response.
-		@SuppressWarnings("deprecation")
-		Mono<ClientResponse> exchange = spec.exchange();
-		Mono<HttpResponse<T>> result = exchange.flatMap(response -> {
+		org.apache.hc.core5.http.nio.support.BasicRequestProducer producer = new org.apache.hc.core5.http.nio.support.BasicRequestProducer(
+				outgoing, entity);
+		Exchange exchange = new Exchange();
+		Mono<org.apache.hc.core5.http.Message<org.apache.hc.core5.http.HttpResponse, org.reactivestreams.Publisher<ByteBuffer>>> headers = Mono
+			.create(sink -> {
+				sink.onCancel(exchange::cancel);
+				org.apache.hc.core5.reactive.ReactiveResponseConsumer consumer = new org.apache.hc.core5.reactive.ReactiveResponseConsumer(
+						new org.apache.hc.core5.concurrent.FutureCallback<org.apache.hc.core5.http.Message<org.apache.hc.core5.http.HttpResponse, org.reactivestreams.Publisher<ByteBuffer>>>() {
+							public void completed(
+									org.apache.hc.core5.http.Message<org.apache.hc.core5.http.HttpResponse, org.reactivestreams.Publisher<ByteBuffer>> response) {
+								sink.success(response);
+							}
+
+							public void failed(Exception error) {
+								sink.error(error);
+							}
+
+							public void cancelled() {
+								sink.error(new IOException("HTTP exchange cancelled"));
+							}
+						});
+				exchange.attach(this.client.execute(producer, consumer, context, null));
+			});
+		Mono<HttpResponse<T>> result = headers.flatMap(response -> {
 			try {
-				if (this.cookies != null) {
-					this.cookies.put(request.uri(), response.headers().asHttpHeaders());
+				java.util.Map<String, List<String>> values = new java.util.LinkedHashMap<>();
+				for (org.apache.hc.core5.http.Header header : response.getHead().getHeaders()) {
+					values
+						.computeIfAbsent(header.getName().toLowerCase(java.util.Locale.ROOT),
+								name -> new java.util.ArrayList<>())
+						.add(header.getValue());
 				}
-				Flux<List<ByteBuffer>> chunks = response.bodyToFlux(DataBuffer.class).map(buffer -> {
-					try {
-						byte[] bytes = new byte[buffer.readableByteCount()];
-						buffer.read(bytes);
-						return Collections.singletonList(ByteBuffer.wrap(bytes).asReadOnlyBuffer());
-					}
-					finally {
-						DataBufferUtils.release(buffer);
-					}
-				}).doOnDiscard(DataBuffer.class, DataBufferUtils::release);
+				HttpHeaders responseHeaders = HttpHeaders.of(values, (name, entry) -> true);
+				Flux<List<ByteBuffer>> chunks = Flux.from(response.getBody())
+					.map(buffer -> Collections.singletonList(buffer.asReadOnlyBuffer()))
+					.doOnCancel(exchange::cancel);
 				Flow.Publisher<List<ByteBuffer>> body = FlowAdapters.publisherToFlowPublisher(chunks);
-				HttpHeaders headers = HttpHeaders.of(response.headers().asHttpHeaders(), (name, entry) -> true);
 				Version protocol = context.getProtocolVersion() != null && context.getProtocolVersion().getMajor() >= 2
 						? Version.HTTP_2 : Version.HTTP_1_1;
+				URI responseUri = context.getRequest().getUri();
 				return Mono.fromCompletionStage(handler.apply(body))
-					.<HttpResponse<T>>map(
-							value -> new Response<>(request, response.rawStatusCode(), headers, value, protocol))
-					.defaultIfEmpty(new Response<>(request, response.rawStatusCode(), headers, null, protocol))
-					.doOnCancel(() -> release(response))
-					.doOnError(error -> release(response));
+					.<HttpResponse<T>>map(value -> new Response<>(request, response.getHead().getCode(),
+							responseHeaders, value, protocol, responseUri))
+					.defaultIfEmpty(new Response<>(request, response.getHead().getCode(), responseHeaders, null,
+							protocol, responseUri));
 			}
 			catch (Throwable error) {
-				release(response);
+				exchange.cancel();
 				return Mono.error(error);
 			}
-		}).doOnDiscard(ClientResponse.class, HttpClient::release).doOnDiscard(HttpResponse.class, HttpClient::discard);
+		})
+			.doOnCancel(exchange::cancel)
+			.doOnError(error -> exchange.cancel())
+			.doOnDiscard(HttpResponse.class, HttpClient::discard);
 		if (this.executor != null) {
 			result = result.publishOn(Schedulers.fromExecutor(this.executor));
 		}
@@ -286,6 +344,17 @@ public final class HttpClient implements AutoCloseable {
 			result = result.timeout(request.timeout().get());
 		}
 		return result.onErrorMap(HttpClient::timeoutError).toFuture();
+	}
+
+	private static java.util.Map<String, List<String>> headerMap(org.apache.hc.core5.http.HttpMessage message) {
+		java.util.Map<String, List<String>> headers = new java.util.LinkedHashMap<>();
+		for (org.apache.hc.core5.http.Header header : message.getHeaders()) {
+			headers
+				.computeIfAbsent(header.getName().toLowerCase(java.util.Locale.ROOT),
+						key -> new java.util.ArrayList<>())
+				.add(header.getValue());
+		}
+		return headers;
 	}
 
 	private static void discard(HttpResponse<?> response) {
@@ -336,30 +405,47 @@ public final class HttpClient implements AutoCloseable {
 		return error;
 	}
 
-	private static void release(ClientResponse response) {
-		// Cancelling at onSubscribe aborts the body; do not drain an unbounded SSE
-		// stream.
-		response.bodyToFlux(DataBuffer.class).subscribe(new org.reactivestreams.Subscriber<DataBuffer>() {
-
-			public void onSubscribe(org.reactivestreams.Subscription subscription) {
-				subscription.cancel();
+	@Override
+	public synchronized void close() {
+		if (this.closed) {
+			return;
+		}
+		this.closed = true;
+		try {
+			this.client.close(CloseMode.IMMEDIATE);
+		}
+		finally {
+			if (this.alternate != null) {
+				this.alternate.close();
 			}
-
-			public void onNext(DataBuffer value) {
-				DataBufferUtils.release(value);
-			}
-
-			public void onError(Throwable error) {
-			}
-
-			public void onComplete() {
-			}
-		});
+		}
 	}
 
-	@Override
-	public void close() {
-		this.client.close(CloseMode.IMMEDIATE);
+	/**
+	 * Owns the exchange handle across the headers/body boundary and cancellation races.
+	 *
+	 * @author 芋道源码
+	 */
+	private static final class Exchange {
+
+		private java.util.concurrent.Future<?> future;
+
+		private boolean cancelled;
+
+		synchronized void attach(java.util.concurrent.Future<?> value) {
+			this.future = value;
+			if (this.cancelled) {
+				value.cancel(true);
+			}
+		}
+
+		synchronized void cancel() {
+			this.cancelled = true;
+			if (this.future != null) {
+				this.future.cancel(true);
+			}
+		}
+
 	}
 
 	public enum Version {
@@ -387,6 +473,12 @@ public final class HttpClient implements AutoCloseable {
 
 		private ProxySelector proxy;
 
+		private boolean proxyCaptured;
+
+		private String proxyUsername;
+
+		private char[] proxyPassword;
+
 		private CookieHandler cookies;
 
 		private Executor executor;
@@ -394,6 +486,25 @@ public final class HttpClient implements AutoCloseable {
 		private Version version = Version.HTTP_1_1;
 
 		private Redirect redirects = Redirect.NEVER;
+
+		public Builder() {
+		}
+
+		private Builder(Builder source) {
+			this.connectTimeout = source.connectTimeout;
+			this.sslContext = source.sslContext;
+			if (source.sslParameters != null) {
+				sslParameters(source.sslParameters);
+			}
+			this.proxy = source.proxyCaptured ? source.proxy : ProxySelector.getDefault();
+			this.proxyCaptured = true;
+			this.proxyUsername = source.proxyUsername;
+			this.proxyPassword = source.proxyPassword == null ? null : source.proxyPassword.clone();
+			this.cookies = source.cookies;
+			this.executor = source.executor;
+			this.version = source.version;
+			this.redirects = source.redirects;
+		}
 
 		public Builder connectTimeout(Duration value) {
 			if (value.isNegative() || value.isZero()) {
@@ -424,6 +535,20 @@ public final class HttpClient implements AutoCloseable {
 
 		public Builder proxy(ProxySelector value) {
 			this.proxy = Objects.requireNonNull(value);
+			this.proxyCaptured = true;
+			return this;
+		}
+
+		/**
+		 * Supplies credentials only for challenges from the selected HTTP proxy.
+		 * @param username proxy username
+		 * @param password proxy password, copied defensively
+		 * @return this builder
+		 * @since 2.0.0
+		 */
+		public Builder proxyCredentials(String username, char[] password) {
+			this.proxyUsername = Objects.requireNonNull(username);
+			this.proxyPassword = Objects.requireNonNull(password).clone();
 			return this;
 		}
 
@@ -468,12 +593,15 @@ public final class HttpClient implements AutoCloseable {
 
 		private final Version version;
 
-		private Response(HttpRequest request, int status, HttpHeaders headers, T body, Version version) {
+		private final URI uri;
+
+		private Response(HttpRequest request, int status, HttpHeaders headers, T body, Version version, URI uri) {
 			this.request = request;
 			this.status = status;
 			this.headers = headers;
 			this.body = body;
 			this.version = version;
+			this.uri = uri;
 		}
 
 		public int statusCode() {
@@ -493,7 +621,7 @@ public final class HttpClient implements AutoCloseable {
 		}
 
 		public URI uri() {
-			return this.request.uri();
+			return this.uri;
 		}
 
 		public HttpRequest request() {
