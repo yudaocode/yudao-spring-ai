@@ -25,6 +25,7 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.ai.document.Document;
 import org.springframework.ai.embedding.EmbeddingResponse;
+import org.springframework.ai.test.model.MiniLmTestResources;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -44,6 +45,8 @@ public class TransformersEmbeddingModelTests {
 	void embed() throws Exception {
 
 		TransformersEmbeddingModel embeddingModel = new TransformersEmbeddingModel();
+		embeddingModel.setTokenizerResource(MiniLmTestResources.tokenizer());
+		embeddingModel.setModelResource(MiniLmTestResources.model());
 		embeddingModel.afterPropertiesSet();
 		float[] embed = embeddingModel.embed("Hello world");
 		assertThat(embed).hasSize(384);
@@ -54,6 +57,8 @@ public class TransformersEmbeddingModelTests {
 	@Test
 	void embedDocument() throws Exception {
 		TransformersEmbeddingModel embeddingModel = new TransformersEmbeddingModel();
+		embeddingModel.setTokenizerResource(MiniLmTestResources.tokenizer());
+		embeddingModel.setModelResource(MiniLmTestResources.model());
 		embeddingModel.afterPropertiesSet();
 		float[] embed = embeddingModel.embed(new Document("Hello world"));
 		assertThat(embed).hasSize(384);
@@ -64,6 +69,8 @@ public class TransformersEmbeddingModelTests {
 	@Test
 	void embedList() throws Exception {
 		TransformersEmbeddingModel embeddingModel = new TransformersEmbeddingModel();
+		embeddingModel.setTokenizerResource(MiniLmTestResources.tokenizer());
+		embeddingModel.setModelResource(MiniLmTestResources.model());
 		embeddingModel.afterPropertiesSet();
 		List<float[]> embed = embeddingModel.embed(List.of("Hello world", "World is big"));
 		assertThat(embed).hasSize(2);
@@ -81,6 +88,8 @@ public class TransformersEmbeddingModelTests {
 	@Test
 	void embedForResponse() throws Exception {
 		TransformersEmbeddingModel embeddingModel = new TransformersEmbeddingModel();
+		embeddingModel.setTokenizerResource(MiniLmTestResources.tokenizer());
+		embeddingModel.setModelResource(MiniLmTestResources.model());
 		embeddingModel.afterPropertiesSet();
 		EmbeddingResponse embed = embeddingModel.embedForResponse(List.of("Hello world", "World is big"));
 		assertThat(embed.getResults()).hasSize(2);
@@ -99,6 +108,8 @@ public class TransformersEmbeddingModelTests {
 	void dimensions() throws Exception {
 
 		TransformersEmbeddingModel embeddingModel = new TransformersEmbeddingModel();
+		embeddingModel.setTokenizerResource(MiniLmTestResources.tokenizer());
+		embeddingModel.setModelResource(MiniLmTestResources.model());
 		embeddingModel.afterPropertiesSet();
 		assertThat(embeddingModel.dimensions()).isEqualTo(384);
 		// cached
