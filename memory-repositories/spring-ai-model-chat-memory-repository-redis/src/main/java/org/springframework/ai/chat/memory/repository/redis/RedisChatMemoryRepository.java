@@ -35,8 +35,8 @@ import com.google.gson.JsonObject;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jspecify.annotations.Nullable;
+import redis.clients.jedis.JedisPooled;
 import redis.clients.jedis.Pipeline;
-import redis.clients.jedis.RedisClient;
 import redis.clients.jedis.json.Path2;
 import redis.clients.jedis.search.Document;
 import redis.clients.jedis.search.FTCreateParams;
@@ -92,7 +92,7 @@ public final class RedisChatMemoryRepository implements ChatMemoryRepository, Ad
 
 	private final RedisChatMemoryConfig config;
 
-	private final RedisClient jedisClient;
+	private final JedisPooled jedisClient;
 
 	public RedisChatMemoryRepository(RedisChatMemoryConfig config) {
 		Assert.notNull(config, "Config must not be null");
@@ -999,7 +999,7 @@ public final class RedisChatMemoryRepository implements ChatMemoryRepository, Ad
 	 */
 	public static class Builder {
 
-		private @Nullable RedisClient jedisClient;
+		private @Nullable JedisPooled jedisClient;
 
 		private String indexName = RedisChatMemoryConfig.DEFAULT_INDEX_NAME;
 
@@ -1016,11 +1016,11 @@ public final class RedisChatMemoryRepository implements ChatMemoryRepository, Ad
 		private List<Map<String, String>> metadataFields = Collections.emptyList();
 
 		/**
-		 * Sets the RedisClient client.
-		 * @param jedisClient the RedisClient client to use
+		 * Sets the JedisPooled client.
+		 * @param jedisClient the JedisPooled client to use
 		 * @return this builder
 		 */
-		public Builder jedisClient(final RedisClient jedisClient) {
+		public Builder jedisClient(final JedisPooled jedisClient) {
 			this.jedisClient = jedisClient;
 			return this;
 		}

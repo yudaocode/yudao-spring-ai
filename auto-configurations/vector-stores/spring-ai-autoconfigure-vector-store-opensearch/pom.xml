@@ -6,7 +6,7 @@
 	<parent>
 		<groupId>org.springframework.ai</groupId>
 		<artifactId>spring-ai-parent</artifactId>
-		<version>2.1.0-SNAPSHOT</version>
+		<version>2.1.0-boot3-SNAPSHOT</version>
 		<relativePath>../../../pom.xml</relativePath>
 	</parent>
 	<artifactId>spring-ai-autoconfigure-vector-store-opensearch</artifactId>
@@ -16,6 +16,11 @@
 	<url>https://github.com/spring-projects/spring-ai</url>
 
 	<dependencies>
+		<dependency>
+			<groupId>org.apache.httpcomponents.client5</groupId>
+			<artifactId>httpclient5</artifactId>
+			<optional>true</optional>
+		</dependency>
 		<!-- production dependencies -->
 		<dependency>
 			<groupId>org.springframework.ai</groupId>
@@ -77,7 +82,7 @@
 		</dependency>
 		<dependency>
 			<groupId>org.testcontainers</groupId>
-			<artifactId>testcontainers-junit-jupiter</artifactId>
+			<artifactId>junit-jupiter</artifactId>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -87,7 +92,7 @@
 		</dependency>
 		<dependency>
 			<groupId>org.testcontainers</groupId>
-			<artifactId>testcontainers-localstack</artifactId>
+			<artifactId>localstack</artifactId>
 			<scope>test</scope>
 		</dependency>
 		<dependency>

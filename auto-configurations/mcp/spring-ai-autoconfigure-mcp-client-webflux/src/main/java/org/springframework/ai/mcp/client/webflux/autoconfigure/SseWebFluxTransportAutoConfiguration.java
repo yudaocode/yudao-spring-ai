@@ -21,8 +21,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import io.modelcontextprotocol.json.jackson3.JacksonMcpJsonMapper;
-import tools.jackson.databind.json.JsonMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
+import io.modelcontextprotocol.json.jackson2.JacksonMcpJsonMapper;
 
 import org.springframework.ai.mcp.client.common.autoconfigure.McpSseClientConnectionDetails;
 import org.springframework.ai.mcp.client.common.autoconfigure.NamedClientMcpTransport;
@@ -104,7 +104,8 @@ public class SseWebFluxTransportAutoConfiguration {
 		List<NamedClientMcpTransport> sseTransports = new ArrayList<>();
 
 		var webClientBuilderTemplate = webClientBuilderProvider.getIfAvailable(WebClient::builder);
-		var jsonMapper = jsonMapperProvider.getIfAvailable(JsonMapper::shared);
+		var jsonMapper = jsonMapperProvider
+			.getIfAvailable(org.springframework.ai.util.JacksonUtils::getDefaultJsonMapper);
 
 		for (Map.Entry<String, SseParameters> serverParameters : connectionDetails.getConnections().entrySet()) {
 			String connectionName = serverParameters.getKey();

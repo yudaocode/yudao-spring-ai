@@ -34,8 +34,8 @@ import java.util.stream.Collectors;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jspecify.annotations.Nullable;
+import redis.clients.jedis.JedisPooled;
 import redis.clients.jedis.Pipeline;
-import redis.clients.jedis.RedisClient;
 import redis.clients.jedis.json.Path2;
 import redis.clients.jedis.search.FTCreateParams;
 import redis.clients.jedis.search.IndexDataType;
@@ -281,7 +281,7 @@ public class RedisVectorStore extends AbstractObservationVectorStore implements 
 
 	private static final TextScorer DEFAULT_TEXT_SCORER = TextScorer.BM25;
 
-	private final RedisClient jedisClient;
+	private final JedisPooled jedisClient;
 
 	private final boolean initializeSchema;
 
@@ -334,7 +334,7 @@ public class RedisVectorStore extends AbstractObservationVectorStore implements 
 	protected RedisVectorStore(Builder builder) {
 		super(builder);
 
-		Assert.notNull(builder.jedisClient, "RedisClient must not be null");
+		Assert.notNull(builder.jedisClient, "JedisPooled must not be null");
 
 		this.jedisClient = builder.jedisClient;
 		this.indexName = builder.indexName;
@@ -364,7 +364,7 @@ public class RedisVectorStore extends AbstractObservationVectorStore implements 
 		this.filterExpressionConverter = new RedisFilterExpressionConverter(this.metadataFields);
 	}
 
-	public RedisClient getJedisClient() {
+	public JedisPooled getJedisClient() {
 		return this.jedisClient;
 	}
 
@@ -1466,7 +1466,7 @@ public class RedisVectorStore extends AbstractObservationVectorStore implements 
 		return normalized;
 	}
 
-	public static Builder builder(RedisClient jedis, EmbeddingModel embeddingModel) {
+	public static Builder builder(JedisPooled jedis, EmbeddingModel embeddingModel) {
 		return new Builder(jedis, embeddingModel);
 	}
 
@@ -1532,7 +1532,7 @@ public class RedisVectorStore extends AbstractObservationVectorStore implements 
 
 	public static class Builder extends AbstractVectorStoreBuilder<Builder> {
 
-		private final RedisClient jedisClient;
+		private final JedisPooled jedisClient;
 
 		private String indexName = DEFAULT_INDEX_NAME;
 
@@ -1568,9 +1568,9 @@ public class RedisVectorStore extends AbstractObservationVectorStore implements 
 
 		private Set<String> stopwords = new HashSet<>();
 
-		private Builder(RedisClient jedisClient, EmbeddingModel embeddingModel) {
+		private Builder(JedisPooled jedisClient, EmbeddingModel embeddingModel) {
 			super(embeddingModel);
-			Assert.notNull(jedisClient, "RedisClient must not be null");
+			Assert.notNull(jedisClient, "JedisPooled must not be null");
 			this.jedisClient = jedisClient;
 		}
 

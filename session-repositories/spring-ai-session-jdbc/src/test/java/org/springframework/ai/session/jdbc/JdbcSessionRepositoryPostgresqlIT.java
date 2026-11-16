@@ -28,9 +28,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.postgresql.ds.PGSimpleDataSource;
+import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.postgresql.PostgreSQLContainer;
 
 import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.messages.UserMessage;
@@ -60,7 +60,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class JdbcSessionRepositoryPostgresqlIT {
 
 	@Container
-	static final PostgreSQLContainer postgres = new PostgreSQLContainer("postgres:16-alpine");
+	static final PostgreSQLContainer postgres = new PostgreSQLContainer<>("postgres:16-alpine");
 
 	private static PGSimpleDataSource dataSource;
 

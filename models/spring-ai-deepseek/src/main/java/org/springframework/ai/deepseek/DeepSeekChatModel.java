@@ -71,8 +71,8 @@ import org.springframework.ai.model.tool.ToolCallingManager;
 import org.springframework.ai.retry.RetryUtils;
 import org.springframework.ai.support.UsageCalculator;
 import org.springframework.ai.tool.definition.ToolDefinition;
-import org.springframework.core.retry.RetryTemplate;
 import org.springframework.http.ResponseEntity;
+import org.springframework.retry.support.RetryTemplate;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
@@ -239,7 +239,7 @@ public class DeepSeekChatModel implements ChatModel {
 
 			});
 
-		return response;
+		return java.util.Objects.requireNonNull(response);
 	}
 
 	@Override

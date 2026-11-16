@@ -24,11 +24,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.jupiter.api.Test;
 
-import org.springframework.core.retry.RetryException;
-import org.springframework.core.retry.RetryTemplate;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpResponse;
+import org.springframework.retry.support.RetryTemplate;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -99,7 +98,7 @@ class RetryUtilsTests {
 		AtomicInteger counter = new AtomicInteger(0);
 		RetryTemplate template = RetryUtils.SHORT_RETRY_TEMPLATE;
 
-		assertThrows(RetryException.class, () -> template.execute(() -> {
+		assertThrows(TransientAiException.class, () -> template.execute(context -> {
 			counter.incrementAndGet();
 			throw new TransientAiException("test fail");
 		}));
@@ -108,11 +107,11 @@ class RetryUtilsTests {
 	}
 
 	@Test
-	void shortRetryTemplateSucceedsBeforeMaxAttempts() throws RetryException {
+	void shortRetryTemplateSucceedsBeforeMaxAttempts() throws TransientAiException {
 		AtomicInteger counter = new AtomicInteger(0);
 		RetryTemplate template = RetryUtils.SHORT_RETRY_TEMPLATE;
 
-		String result = template.execute(() -> {
+		String result = template.execute(context -> {
 			if (counter.incrementAndGet() < 5) {
 				throw new TransientAiException("test fail");
 			}

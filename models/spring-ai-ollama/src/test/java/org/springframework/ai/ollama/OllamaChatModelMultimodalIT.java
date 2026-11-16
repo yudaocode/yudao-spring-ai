@@ -16,7 +16,6 @@
 
 package org.springframework.ai.ollama;
 
-import java.time.Duration;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
@@ -33,10 +32,7 @@ import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.retry.RetryListener;
-import org.springframework.core.retry.RetryPolicy;
-import org.springframework.core.retry.RetryTemplate;
-import org.springframework.core.retry.Retryable;
+import org.springframework.retry.support.RetryTemplate;
 import org.springframework.util.MimeTypeUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -87,20 +83,12 @@ class OllamaChatModelMultimodalIT extends BaseOllamaIT {
 
 		@Bean
 		public OllamaChatModel ollamaChat(OllamaApi ollamaApi) {
-			RetryPolicy retryPolicy = RetryPolicy.builder()
-				.maxRetries(1)
-				.includes(TransientAiException.class)
-				.delay(Duration.ofSeconds(1))
+			RetryTemplate retryTemplate = RetryTemplate.builder()
+				.maxAttempts(2)
+				.retryOn(TransientAiException.class)
+				.fixedBackoff(1000)
 				.build();
 
-			RetryTemplate retryTemplate = new RetryTemplate(retryPolicy);
-			retryTemplate.setRetryListener(new RetryListener() {
-
-				@Override
-				public void onRetryFailure(final RetryPolicy policy, final Retryable<?> retryable,
-						final Throwable throwable) {
-				}
-			});
 			return OllamaChatModel.builder()
 				.ollamaApi(ollamaApi)
 				.options(OllamaChatOptions.builder().model(MODEL).temperature(0.0).build())

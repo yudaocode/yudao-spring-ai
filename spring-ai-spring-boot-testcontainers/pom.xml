@@ -6,7 +6,7 @@
 	<parent>
 		<groupId>org.springframework.ai</groupId>
 		<artifactId>spring-ai-parent</artifactId>
-		<version>2.1.0-SNAPSHOT</version>
+		<version>2.1.0-boot3-SNAPSHOT</version>
 	</parent>
 	<artifactId>spring-ai-spring-boot-testcontainers</artifactId>
 	<packaging>jar</packaging>
@@ -224,16 +224,8 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-restclient-test</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-jdbc-test</artifactId>
-			<scope>test</scope>
-		</dependency>
+
+
 		<dependency>
 			<groupId>org.postgresql</groupId>
 			<artifactId>postgresql</artifactId>
@@ -248,7 +240,7 @@
 
 		<dependency>
 			<groupId>org.testcontainers</groupId>
-			<artifactId>testcontainers-junit-jupiter</artifactId>
+			<artifactId>junit-jupiter</artifactId>
 			<scope>test</scope>
 			<exclusions>
 				<exclusion>
@@ -293,49 +285,49 @@
 
 		<dependency>
 			<groupId>org.testcontainers</groupId>
-			<artifactId>testcontainers-qdrant</artifactId>
+			<artifactId>qdrant</artifactId>
 			<optional>true</optional>
 		</dependency>
 
 		<dependency>
 			<groupId>org.testcontainers</groupId>
-			<artifactId>testcontainers-weaviate</artifactId>
+			<artifactId>weaviate</artifactId>
 			<optional>true</optional>
 		</dependency>
 
 		<dependency>
 			<groupId>org.testcontainers</groupId>
-			<artifactId>testcontainers-chromadb</artifactId>
+			<artifactId>chromadb</artifactId>
 			<optional>true</optional>
 		</dependency>
 
 		<dependency>
 			<groupId>org.testcontainers</groupId>
-			<artifactId>testcontainers-localstack</artifactId>
+			<artifactId>localstack</artifactId>
 			<optional>true</optional>
 		</dependency>
 		
 		<dependency>
 			<groupId>org.testcontainers</groupId>
-			<artifactId>testcontainers-milvus</artifactId>
+			<artifactId>milvus</artifactId>
 			<optional>true</optional>
 		</dependency>
 
 		<dependency>
 			<groupId>org.testcontainers</groupId>
-			<artifactId>testcontainers-mongodb</artifactId>
+			<artifactId>mongodb</artifactId>
 			<optional>true</optional>
 		</dependency>
 
 		<dependency>
 			<groupId>org.testcontainers</groupId>
-			<artifactId>testcontainers-ollama</artifactId>
+			<artifactId>ollama</artifactId>
 			<optional>true</optional>
 		</dependency>
 		
 		<dependency>
 			<groupId>org.testcontainers</groupId>
-			<artifactId>testcontainers-typesense</artifactId>
+			<artifactId>typesense</artifactId>
 			<optional>true</optional>
 		</dependency>
 

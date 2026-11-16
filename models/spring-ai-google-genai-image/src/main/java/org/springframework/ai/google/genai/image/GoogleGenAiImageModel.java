@@ -60,7 +60,7 @@ import org.springframework.ai.image.observation.ImageModelObservationDocumentati
 import org.springframework.ai.model.ModelOptionsUtils;
 import org.springframework.ai.observation.conventions.AiProvider;
 import org.springframework.ai.retry.RetryUtils;
-import org.springframework.core.retry.RetryTemplate;
+import org.springframework.retry.support.RetryTemplate;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -120,71 +120,76 @@ public class GoogleGenAiImageModel implements ImageModel {
 			.provider(AiProvider.GOOGLE_GENAI_AI.value())
 			.build();
 
-		return ImageModelObservationDocumentation.IMAGE_MODEL_OPERATION
-			.observation(this.observationConvention, DEFAULT_OBSERVATION_CONVENTION, () -> observationContext,
-					this.observationRegistry)
-			.observe(() -> {
-				final GoogleGenAiImageOptions options = (GoogleGenAiImageOptions) imagePrompt.getOptions();
-				Assert.notNull(options, "Options must not be null");
+		return java.util.Objects.requireNonNull(
+				ImageModelObservationDocumentation.IMAGE_MODEL_OPERATION
+					.observation(this.observationConvention, DEFAULT_OBSERVATION_CONVENTION, () -> observationContext,
+							this.observationRegistry)
+					.observe(() -> {
+						final GoogleGenAiImageOptions options = (GoogleGenAiImageOptions) imagePrompt.getOptions();
+						Assert.notNull(options, "Options must not be null");
 
-				final String model = options.getModel();
-				Assert.notNull(model, "Model must not be null");
+						final String model = options.getModel();
+						Assert.notNull(model, "Model must not be null");
 
-				final String modelName = this.connectionDetails.getModelEndpointName(model);
+						final String modelName = this.connectionDetails.getModelEndpointName(model);
 
-				final GenerateContentConfig config = getGenerateContentConfig(options);
+						final GenerateContentConfig config = getGenerateContentConfig(options);
 
-				final List<Content> contents = imagePrompt.getInstructions()
-					.stream()
-					.map(GoogleGenAiImageModel::messageToParts)
-					.filter(Predicate.not(List::isEmpty))
-					.map(parts -> Content.builder().role(MessageType.USER.getValue()).parts(parts).build())
-					.toList();
+						final List<Content> contents = imagePrompt.getInstructions()
+							.stream()
+							.map(GoogleGenAiImageModel::messageToParts)
+							.filter(Predicate.not(List::isEmpty))
+							.map(parts -> Content.builder().role(MessageType.USER.getValue()).parts(parts).build())
+							.toList();
 
-				if (contents.isEmpty()) {
-					throw new IllegalArgumentException("ImagePrompt must contain at least one non-empty message");
-				}
+						if (contents.isEmpty()) {
+							throw new IllegalArgumentException(
+									"ImagePrompt must contain at least one non-empty message");
+						}
 
-				final GenerateContentResponse imagesResponse = RetryUtils.execute(this.retryTemplate,
-						() -> this.genAiClient.models.generateContent(modelName, contents, config));
+						final GenerateContentResponse imagesResponse = RetryUtils.execute(this.retryTemplate,
+								() -> this.genAiClient.models.generateContent(modelName, contents, config));
 
-				final List<Candidate> candidates = Optional.ofNullable(imagesResponse)
-					.map(GenerateContentResponse::candidates)
-					.flatMap(Function.identity())
-					.orElse(List.of());
+						final List<Candidate> candidates = Optional.ofNullable(imagesResponse)
+							.map(GenerateContentResponse::candidates)
+							.flatMap(Function.identity())
+							.orElse(List.of());
 
-				final List<ImageGeneration> generationList = candidates.stream()
-					.flatMap(GoogleGenAiImageModel::candidateToImageGenerations)
-					.toList();
+						final List<ImageGeneration> generationList = candidates.stream()
+							.flatMap(GoogleGenAiImageModel::candidateToImageGenerations)
+							.toList();
 
-				final List<String> candidateTexts = candidates.stream()
-					.flatMap(candidate -> candidate.content().flatMap(Content::parts).orElse(List.of()).stream())
-					.filter(part -> part.inlineData().isEmpty())
-					.map(Part::text)
-					.flatMap(Optional::stream)
-					.toList();
+						final List<String> candidateTexts = candidates.stream()
+							.flatMap(
+									candidate -> candidate.content().flatMap(Content::parts).orElse(List.of()).stream())
+							.filter(part -> part.inlineData().isEmpty())
+							.map(Part::text)
+							.flatMap(Optional::stream)
+							.toList();
 
-				final ImageResponseMetadata responseMetadata = new ImageResponseMetadata();
-				if (Objects.nonNull(imagesResponse)) {
-					imagesResponse.modelVersion().ifPresent(version -> responseMetadata.put("model", version));
-				}
+						final ImageResponseMetadata responseMetadata = new ImageResponseMetadata();
+						if (Objects.nonNull(imagesResponse)) {
+							imagesResponse.modelVersion().ifPresent(version -> responseMetadata.put("model", version));
+						}
 
-				// Surface any text returned alongside (or instead of) the image(s),
-				// e.g. a refusal or safety explanation, so callers aren't left with
-				// an empty result and no signal as to why.
+						// Surface any text returned alongside (or instead of) the
+						// image(s),
+						// e.g. a refusal or safety explanation, so callers aren't left
+						// with
+						// an empty result and no signal as to why.
 
-				if (!candidateTexts.isEmpty()) {
-					responseMetadata.put("text", String.join(System.lineSeparator(), candidateTexts));
-				}
+						if (!candidateTexts.isEmpty()) {
+							responseMetadata.put("text", String.join(System.lineSeparator(), candidateTexts));
+						}
 
-				responseMetadata.setUsage(getUsage(imagesResponse));
+						responseMetadata.setUsage(getUsage(imagesResponse));
 
-				final ImageResponse response = new ImageResponse(generationList, responseMetadata);
+						final ImageResponse response = new ImageResponse(generationList, responseMetadata);
 
-				observationContext.setResponse(response);
+						observationContext.setResponse(response);
 
-				return response;
-			});
+						return response;
+					}));
 	}
 
 	public void setObservationConvention(@Nullable ImageModelObservationConvention observationConvention) {

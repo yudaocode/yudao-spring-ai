@@ -19,20 +19,18 @@ package org.springframework.ai.retry;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
-import java.time.Duration;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.Callable;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.core.retry.RetryException;
-import org.springframework.core.retry.RetryListener;
-import org.springframework.core.retry.RetryPolicy;
-import org.springframework.core.retry.RetryTemplate;
-import org.springframework.core.retry.Retryable;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.ClientHttpResponse;
+import org.springframework.retry.RetryCallback;
+import org.springframework.retry.RetryContext;
+import org.springframework.retry.RetryListener;
+import org.springframework.retry.support.RetryTemplate;
 import org.springframework.util.StreamUtils;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.ResponseErrorHandler;
@@ -106,58 +104,35 @@ public abstract class RetryUtils {
 	public static final RetryTemplate SHORT_RETRY_TEMPLATE = createShortRetryTemplate();
 
 	private static RetryTemplate createDefaultRetryTemplate() {
-		RetryPolicy retryPolicy = RetryPolicy.builder()
-			.maxRetries(DEFAULT_MAX_ATTEMPTS)
-			.includes(TransientAiException.class)
-			.includes(ResourceAccessException.class)
-			.delay(Duration.ofMillis(DEFAULT_INITIAL_INTERVAL))
-			.multiplier(DEFAULT_MULTIPLIER)
-			.maxDelay(Duration.ofMillis(DEFAULT_MAX_INTERVAL))
+		return RetryTemplate.builder()
+			.maxAttempts(DEFAULT_MAX_ATTEMPTS + 1)
+			.retryOn(TransientAiException.class)
+			.retryOn(ResourceAccessException.class)
+			.exponentialBackoff(DEFAULT_INITIAL_INTERVAL, DEFAULT_MULTIPLIER, DEFAULT_MAX_INTERVAL)
+			.withListener(loggingListener())
 			.build();
-
-		RetryTemplate retryTemplate = new RetryTemplate(retryPolicy);
-		retryTemplate.setRetryListener(new RetryListener() {
-			private final AtomicInteger retryCount = new AtomicInteger(0);
-
-			@Override
-			public void onRetryFailure(final RetryPolicy policy, final Retryable<?> retryable,
-					final Throwable throwable) {
-				int currentRetries = this.retryCount.incrementAndGet();
-				if (LOGGER.isWarnEnabled()) {
-					LOGGER.warn("Retry error. Retry count:" + currentRetries, throwable);
-				}
-			}
-		});
-		return retryTemplate;
 	}
 
-	/**
-	 * Useful in testing scenarios where you don't want to wait long for retry and don't
-	 * need to show stack trace.
-	 * @return a RetryTemplate with short delays
-	 */
 	private static RetryTemplate createShortRetryTemplate() {
-		RetryPolicy retryPolicy = RetryPolicy.builder()
-			.maxRetries(DEFAULT_MAX_ATTEMPTS)
-			.includes(TransientAiException.class)
-			.includes(ResourceAccessException.class)
-			.delay(Duration.ofMillis(SHORT_INITIAL_INTERVAL))
+		return RetryTemplate.builder()
+			.maxAttempts(DEFAULT_MAX_ATTEMPTS + 1)
+			.retryOn(TransientAiException.class)
+			.retryOn(ResourceAccessException.class)
+			.fixedBackoff(SHORT_INITIAL_INTERVAL)
+			.withListener(loggingListener())
 			.build();
+	}
 
-		RetryTemplate retryTemplate = new RetryTemplate(retryPolicy);
-		retryTemplate.setRetryListener(new RetryListener() {
-			private final AtomicInteger retryCount = new AtomicInteger(0);
-
+	private static RetryListener loggingListener() {
+		return new RetryListener() {
 			@Override
-			public void onRetryFailure(final RetryPolicy policy, final Retryable<?> retryable,
-					final Throwable throwable) {
-				int currentRetries = this.retryCount.incrementAndGet();
+			public <T, E extends Throwable> void onError(RetryContext context, RetryCallback<T, E> callback,
+					Throwable throwable) {
 				if (LOGGER.isWarnEnabled()) {
-					LOGGER.warn("Retry error. Retry count:" + currentRetries, throwable);
+					LOGGER.warn("Retry error. Retry count:" + context.getRetryCount(), throwable);
 				}
 			}
-		});
-		return retryTemplate;
+		};
 	}
 
 	/**
@@ -167,13 +142,15 @@ public abstract class RetryUtils {
 	 * @param retryable the operation to be retried
 	 * @return the result of the retryable operation
 	 */
-	public static <R extends @Nullable Object> R execute(RetryTemplate retryTemplate, Retryable<R> retryable) {
+	public static <R extends @Nullable Object> R execute(RetryTemplate retryTemplate, Callable<R> retryable) {
 		try {
-			return retryTemplate.execute(retryable);
+			return retryTemplate.execute(context -> retryable.call());
 		}
-		catch (RetryException e) {
-			throw (e.getCause() instanceof RuntimeException runtime) ? runtime
-					: new RuntimeException(e.getMessage(), e.getCause());
+		catch (RuntimeException e) {
+			throw e;
+		}
+		catch (Exception e) {
+			throw new IllegalStateException("Retry operation failed", e);
 		}
 	}
 

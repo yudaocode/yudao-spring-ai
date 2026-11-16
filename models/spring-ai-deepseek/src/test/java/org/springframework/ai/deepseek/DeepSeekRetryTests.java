@@ -34,11 +34,11 @@ import org.springframework.ai.deepseek.api.DeepSeekApi.ChatCompletionMessage.Rol
 import org.springframework.ai.deepseek.api.DeepSeekApi.ChatCompletionRequest;
 import org.springframework.ai.retry.RetryUtils;
 import org.springframework.ai.retry.TransientAiException;
-import org.springframework.core.retry.RetryListener;
-import org.springframework.core.retry.RetryPolicy;
-import org.springframework.core.retry.RetryTemplate;
-import org.springframework.core.retry.Retryable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.retry.RetryCallback;
+import org.springframework.retry.RetryContext;
+import org.springframework.retry.RetryListener;
+import org.springframework.retry.support.RetryTemplate;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -63,7 +63,7 @@ public class DeepSeekRetryTests {
 	public void beforeEach() {
 		RetryTemplate retryTemplate = RetryUtils.SHORT_RETRY_TEMPLATE;
 		this.retryListener = new TestRetryListener();
-		retryTemplate.setRetryListener(this.retryListener);
+		retryTemplate.setListeners(new RetryListener[] { this.retryListener });
 
 		this.chatModel = DeepSeekChatModel.builder()
 			.deepSeekApi(this.deepSeekApi)
@@ -135,13 +135,14 @@ public class DeepSeekRetryTests {
 		int onSuccessRetryCount = 0;
 
 		@Override
-		public void beforeRetry(final RetryPolicy retryPolicy, final Retryable<?> retryable) {
+		public <T, E extends Throwable> void onError(RetryContext context, RetryCallback<T, E> callback,
+				Throwable throwable) {
 			// Count each retry attempt
 			this.onErrorRetryCount++;
 		}
 
 		@Override
-		public void onRetrySuccess(final RetryPolicy retryPolicy, final Retryable<?> retryable, final Object result) {
+		public <T, E extends Throwable> void onSuccess(RetryContext context, RetryCallback<T, E> callback, T result) {
 			// Count successful retries - we increment when we succeed after a failure
 			this.onSuccessRetryCount++;
 		}

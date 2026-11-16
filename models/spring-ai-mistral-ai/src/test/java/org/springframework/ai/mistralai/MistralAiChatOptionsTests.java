@@ -21,9 +21,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
-import tools.jackson.databind.json.JsonMapper;
 
 import org.springframework.ai.mistralai.MistralAiChatOptions.Builder;
 import org.springframework.ai.mistralai.api.MistralAiApi;
@@ -436,7 +436,7 @@ class MistralAiChatOptionsTests extends AbstractChatOptionsTests<MistralAiChatOp
 	}
 
 	@Test
-	void testJsonSerializationOfResponseFormat() {
+	void testJsonSerializationOfResponseFormat() throws Exception {
 		JsonMapper jsonMapper = new JsonMapper();
 
 		ResponseFormat format = ResponseFormat.jsonSchema(Map.of("type", "object"));

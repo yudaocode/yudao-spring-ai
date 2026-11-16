@@ -30,7 +30,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import redis.clients.jedis.RedisClient;
+import redis.clients.jedis.JedisPooled;
 import redis.clients.jedis.exceptions.JedisConnectionException;
 
 import org.springframework.ai.chat.messages.Message;
@@ -61,13 +61,11 @@ class RedisChatMemoryErrorHandlingIT {
 
 	private RedisChatMemoryRepository chatMemory;
 
-	private RedisClient jedisClient;
+	private JedisPooled jedisClient;
 
 	@BeforeEach
 	void setUp() {
-		this.jedisClient = RedisClient.builder()
-			.hostAndPort(redisContainer.getHost(), redisContainer.getFirstMappedPort())
-			.build();
+		this.jedisClient = new JedisPooled(redisContainer.getHost(), redisContainer.getFirstMappedPort());
 		this.chatMemory = RedisChatMemoryRepository.builder()
 			.jedisClient(this.jedisClient)
 			.indexName("test-error-" + RedisChatMemoryConfig.DEFAULT_INDEX_NAME)
@@ -174,8 +172,8 @@ class RedisChatMemoryErrorHandlingIT {
 			// Using a connection to an invalid Redis server should throw a connection
 			// exception
 			assertThatExceptionOfType(JedisConnectionException.class).isThrownBy(() -> {
-				// Create a RedisClient with a connection timeout to make the test faster
-				RedisClient badConnection = RedisClient.builder().hostAndPort("localhost", 54321).build();
+				// Create a JedisPooled with a connection timeout to make the test faster
+				JedisPooled badConnection = new JedisPooled("localhost", 54321);
 				// Attempt an operation that would require Redis connection
 				badConnection.ping();
 			});
@@ -321,9 +319,7 @@ class RedisChatMemoryErrorHandlingIT {
 		@Bean
 		RedisChatMemoryRepository chatMemory() {
 			return RedisChatMemoryRepository.builder()
-				.jedisClient(RedisClient.builder()
-					.hostAndPort(redisContainer.getHost(), redisContainer.getFirstMappedPort())
-					.build())
+				.jedisClient(new JedisPooled(redisContainer.getHost(), redisContainer.getFirstMappedPort()))
 				.indexName("test-error-" + RedisChatMemoryConfig.DEFAULT_INDEX_NAME)
 				.build();
 		}

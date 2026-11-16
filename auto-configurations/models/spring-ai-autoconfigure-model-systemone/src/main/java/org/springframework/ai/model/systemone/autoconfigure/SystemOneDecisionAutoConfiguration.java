@@ -33,7 +33,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.http.client.ClientHttpRequestFactoryBuilder;
-import org.springframework.boot.http.client.HttpClientSettings;
+import org.springframework.boot.http.client.ClientHttpRequestFactorySettings;
 import org.springframework.context.annotation.Bean;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -59,10 +59,10 @@ import org.springframework.web.client.RestClient;
  * <p>
  * The client sends through the {@link RestClient.Builder} of the application when there
  * is one, so that customizers, proxies and SSL bundles apply. A configured read timeout
- * is applied on top of the application's {@link HttpClientSettings}; unset, the
- * application's transport is used as is. Applying it builds the request factory again,
- * which replaces one that a customizer installed on the builder. Without a builder, the
- * client builds its own transport.
+ * is applied on top of the application's {@link ClientHttpRequestFactorySettings}; unset,
+ * the application's transport is used as is. Applying it builds the request factory
+ * again, which replaces one that a customizer installed on the builder. Without a
+ * builder, the client builds its own transport.
  *
  * @author Christian Tzolov
  * @since 2.1.0
@@ -83,7 +83,7 @@ public class SystemOneDecisionAutoConfiguration {
 	public SystemOneClient systemOneClient(SystemOneConnectionProperties connectionProperties,
 			SystemOneDecisionProperties decisionProperties, ObjectProvider<RestClient.Builder> restClientBuilder,
 			ObjectProvider<ClientHttpRequestFactoryBuilder<?>> requestFactoryBuilder,
-			ObjectProvider<HttpClientSettings> httpClientSettings) {
+			ObjectProvider<ClientHttpRequestFactorySettings> httpClientSettings) {
 		// The property is there, or this bean would not be; it may still be blank.
 		String apiKey = connectionProperties.getApiKey();
 		Assert.state(StringUtils.hasText(apiKey), NO_API_KEY);
@@ -116,7 +116,8 @@ public class SystemOneDecisionAutoConfiguration {
 			// Unset, the application's transport is used as is.
 			ClientHttpRequestFactoryBuilder<?> factoryBuilder = requestFactoryBuilder
 				.getIfAvailable(() -> ClientHttpRequestFactoryBuilder.detect());
-			HttpClientSettings settings = httpClientSettings.getIfAvailable(HttpClientSettings::defaults)
+			ClientHttpRequestFactorySettings settings = httpClientSettings
+				.getIfAvailable(ClientHttpRequestFactorySettings::defaults)
 				.withReadTimeout(timeout);
 			transport.requestFactory(factoryBuilder.build(settings));
 		}

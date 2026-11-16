@@ -34,11 +34,14 @@ import java.util.function.Consumer;
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch.cat.indices.IndicesRecord;
 import co.elastic.clients.elasticsearch.indices.stats.IndicesStats;
-import co.elastic.clients.json.jackson.Jackson3JsonpMapper;
-import co.elastic.clients.transport.rest5_client.Rest5ClientTransport;
-import co.elastic.clients.transport.rest5_client.low_level.Rest5Client;
-import org.apache.hc.core5.http.HttpHost;
+import co.elastic.clients.json.jackson.JacksonJsonpMapper;
+import co.elastic.clients.transport.rest_client.RestClientTransport;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.json.JsonMapper;
+import org.apache.http.HttpHost;
 import org.awaitility.Awaitility;
+import org.elasticsearch.client.RestClient;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -48,9 +51,6 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.testcontainers.elasticsearch.ElasticsearchContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import tools.jackson.databind.DeserializationFeature;
-import tools.jackson.databind.cfg.DateTimeFeature;
-import tools.jackson.databind.json.JsonMapper;
 
 import org.springframework.ai.document.Document;
 import org.springframework.ai.document.DocumentMetadata;
@@ -110,7 +110,7 @@ class ElasticsearchVectorStoreIT extends BaseVectorStoreTests {
 		getContextRunner().run(context -> {
 			// deleting indices and data before following tests
 			ElasticsearchClient elasticsearchClient = context.getBean(ElasticsearchClient.class);
-			List indices = elasticsearchClient.cat().indices().indices().stream().map(IndicesRecord::index).toList();
+			List indices = elasticsearchClient.cat().indices().valueBody().stream().map(IndicesRecord::index).toList();
 			if (!indices.isEmpty()) {
 				elasticsearchClient.indices().delete(del -> del.index(indices));
 			}
@@ -571,12 +571,12 @@ class ElasticsearchVectorStoreIT extends BaseVectorStoreTests {
 	public static class TestApplication {
 
 		@Bean("vectorStore_cosine")
-		public ElasticsearchVectorStore vectorStoreDefault(EmbeddingModel embeddingModel, Rest5Client restClient) {
+		public ElasticsearchVectorStore vectorStoreDefault(EmbeddingModel embeddingModel, RestClient restClient) {
 			return ElasticsearchVectorStore.builder(restClient, embeddingModel).initializeSchema(true).build();
 		}
 
 		@Bean("vectorStore_l2_norm")
-		public ElasticsearchVectorStore vectorStoreL2(EmbeddingModel embeddingModel, Rest5Client restClient) {
+		public ElasticsearchVectorStore vectorStoreL2(EmbeddingModel embeddingModel, RestClient restClient) {
 			ElasticsearchVectorStoreOptions options = new ElasticsearchVectorStoreOptions();
 			options.setIndexName("index_l2");
 			options.setSimilarity(SimilarityFunction.l2_norm);
@@ -587,7 +587,7 @@ class ElasticsearchVectorStoreIT extends BaseVectorStoreTests {
 		}
 
 		@Bean("vectorStore_dot_product")
-		public ElasticsearchVectorStore vectorStoreDotProduct(EmbeddingModel embeddingModel, Rest5Client restClient) {
+		public ElasticsearchVectorStore vectorStoreDotProduct(EmbeddingModel embeddingModel, RestClient restClient) {
 			ElasticsearchVectorStoreOptions options = new ElasticsearchVectorStoreOptions();
 			options.setIndexName("index_dot_product");
 			options.setSimilarity(SimilarityFunction.dot_product);
@@ -598,7 +598,7 @@ class ElasticsearchVectorStoreIT extends BaseVectorStoreTests {
 		}
 
 		@Bean("vectorStore_custom_embedding_field")
-		public ElasticsearchVectorStore vectorStoreCustomField(EmbeddingModel embeddingModel, Rest5Client restClient) {
+		public ElasticsearchVectorStore vectorStoreCustomField(EmbeddingModel embeddingModel, RestClient restClient) {
 			ElasticsearchVectorStoreOptions options = new ElasticsearchVectorStoreOptions();
 			options.setEmbeddingFieldName("custom_embedding_field");
 			return ElasticsearchVectorStore.builder(restClient, embeddingModel)
@@ -617,17 +617,17 @@ class ElasticsearchVectorStoreIT extends BaseVectorStoreTests {
 		}
 
 		@Bean
-		Rest5Client restClient() throws URISyntaxException {
-			return Rest5Client.builder(HttpHost.create(elasticsearchContainer.getHttpHostAddress())).build();
+		RestClient restClient() throws URISyntaxException {
+			return RestClient.builder(HttpHost.create(elasticsearchContainer.getHttpHostAddress())).build();
 		}
 
 		@Bean
-		ElasticsearchClient elasticsearchClient(Rest5Client restClient) {
+		ElasticsearchClient elasticsearchClient(RestClient restClient) {
 			JsonMapper jsonMapper = JsonMapper.builder()
 				.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-				.enable(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS)
+				.enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
 				.build();
-			return new ElasticsearchClient(new Rest5ClientTransport(restClient, new Jackson3JsonpMapper(jsonMapper)));
+			return new ElasticsearchClient(new RestClientTransport(restClient, new JacksonJsonpMapper(jsonMapper)));
 		}
 
 	}

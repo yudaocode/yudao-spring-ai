@@ -19,11 +19,11 @@ package org.springframework.ai.bedrock.cohere;
 import java.time.Duration;
 import java.util.List;
 
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import software.amazon.awssdk.auth.credentials.EnvironmentVariableCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
-import tools.jackson.databind.json.JsonMapper;
 
 import org.springframework.ai.bedrock.RequiresAwsCredentials;
 import org.springframework.ai.bedrock.cohere.api.CohereEmbeddingBedrockApi;

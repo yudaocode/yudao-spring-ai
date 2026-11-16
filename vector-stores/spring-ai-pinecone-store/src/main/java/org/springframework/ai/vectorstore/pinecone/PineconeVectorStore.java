@@ -22,6 +22,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.google.protobuf.Struct;
 import com.google.protobuf.Value;
 import com.google.protobuf.util.JsonFormat;
@@ -32,8 +34,6 @@ import io.pinecone.unsigned_indices_model.VectorWithUnsignedIndices;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jspecify.annotations.Nullable;
-import tools.jackson.core.type.TypeReference;
-import tools.jackson.databind.json.JsonMapper;
 
 import org.springframework.ai.document.Document;
 import org.springframework.ai.document.DocumentMetadata;
@@ -165,7 +165,8 @@ public class PineconeVectorStore extends AbstractObservationVectorStore {
 			var structBuilder = Struct.newBuilder();
 			JsonFormat.parser()
 				.ignoringUnknownFields()
-				.merge(JsonMapper.shared().writeValueAsString(document.getMetadata()), structBuilder);
+				.merge(JsonMapper.builder().findAndAddModules().build().writeValueAsString(document.getMetadata()),
+						structBuilder);
 			structBuilder.putFields(this.pineconeContentFieldName, contentValue(document));
 			return structBuilder.build();
 		}
@@ -301,9 +302,12 @@ public class PineconeVectorStore extends AbstractObservationVectorStore {
 	private Map<String, Object> extractMetadata(Struct metadataStruct) {
 		try {
 			String json = JsonFormat.printer().print(metadataStruct);
-			Map<String, Object> metadata = JsonMapper.shared().readValue(json, new TypeReference<>() {
+			Map<String, Object> metadata = JsonMapper.builder()
+				.findAndAddModules()
+				.build()
+				.readValue(json, new TypeReference<>() {
 
-			});
+				});
 			metadata.remove(this.pineconeContentFieldName);
 			return metadata;
 		}

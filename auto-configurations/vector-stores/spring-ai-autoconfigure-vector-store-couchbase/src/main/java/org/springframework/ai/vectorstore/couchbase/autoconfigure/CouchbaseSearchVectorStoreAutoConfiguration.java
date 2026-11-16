@@ -43,7 +43,7 @@ public class CouchbaseSearchVectorStoreAutoConfiguration {
 			EmbeddingModel embeddingModel) {
 		var builder = CouchbaseSearchVectorStore.builder(cluster, embeddingModel);
 
-		PropertyMapper mapper = PropertyMapper.get();
+		PropertyMapper mapper = PropertyMapper.get().alwaysApplyingWhenNonNull();
 		mapper.from(properties::getIndexName).whenHasText().to(builder::vectorIndexName);
 		mapper.from(properties::getBucketName).whenHasText().to(builder::bucketName);
 		mapper.from(properties::getScopeName).whenHasText().to(builder::scopeName);

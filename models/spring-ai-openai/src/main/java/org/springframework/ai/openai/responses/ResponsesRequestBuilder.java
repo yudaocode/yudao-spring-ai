@@ -23,6 +23,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.openai.core.JsonValue;
 import com.openai.core.ObjectMappers;
@@ -41,7 +42,6 @@ import com.openai.models.responses.ToolChoiceFunction;
 import com.openai.models.responses.ToolChoiceOptions;
 import com.openai.models.responses.ToolChoiceTypes;
 import org.jspecify.annotations.Nullable;
-import tools.jackson.databind.JsonNode;
 
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.model.tool.ToolCallingManager;
@@ -302,10 +302,10 @@ final class ResponsesRequestBuilder {
 			default -> {
 				try {
 					JsonNode node = JacksonUtils.getDefaultJsonMapper().readTree(value);
-					String type = node.get("type").asString();
+					String type = node.get("type").asText();
 					if ("function".equals(type)) {
 						JsonNode nameNode = node.has("name") ? node.get("name") : node.get("function").get("name");
-						builder.toolChoice(ToolChoiceFunction.builder().name(nameNode.asString()).build());
+						builder.toolChoice(ToolChoiceFunction.builder().name(nameNode.asText()).build());
 					}
 					else {
 						// A hosted tool type, e.g. {"type":"web_search"}

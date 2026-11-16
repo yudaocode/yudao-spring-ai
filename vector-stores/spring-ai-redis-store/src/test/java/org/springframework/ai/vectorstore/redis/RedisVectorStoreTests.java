@@ -25,7 +25,7 @@ import java.util.stream.StreamSupport;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import redis.clients.jedis.CommandArguments;
-import redis.clients.jedis.RedisClient;
+import redis.clients.jedis.JedisPooled;
 import redis.clients.jedis.exceptions.JedisConnectionException;
 import redis.clients.jedis.search.FTCreateParams;
 import redis.clients.jedis.search.Query;
@@ -56,7 +56,7 @@ class RedisVectorStoreTests {
 
 	@Test
 	void searchesDoNotReturnEmbeddingField() {
-		RedisClient jedisClient = mock(RedisClient.class);
+		JedisPooled jedisClient = mock(JedisPooled.class);
 		EmbeddingModel embeddingModel = mock(EmbeddingModel.class);
 		SearchResult searchResult = mock(SearchResult.class);
 		when(embeddingModel.embed(anyString())).thenReturn(new float[] { 1.0f, 0.0f, 0.0f });
@@ -79,7 +79,7 @@ class RedisVectorStoreTests {
 
 	@Test
 	void failedIndexReadRefusesTheWriteAndDoesNotPoisonLaterCalls() {
-		RedisClient jedisClient = mock(RedisClient.class);
+		JedisPooled jedisClient = mock(JedisPooled.class);
 		EmbeddingModel embeddingModel = mock(EmbeddingModel.class);
 		when(embeddingModel.dimensions()).thenReturn(3);
 		when(jedisClient.ftInfo(anyString())).thenThrow(new JedisConnectionException("connection lost"))
@@ -102,7 +102,7 @@ class RedisVectorStoreTests {
 
 	@Test
 	void knownIndexSizeIsReadOnce() {
-		RedisClient jedisClient = mock(RedisClient.class);
+		JedisPooled jedisClient = mock(JedisPooled.class);
 		EmbeddingModel embeddingModel = mock(EmbeddingModel.class);
 		when(jedisClient.ftInfo(anyString()))
 			.thenReturn(Map.of("attributes", List.of(Map.of("attribute", "embedding", "dim", 4))));
@@ -115,7 +115,7 @@ class RedisVectorStoreTests {
 
 	@Test
 	void initializingOverAnExistingIndexDoesNotAskTheModel() {
-		RedisClient jedisClient = mock(RedisClient.class);
+		JedisPooled jedisClient = mock(JedisPooled.class);
 		EmbeddingModel embeddingModel = mock(EmbeddingModel.class);
 		when(jedisClient.ftList()).thenReturn(Set.of(RedisVectorStore.DEFAULT_INDEX_NAME));
 		RedisVectorStore vectorStore = RedisVectorStore.builder(jedisClient, embeddingModel)
@@ -130,7 +130,7 @@ class RedisVectorStoreTests {
 
 	@Test
 	void createdIndexKeepsTheSizeItWasCreatedWith() {
-		RedisClient jedisClient = mock(RedisClient.class);
+		JedisPooled jedisClient = mock(JedisPooled.class);
 		EmbeddingModel embeddingModel = mock(EmbeddingModel.class);
 		when(embeddingModel.dimensions()).thenReturn(3);
 		when(jedisClient.ftList()).thenReturn(Set.of());

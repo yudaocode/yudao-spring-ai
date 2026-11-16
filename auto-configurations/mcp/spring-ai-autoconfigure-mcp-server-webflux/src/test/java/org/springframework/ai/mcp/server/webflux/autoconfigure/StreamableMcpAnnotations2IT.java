@@ -25,6 +25,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import io.modelcontextprotocol.client.McpSyncClient;
 import io.modelcontextprotocol.server.McpSyncServer;
 import io.modelcontextprotocol.spec.McpSchema;
@@ -51,7 +52,6 @@ import net.javacrumbs.jsonunit.core.Option;
 import org.junit.jupiter.api.Test;
 import reactor.netty.DisposableServer;
 import reactor.netty.http.server.HttpServer;
-import tools.jackson.databind.json.JsonMapper;
 
 import org.springframework.ai.mcp.annotation.McpArg;
 import org.springframework.ai.mcp.annotation.McpComplete;
@@ -372,14 +372,18 @@ public class StreamableMcpAnnotations2IT {
 
 			@McpResource(name = "Test Resource", uri = "file://resource", mimeType = "text/plain",
 					description = "Test resource description")
-			public ReadResourceResult testResource(McpSyncRequestContext ctx, ReadResourceRequest request) {
+			public ReadResourceResult testResource(McpSyncRequestContext ctx, ReadResourceRequest request)
+					throws Exception {
 
 				ctx.ping();
 
 				try {
 					var systemInfo = Map.of("os", System.getProperty("os.name"), "os_version",
 							System.getProperty("os.version"), "java_version", System.getProperty("java.version"));
-					String jsonContent = JsonMapper.shared().writeValueAsString(systemInfo);
+					String jsonContent = JsonMapper.builder()
+						.findAndAddModules()
+						.build()
+						.writeValueAsString(systemInfo);
 					return ReadResourceResult
 						.builder(List.of(McpSchema.TextResourceContents.builder(request.uri(), jsonContent)
 							.mimeType("application/json")

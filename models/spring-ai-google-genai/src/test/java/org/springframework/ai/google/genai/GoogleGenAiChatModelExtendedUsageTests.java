@@ -56,7 +56,7 @@ import org.springframework.ai.google.genai.metadata.GoogleGenAiUsage;
 import org.springframework.ai.google.genai.tool.MockWeatherService;
 import org.springframework.ai.retry.RetryUtils;
 import org.springframework.ai.tool.function.FunctionToolCallback;
-import org.springframework.core.retry.RetryTemplate;
+import org.springframework.retry.support.RetryTemplate;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

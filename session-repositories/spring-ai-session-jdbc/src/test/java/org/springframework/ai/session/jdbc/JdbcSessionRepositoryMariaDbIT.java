@@ -20,9 +20,9 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.testcontainers.containers.MariaDBContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.mariadb.MariaDBContainer;
 
 import org.springframework.ai.session.SessionRepository;
 import org.springframework.ai.test.session.AbstractSessionRepositoryContractTests;
@@ -41,7 +41,7 @@ import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
 class JdbcSessionRepositoryMariaDbIT {
 
 	@Container
-	static final MariaDBContainer mariadb = new MariaDBContainer("mariadb:11.4");
+	static final MariaDBContainer mariadb = new MariaDBContainer<>("mariadb:11.4");
 
 	private static DriverManagerDataSource dataSource;
 

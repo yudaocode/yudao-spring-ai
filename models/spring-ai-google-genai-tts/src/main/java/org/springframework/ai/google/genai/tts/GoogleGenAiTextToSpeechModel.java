@@ -52,7 +52,7 @@ import org.springframework.ai.chat.metadata.DefaultUsage;
 import org.springframework.ai.model.ModelOptionsUtils;
 import org.springframework.ai.observation.conventions.AiProvider;
 import org.springframework.ai.retry.RetryUtils;
-import org.springframework.core.retry.RetryTemplate;
+import org.springframework.retry.support.RetryTemplate;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
@@ -118,43 +118,45 @@ public class GoogleGenAiTextToSpeechModel implements TextToSpeechModel {
 			.provider(AiProvider.GOOGLE_GENAI_AI.value())
 			.build();
 
-		return TextToSpeechModelObservationDocumentation.TEXT_TO_SPEECH_MODEL_OPERATION
-			.observation(this.observationConvention, DEFAULT_OBSERVATION_CONVENTION, () -> observationContext,
-					this.observationRegistry)
-			.observe(() -> {
-				final GoogleGenAiAudioSpeechOptions options = (GoogleGenAiAudioSpeechOptions) textToSpeechPrompt
-					.getOptions();
-				Assert.notNull(options, "Options must not be null");
+		return java.util.Objects.requireNonNull(
+				TextToSpeechModelObservationDocumentation.TEXT_TO_SPEECH_MODEL_OPERATION
+					.observation(this.observationConvention, DEFAULT_OBSERVATION_CONVENTION, () -> observationContext,
+							this.observationRegistry)
+					.observe(() -> {
+						final GoogleGenAiAudioSpeechOptions options = (GoogleGenAiAudioSpeechOptions) textToSpeechPrompt
+							.getOptions();
+						Assert.notNull(options, "Options must not be null");
 
-				final String text = textToSpeechPrompt.getInstructions().getText();
-				Assert.hasText(text, "TextToSpeechPrompt must contain non-empty text");
+						final String text = textToSpeechPrompt.getInstructions().getText();
+						Assert.hasText(text, "TextToSpeechPrompt must contain non-empty text");
 
-				final String model = StringUtils.hasText(options.getModel()) ? options.getModel()
-						: GoogleGenAiAudioSpeechOptions.DEFAULT_MODEL;
+						final String model = StringUtils.hasText(options.getModel()) ? options.getModel()
+								: GoogleGenAiAudioSpeechOptions.DEFAULT_MODEL;
 
-				final Content content = Content.fromParts(Part.fromText(buildInputText(text, options)));
-				final GenerateContentConfig config = createGenerateContentConfig(options);
+						final Content content = Content.fromParts(Part.fromText(buildInputText(text, options)));
+						final GenerateContentConfig config = createGenerateContentConfig(options);
 
-				final GenerateContentResponse response = RetryUtils.execute(this.retryTemplate,
-						() -> this.connectionDetails.getGenAiClient().models.generateContent(model, content, config));
+						final GenerateContentResponse response = RetryUtils.execute(this.retryTemplate,
+								() -> this.connectionDetails.getGenAiClient().models.generateContent(model, content,
+										config));
 
-				final byte[] pcmAudio = extractAudio(response);
-				final byte[] audioContent = (options
-					.getAudioEncoding() == GoogleGenAiAudioSpeechOptions.AudioEncoding.PCM) ? pcmAudio
-							: toWav(pcmAudio);
+						final byte[] pcmAudio = extractAudio(response);
+						final byte[] audioContent = (options
+							.getAudioEncoding() == GoogleGenAiAudioSpeechOptions.AudioEncoding.PCM) ? pcmAudio
+									: toWav(pcmAudio);
 
-				final TextToSpeechResponseMetadata metadata = new TextToSpeechResponseMetadata();
-				response.usageMetadata()
-					.ifPresent(usage -> metadata.setUsage(new DefaultUsage(usage.promptTokenCount().orElse(0),
-							usage.candidatesTokenCount().orElse(0))));
+						final TextToSpeechResponseMetadata metadata = new TextToSpeechResponseMetadata();
+						response.usageMetadata()
+							.ifPresent(usage -> metadata.setUsage(new DefaultUsage(usage.promptTokenCount().orElse(0),
+									usage.candidatesTokenCount().orElse(0))));
 
-				final TextToSpeechResponse textToSpeechResponse = new TextToSpeechResponse(
-						List.of(new Speech(audioContent)), metadata);
+						final TextToSpeechResponse textToSpeechResponse = new TextToSpeechResponse(
+								List.of(new Speech(audioContent)), metadata);
 
-				observationContext.setResponse(textToSpeechResponse);
+						observationContext.setResponse(textToSpeechResponse);
 
-				return textToSpeechResponse;
-			});
+						return textToSpeechResponse;
+					}));
 	}
 
 	public void setObservationConvention(@Nullable TextToSpeechModelObservationConvention observationConvention) {

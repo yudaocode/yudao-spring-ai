@@ -21,9 +21,10 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import io.modelcontextprotocol.client.McpClient;
 import io.modelcontextprotocol.client.McpSyncClient;
-import io.modelcontextprotocol.json.jackson3.JacksonMcpJsonMapper;
+import io.modelcontextprotocol.json.jackson2.JacksonMcpJsonMapper;
 import io.modelcontextprotocol.server.McpStatelessServerFeatures;
 import io.modelcontextprotocol.server.McpStatelessSyncServer;
 import io.modelcontextprotocol.spec.McpSchema;
@@ -44,7 +45,6 @@ import net.javacrumbs.jsonunit.core.Option;
 import org.junit.jupiter.api.Test;
 import reactor.netty.DisposableServer;
 import reactor.netty.http.server.HttpServer;
-import tools.jackson.databind.json.JsonMapper;
 
 import org.springframework.ai.chat.model.ToolContext;
 import org.springframework.ai.mcp.McpToolUtils;
@@ -359,7 +359,7 @@ public class StatelessWebClientWebFluxServerIT {
 		}
 
 		@Bean
-		public List<McpStatelessServerFeatures.SyncResourceSpecification> myResources() {
+		public List<McpStatelessServerFeatures.SyncResourceSpecification> myResources() throws Exception {
 
 			var systemInfoResource = Resource.builder("file://resource", "Test Resource")
 				.mimeType("text/plain")

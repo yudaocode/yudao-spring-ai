@@ -21,9 +21,9 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.testcontainers.containers.MySQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.mysql.MySQLContainer;
 
 import org.springframework.ai.session.SessionRepository;
 import org.springframework.ai.test.session.AbstractSessionRepositoryContractTests;
@@ -41,7 +41,7 @@ import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
 class JdbcSessionRepositoryMysqlIT {
 
 	@Container
-	static final MySQLContainer mysql = new MySQLContainer("mysql:8.0");
+	static final MySQLContainer mysql = new MySQLContainer<>("mysql:8.0");
 
 	private static MysqlDataSource dataSource;
 

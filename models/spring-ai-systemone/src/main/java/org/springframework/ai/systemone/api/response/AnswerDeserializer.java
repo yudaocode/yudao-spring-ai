@@ -19,11 +19,11 @@ package org.springframework.ai.systemone.api.response;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonDeserializer;
+import com.fasterxml.jackson.databind.JsonNode;
 import org.jspecify.annotations.Nullable;
-import tools.jackson.core.JsonParser;
-import tools.jackson.databind.DeserializationContext;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ValueDeserializer;
 
 /**
  * Dispatches an answer object onto the right {@link Answer} record based on its
@@ -37,16 +37,16 @@ import tools.jackson.databind.ValueDeserializer;
  *
  * @author Christian Tzolov
  */
-class AnswerDeserializer extends ValueDeserializer<Answer> {
+class AnswerDeserializer extends JsonDeserializer<Answer> {
 
 	@Override
-	public Answer deserialize(JsonParser parser, DeserializationContext context) {
+	public Answer deserialize(JsonParser parser, DeserializationContext context) throws java.io.IOException {
 		JsonNode node = context.readTree(parser);
 		JsonNode typeNode = node.get("type");
 		// Jackson 3's stringValue() is strict and throws on a non-string node. A type
 		// that is a number or an object is still a kind this client does not model, so
 		// it must reach toUnknown rather than abort the whole response.
-		String typeName = (typeNode != null && typeNode.isString()) ? typeNode.stringValue() : null;
+		String typeName = (typeNode != null && typeNode.isTextual()) ? typeNode.textValue() : null;
 
 		if (typeName == null) {
 			return toUnknown(null, node, context);
@@ -69,7 +69,8 @@ class AnswerDeserializer extends ValueDeserializer<Answer> {
 		return new UnknownAnswer(null, Map.of());
 	}
 
-	private UnknownAnswer toUnknown(@Nullable String typeName, JsonNode node, DeserializationContext context) {
+	private UnknownAnswer toUnknown(@Nullable String typeName, JsonNode node, DeserializationContext context)
+			throws java.io.IOException {
 		Map<String, Object> raw = context.readTreeAsValue(node,
 				context.getTypeFactory().constructMapType(LinkedHashMap.class, String.class, Object.class));
 		return new UnknownAnswer(typeName, raw);

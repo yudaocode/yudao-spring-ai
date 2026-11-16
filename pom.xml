@@ -5,7 +5,7 @@
 
 	<groupId>org.springframework.ai</groupId>
 	<artifactId>spring-ai-parent</artifactId>
-	<version>2.1.0-SNAPSHOT</version>
+	<version>2.1.0-boot3-SNAPSHOT</version>
 
 	<packaging>pom</packaging>
 	<url>https://github.com/spring-projects/spring-ai</url>
@@ -257,7 +257,7 @@
 		<maven.compiler.target>${java.version}</maven.compiler.target>
 		<!-- The version (range) of the JDK we want to use to compile -->
 		<compiler.jdk.version>[17.0.19,)</compiler.jdk.version>
-		<kotlin.version>2.4.21</kotlin.version>
+		<kotlin.version>2.1.21</kotlin.version>
 		<kotlin.compiler.jvmTarget>${java.version}</kotlin.compiler.jvmTarget>
 		<kotlin.compiler.daemon>false</kotlin.compiler.daemon>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -265,7 +265,10 @@
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
 		<!-- Spring Boot -->
-		<spring-boot.version>4.2.0-SNAPSHOT</spring-boot.version>
+		<spring-boot.version>3.5.15</spring-boot.version>
+
+		<protobuf-java.version>3.25.8</protobuf-java.version>
+		<grpc.version>1.76.0</grpc.version>
 
 		<!-- MCP SDK -->
 		<mcp.sdk.version>2.2.0</mcp.sdk.version>
@@ -288,7 +291,7 @@
 		<coherence.version>24.09</coherence.version>
 		<milvus.version>2.6.21</milvus.version>
 		<neo4j-cypher-dsl-bom.version>2024.5.1</neo4j-cypher-dsl-bom.version>
-		<opensearch-client.version>3.6.0</opensearch-client.version>
+		<opensearch-client.version>2.23.0</opensearch-client.version>
 		<pgvector.version>0.1.6</pgvector.version>
 		<pinecone.version>6.2.0</pinecone.version>
 		<qdrant.version>1.18.0</qdrant.version>
@@ -301,7 +304,7 @@
 		<pdfbox.version>3.0.7</pdfbox.version>
 
 		<!-- Utilities -->
-		<jsonschema.version>5.0.0</jsonschema.version>
+		<jsonschema.version>4.38.0</jsonschema.version>
 		<jtokkit.version>1.1.0</jtokkit.version>
 		<lucene.version>9.12.3</lucene.version>
 		<okhttp3.version>4.12.0</okhttp3.version>
@@ -309,11 +312,11 @@
 		<swagger-annotations.version>2.2.38</swagger-annotations.version>
 
 		<!-- Testing -->
-		<gemfire.testcontainers.version>2.3.3</gemfire.testcontainers.version>
-		<json-schema-validator.version>3.0.1</json-schema-validator.version>
-		<json-unit-assertj.version>5.1.0</json-unit-assertj.version>
+		<gemfire.testcontainers.version>2.3.0</gemfire.testcontainers.version>
+		<json-schema-validator.version>2.0.8</json-schema-validator.version>
+		<json-unit-assertj.version>4.1.0</json-unit-assertj.version>
 		<mockk-jvm.version>1.13.13</mockk-jvm.version>
-		<opensearch-testcontainers.version>4.1.0</opensearch-testcontainers.version>
+		<opensearch-testcontainers.version>2.1.3</opensearch-testcontainers.version>
 		<rest-assured-bom.version>5.5.6</rest-assured-bom.version>
 
 		<!-- Build plugins -->
@@ -368,8 +371,8 @@
 					<configuration>
 						<jvmTarget>${java.version}</jvmTarget>
 						<javaParameters>true</javaParameters>
-						<apiVersion>2.2</apiVersion>
-						<languageVersion>2.2</languageVersion>
+						<apiVersion>2.1</apiVersion>
+						<languageVersion>2.1</languageVersion>
 					</configuration>
 					<executions>
 						<execution>
@@ -405,7 +408,52 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-enforcer-plugin</artifactId>
 				<version>${maven-enforcer-plugin.version}</version>
+				<dependencies>
+					<dependency>
+						<groupId>org.codehaus.mojo</groupId>
+						<artifactId>extra-enforcer-rules</artifactId>
+						<version>1.8.0</version>
+					</dependency>
+				</dependencies>
 				<executions>
+					<execution>
+						<id>boot3-compatibility</id>
+						<goals><goal>enforce</goal></goals>
+						<configuration>
+							<rules>
+								<bannedDependencies>
+									<searchTransitive>true</searchTransitive>
+									<excludes>
+										<exclude>org.springframework.boot:*:[4,)</exclude>
+										<exclude>org.springframework:*:[7,)</exclude>
+										<exclude>org.springframework.data:spring-data-commons:[4,)</exclude>
+										<exclude>org.springframework.data:spring-data-jpa:[4,)</exclude>
+										<exclude>org.springframework.data:spring-data-jdbc:[4,)</exclude>
+										<exclude>org.springframework.data:spring-data-r2dbc:[4,)</exclude>
+										<exclude>org.springframework.data:spring-data-redis:[4,)</exclude>
+										<exclude>org.springframework.data:spring-data-keyvalue:[4,)</exclude>
+										<exclude>org.springframework.data:spring-data-mongodb:[5,)</exclude>
+										<exclude>org.springframework.data:spring-data-cassandra:[5,)</exclude>
+										<exclude>org.springframework.data:spring-data-neo4j:[8,)</exclude>
+										<exclude>org.springframework.data:spring-data-elasticsearch:[6,)</exclude>
+										<exclude>org.springframework.data:spring-data-rest-core:[5,)</exclude>
+										<exclude>org.springframework.data:spring-data-rest-webmvc:[5,)</exclude>
+										<exclude>org.springframework.data:spring-data-couchbase:[6,)</exclude>
+										<exclude>org.springframework.data:spring-data-ldap:[4,)</exclude>
+										<exclude>tools.jackson.*:*</exclude>
+										<exclude>io.modelcontextprotocol.sdk:mcp-json-jackson3</exclude>
+										<exclude>org.testcontainers:*:[2,)</exclude>
+										<exclude>org.junit.jupiter:*:[6,)</exclude>
+										<exclude>jakarta.servlet:jakarta.servlet-api:[6.1,)</exclude>
+									</excludes>
+									<message>Use only the Spring Boot 3 / Spring 6 / Jackson 2 dependency stack.</message>
+								</bannedDependencies>
+								<enforceBytecodeVersion>
+									<maxJdkVersion>17</maxJdkVersion>
+								</enforceBytecodeVersion>
+							</rules>
+						</configuration>
+					</execution>
 					<execution>
 						<id>maven-enforcer</id>
 						<goals>
@@ -1013,8 +1061,42 @@
 		</profile>
 	</profiles>
 
+	<dependencies>
+		<dependency>
+			<groupId>org.jspecify</groupId>
+			<artifactId>jspecify</artifactId>
+			<version>1.0.0</version>
+			<optional>true</optional>
+		</dependency>
+	</dependencies>
+
 	<dependencyManagement>
 		<dependencies>
+			<dependency>
+				<groupId>org.jetbrains.kotlin</groupId>
+				<artifactId>kotlin-bom</artifactId>
+				<version>${kotlin.version}</version>
+				<type>pom</type><scope>import</scope>
+			</dependency>
+			<!-- JUnit 5 keeps Boot 3 compatible class-parameterized upstream tests. -->
+			<dependency>
+				<groupId>org.junit</groupId>
+				<artifactId>junit-bom</artifactId>
+				<version>5.13.4</version>
+				<type>pom</type><scope>import</scope>
+			</dependency>
+			<dependency>
+				<groupId>com.google.protobuf</groupId>
+				<artifactId>protobuf-bom</artifactId>
+				<version>${protobuf-java.version}</version>
+				<type>pom</type><scope>import</scope>
+			</dependency>
+			<dependency>
+				<groupId>io.grpc</groupId>
+				<artifactId>grpc-bom</artifactId>
+				<version>${grpc.version}</version>
+				<type>pom</type><scope>import</scope>
+			</dependency>
 			<dependency>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-dependencies</artifactId>

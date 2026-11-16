@@ -23,8 +23,8 @@ import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import org.jspecify.annotations.Nullable;
-import tools.jackson.databind.json.JsonMapper;
 
 import org.springframework.ai.util.JacksonUtils;
 import org.springframework.util.Assert;
@@ -198,7 +198,7 @@ public record JsonContent(@JsonValue @Nullable Object value) {
 		try {
 			return JacksonUtils.getDefaultJsonMapper().writeValueAsString(this.value);
 		}
-		catch (RuntimeException ex) {
+		catch (com.fasterxml.jackson.core.JsonProcessingException | RuntimeException ex) {
 			return String.valueOf(this.value);
 		}
 	}

@@ -40,8 +40,8 @@ import com.google.gson.JsonSerializer;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jspecify.annotations.Nullable;
+import redis.clients.jedis.JedisPooled;
 import redis.clients.jedis.Pipeline;
-import redis.clients.jedis.RedisClient;
 import redis.clients.jedis.search.Query;
 import redis.clients.jedis.search.SearchResult;
 
@@ -439,9 +439,9 @@ public final class DefaultSemanticCache implements SemanticCache {
 
 	@Override
 	public void clear() {
-		Optional<RedisClient> nativeClient = this.vectorStore.getNativeClient();
+		Optional<JedisPooled> nativeClient = this.vectorStore.getNativeClient();
 		if (nativeClient.isPresent()) {
-			RedisClient redisClient = nativeClient.get();
+			JedisPooled redisClient = nativeClient.get();
 
 			// Delete documents in batches to avoid memory issues
 			boolean moreRecords = true;
@@ -488,7 +488,7 @@ public final class DefaultSemanticCache implements SemanticCache {
 
 		private String prefix = DEFAULT_PREFIX;
 
-		private @Nullable RedisClient jedisClient;
+		private @Nullable JedisPooled jedisClient;
 
 		// Builder methods with validation
 		public Builder vectorStore(VectorStore vectorStore) {
@@ -522,7 +522,7 @@ public final class DefaultSemanticCache implements SemanticCache {
 			return this;
 		}
 
-		public Builder jedisClient(RedisClient jedisClient) {
+		public Builder jedisClient(JedisPooled jedisClient) {
 			this.jedisClient = jedisClient;
 			return this;
 		}

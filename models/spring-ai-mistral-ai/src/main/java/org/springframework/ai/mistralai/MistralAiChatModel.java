@@ -83,8 +83,8 @@ import org.springframework.ai.retry.RetryUtils;
 import org.springframework.ai.support.UsageCalculator;
 import org.springframework.ai.tool.definition.ToolDefinition;
 import org.springframework.ai.util.JsonHelper;
-import org.springframework.core.retry.RetryTemplate;
 import org.springframework.http.ResponseEntity;
+import org.springframework.retry.support.RetryTemplate;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.MimeType;
@@ -272,7 +272,7 @@ public class MistralAiChatModel implements ChatModel {
 				return chatResponse;
 			});
 
-		return response;
+		return java.util.Objects.requireNonNull(response);
 	}
 
 	@Override

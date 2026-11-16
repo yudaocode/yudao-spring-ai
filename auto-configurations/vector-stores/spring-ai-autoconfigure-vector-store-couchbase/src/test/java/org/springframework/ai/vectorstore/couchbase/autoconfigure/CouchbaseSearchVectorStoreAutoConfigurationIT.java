@@ -35,7 +35,7 @@ import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.ai.vectorstore.couchbase.CouchbaseIndexOptimization;
 import org.springframework.ai.vectorstore.couchbase.CouchbaseSimilarityFunction;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
-import org.springframework.boot.couchbase.autoconfigure.CouchbaseAutoConfiguration;
+import org.springframework.boot.autoconfigure.couchbase.CouchbaseAutoConfiguration;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 
 import static org.assertj.core.api.Assertions.assertThat;

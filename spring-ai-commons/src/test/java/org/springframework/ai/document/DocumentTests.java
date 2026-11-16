@@ -20,8 +20,8 @@ import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import org.junit.jupiter.api.Test;
-import tools.jackson.databind.json.JsonMapper;
 
 import org.springframework.ai.content.Media;
 import org.springframework.ai.document.id.IdGenerator;

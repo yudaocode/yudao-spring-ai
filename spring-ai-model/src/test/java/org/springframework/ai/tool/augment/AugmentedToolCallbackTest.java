@@ -19,8 +19,8 @@ package org.springframework.ai.tool.augment;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.json.JsonMapper;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -240,7 +240,7 @@ class AugmentedToolCallbackTest {
 			ToolDefinition augmentedDefinition = callback.getToolDefinition();
 			String augmentedSchema = augmentedDefinition.inputSchema();
 
-			JsonNode schemaNode = JsonMapper.shared().readTree(augmentedSchema);
+			JsonNode schemaNode = JsonMapper.builder().findAndAddModules().build().readTree(augmentedSchema);
 
 			// Check original field is preserved
 			assertTrue(schemaNode.get("properties").has("originalField"));
@@ -250,15 +250,15 @@ class AugmentedToolCallbackTest {
 			assertTrue(schemaNode.get("properties").has("age"));
 
 			// Check descriptions
-			assertEquals("Test name field", schemaNode.get("properties").get("name").get("description").asString());
-			assertEquals("Test age field", schemaNode.get("properties").get("age").get("description").asString());
+			assertEquals("Test name field", schemaNode.get("properties").get("name").get("description").asText());
+			assertEquals("Test age field", schemaNode.get("properties").get("age").get("description").asText());
 
 			// Check required fields
 			JsonNode requiredArray = schemaNode.get("required");
 			boolean foundOriginal = false;
 			boolean foundName = false;
 			for (JsonNode requiredField : requiredArray) {
-				String fieldName = requiredField.asString();
+				String fieldName = requiredField.asText();
 				if ("originalField".equals(fieldName)) {
 					foundOriginal = true;
 				}
@@ -410,7 +410,7 @@ class AugmentedToolCallbackTest {
 			// Then
 			verify(mockDelegate).call(argThat(input -> {
 				try {
-					JsonNode inputNode = JsonMapper.shared().readTree(input);
+					JsonNode inputNode = JsonMapper.builder().findAndAddModules().build().readTree(input);
 					return inputNode.has("originalField") && !inputNode.has("name") && !inputNode.has("age");
 				}
 				catch (Exception e) {
@@ -461,7 +461,7 @@ class AugmentedToolCallbackTest {
 			// Then
 			verify(mockDelegate).call(argThat(input -> {
 				try {
-					JsonNode inputNode = JsonMapper.shared().readTree(input);
+					JsonNode inputNode = JsonMapper.builder().findAndAddModules().build().readTree(input);
 					return inputNode.has("originalField") && inputNode.has("name") && inputNode.has("age");
 				}
 				catch (Exception e) {
@@ -519,7 +519,7 @@ class AugmentedToolCallbackTest {
 		@SuppressWarnings("null")
 		@Test
 		@DisplayName("Should handle complete workflow with consumer processing")
-		void shouldHandleCompleteWorkflowWithConsumerProcessing() {
+		void shouldHandleCompleteWorkflowWithConsumerProcessing() throws Exception {
 			// Given
 			String originalSchema = """
 					{
@@ -567,7 +567,7 @@ class AugmentedToolCallbackTest {
 			// Verify delegate was called with cleaned input (extended args removed)
 			verify(mockDelegate).call(argThat(input -> {
 				try {
-					JsonNode inputNode = JsonMapper.shared().readTree(input);
+					JsonNode inputNode = JsonMapper.builder().findAndAddModules().build().readTree(input);
 					return inputNode.has("productId") && !inputNode.has("value");
 				}
 				catch (Exception e) {

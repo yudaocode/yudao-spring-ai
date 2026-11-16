@@ -16,9 +16,14 @@
 
 package org.springframework.ai.model.chat.memory.repository.jdbc.autoconfigure;
 
+import java.util.List;
+
 import javax.sql.DataSource;
 
-import org.springframework.boot.jdbc.init.PropertiesBasedDataSourceScriptDatabaseInitializer;
+import org.springframework.boot.jdbc.init.DataSourceScriptDatabaseInitializer;
+import org.springframework.boot.jdbc.init.PlatformPlaceholderDatabaseDriverResolver;
+import org.springframework.boot.sql.init.DatabaseInitializationSettings;
+import org.springframework.util.StringUtils;
 
 /**
  * Performs database initialization for the JDBC Chat Memory Repository.
@@ -26,17 +31,30 @@ import org.springframework.boot.jdbc.init.PropertiesBasedDataSourceScriptDatabas
  * @author Mark Pollack
  * @author Yanming Zhou
  * @since 1.0.0
- * @deprecated since 2.1.0, for removal in 3.0.0, in favor of
- * {@code JdbcSessionRepositorySchemaInitializer} in
- * {@code spring-ai-autoconfigure-model-session-jdbc}
  */
 @Deprecated(since = "2.1.0", forRemoval = true)
-@SuppressWarnings("removal")
-class JdbcChatMemoryRepositorySchemaInitializer
-		extends PropertiesBasedDataSourceScriptDatabaseInitializer<JdbcChatMemoryRepositoryProperties> {
+class JdbcChatMemoryRepositorySchemaInitializer extends DataSourceScriptDatabaseInitializer {
 
 	JdbcChatMemoryRepositorySchemaInitializer(DataSource dataSource, JdbcChatMemoryRepositoryProperties properties) {
-		super(dataSource, properties);
+		super(dataSource, getSettings(dataSource, properties));
+	}
+
+	static DatabaseInitializationSettings getSettings(DataSource dataSource,
+			JdbcChatMemoryRepositoryProperties properties) {
+		var settings = new DatabaseInitializationSettings();
+		settings.setSchemaLocations(resolveSchemaLocations(dataSource, properties));
+		settings.setMode(properties.getInitializeSchema());
+		settings.setContinueOnError(properties.isContinueOnError());
+		return settings;
+	}
+
+	private static List<String> resolveSchemaLocations(DataSource dataSource,
+			JdbcChatMemoryRepositoryProperties properties) {
+		PlatformPlaceholderDatabaseDriverResolver platformResolver = new PlatformPlaceholderDatabaseDriverResolver();
+		if (StringUtils.hasText(properties.getPlatform())) {
+			return platformResolver.resolveAll(properties.getPlatform(), properties.getSchema());
+		}
+		return platformResolver.resolveAll(dataSource, properties.getSchema());
 	}
 
 }

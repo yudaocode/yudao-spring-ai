@@ -25,11 +25,11 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.pgvector.PGvector;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.postgresql.util.PGobject;
-import tools.jackson.databind.json.JsonMapper;
 
 import org.springframework.ai.document.Document;
 import org.springframework.ai.document.DocumentMetadata;
@@ -420,7 +420,7 @@ public class PgVectorStore extends AbstractObservationVectorStore implements Ini
 	}
 
 	private String toJson(Map<String, Object> map) {
-		return this.jsonMapper.writeValueAsString(map);
+		return new org.springframework.ai.util.JsonHelper(this.jsonMapper).toJson(map);
 	}
 
 	private Object convertIdToPgType(String id) {
@@ -839,7 +839,8 @@ public class PgVectorStore extends AbstractObservationVectorStore implements Ini
 		private Map<String, Object> toMap(PGobject pgObject) {
 
 			String source = pgObject.getValue();
-			return (Map<String, Object>) this.jsonMapper.readValue(source, Map.class);
+			return new org.springframework.ai.util.JsonHelper(this.jsonMapper)
+				.fromJsonToMap(java.util.Objects.requireNonNull(source, "Stored metadata JSON must not be null"));
 		}
 
 	}

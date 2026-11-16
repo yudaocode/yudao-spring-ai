@@ -18,9 +18,9 @@ package org.springframework.ai.util.json;
 
 import java.lang.reflect.Type;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import org.jspecify.annotations.Nullable;
-import tools.jackson.core.type.TypeReference;
-import tools.jackson.databind.json.JsonMapper;
 
 import org.springframework.ai.util.JacksonUtils;
 import org.springframework.ai.util.JsonHelper;

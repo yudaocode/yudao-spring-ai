@@ -18,17 +18,17 @@ package org.springframework.ai.util;
 
 import java.util.List;
 
-import tools.jackson.databind.DeserializationFeature;
-import tools.jackson.databind.JacksonModule;
-import tools.jackson.databind.cfg.MapperBuilder;
-import tools.jackson.databind.json.JsonMapper;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.Module;
+import com.fasterxml.jackson.databind.cfg.MapperBuilder;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 
 /**
  * Utility methods for Jackson.
  *
  * <p>
  * The default {@link JsonMapper} returned by {@link #getDefaultJsonMapper} can be
- * customized via the automatic discovery of services of type {@link JacksonModule} by JDK
+ * customized via the automatic discovery of services of type {@link Module} by JDK
  * {@link java.util.ServiceLoader} facility.
  *
  * @author Sebastien Deleuze
@@ -40,6 +40,7 @@ public abstract class JacksonUtils {
 	static {
 		jsonMapper = JsonMapper.builder()
 			.disable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS)
+			.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
 			.enable(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT)
 			.addModules(JacksonUtils.instantiateAvailableModules())
 			.build();
@@ -50,7 +51,7 @@ public abstract class JacksonUtils {
 	 * using JDK {@link java.util.ServiceLoader} facility.
 	 * @return The list of instantiated modules.
 	 */
-	public static List<JacksonModule> instantiateAvailableModules() {
+	public static List<Module> instantiateAvailableModules() {
 		return MapperBuilder.findModules(JacksonUtils.class.getClassLoader());
 	}
 

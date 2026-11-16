@@ -20,14 +20,14 @@ import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Map;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import io.modelcontextprotocol.server.McpSyncServerExchange;
 import io.modelcontextprotocol.spec.McpSchema.CallToolRequest;
 import io.modelcontextprotocol.spec.McpSchema.CallToolResult;
 import io.modelcontextprotocol.spec.McpSchema.TextContent;
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Mono;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.json.JsonMapper;
 
 import org.springframework.ai.mcp.annotation.McpMeta;
 import org.springframework.ai.mcp.annotation.McpProgressToken;
@@ -193,7 +193,7 @@ public class CallToolRequestSupportTests {
 
 		// Should have minimal schema with empty properties
 		assertThat(schemaNode.has("type")).isTrue();
-		assertThat(schemaNode.get("type").asString()).isEqualTo("object");
+		assertThat(schemaNode.get("type").asText()).isEqualTo("object");
 		assertThat(schemaNode.has("properties")).isTrue();
 		assertThat(schemaNode.get("properties").size()).isEqualTo(0);
 		assertThat(schemaNode.has("required")).isTrue();
@@ -221,7 +221,7 @@ public class CallToolRequestSupportTests {
 		assertThat(schemaNode.has("required")).isTrue();
 		JsonNode required = schemaNode.get("required");
 		assertThat(required.size()).isEqualTo(1);
-		assertThat(required.get(0).asString()).isEqualTo("requiredParam");
+		assertThat(required.get(0).asText()).isEqualTo("requiredParam");
 	}
 
 	@Test
@@ -427,7 +427,7 @@ public class CallToolRequestSupportTests {
 		assertThat(schemaNode.has("required")).isTrue();
 		JsonNode required = schemaNode.get("required");
 		assertThat(required.size()).isEqualTo(1);
-		assertThat(required.get(0).asString()).isEqualTo("input");
+		assertThat(required.get(0).asText()).isEqualTo("input");
 	}
 
 	@Test
@@ -451,7 +451,7 @@ public class CallToolRequestSupportTests {
 		assertThat(schemaNode.has("required")).isTrue();
 		JsonNode required = schemaNode.get("required");
 		assertThat(required.size()).isEqualTo(1);
-		assertThat(required.get(0).asString()).isEqualTo("regularParam");
+		assertThat(required.get(0).asText()).isEqualTo("regularParam");
 	}
 
 	@Test
@@ -541,7 +541,7 @@ public class CallToolRequestSupportTests {
 		assertThat(schemaNode.has("required")).isTrue();
 		JsonNode required = schemaNode.get("required");
 		assertThat(required.size()).isEqualTo(1);
-		assertThat(required.get(0).asString()).isEqualTo("input");
+		assertThat(required.get(0).asText()).isEqualTo("input");
 	}
 
 	private static class CallToolRequestTestProvider {

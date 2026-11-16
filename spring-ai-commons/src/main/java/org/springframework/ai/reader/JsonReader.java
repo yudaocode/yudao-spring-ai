@@ -23,9 +23,9 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.StreamSupport;
 
-import tools.jackson.core.type.TypeReference;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.json.JsonMapper;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 
 import org.springframework.ai.document.Document;
 import org.springframework.ai.document.DocumentReader;
@@ -41,6 +41,8 @@ import org.springframework.core.io.Resource;
  * @since 1.0.0
  */
 public class JsonReader implements DocumentReader {
+
+	private static final JsonMapper JSON_MAPPER = JsonMapper.builder().findAndAddModules().build();
 
 	private final Resource resource;
 
@@ -71,15 +73,15 @@ public class JsonReader implements DocumentReader {
 	@Override
 	public List<Document> get() {
 		try {
-			JsonNode rootNode = JsonMapper.shared().readTree(this.resource.getInputStream());
+			JsonNode rootNode = JSON_MAPPER.readTree(this.resource.getInputStream());
 
 			if (rootNode.isArray()) {
 				return StreamSupport.stream(rootNode.spliterator(), true)
-					.map(jsonNode -> parseJsonNode(jsonNode, JsonMapper.shared()))
+					.map(jsonNode -> parseJsonNode(jsonNode, JSON_MAPPER))
 					.toList();
 			}
 			else {
-				return Collections.singletonList(parseJsonNode(rootNode, JsonMapper.shared()));
+				return Collections.singletonList(parseJsonNode(rootNode, JSON_MAPPER));
 			}
 		}
 		catch (IOException e) {
@@ -105,11 +107,11 @@ public class JsonReader implements DocumentReader {
 	protected List<Document> get(JsonNode rootNode) {
 		if (rootNode.isArray()) {
 			return StreamSupport.stream(rootNode.spliterator(), true)
-				.map(jsonNode -> parseJsonNode(jsonNode, JsonMapper.shared()))
+				.map(jsonNode -> parseJsonNode(jsonNode, JSON_MAPPER))
 				.toList();
 		}
 		else {
-			return Collections.singletonList(parseJsonNode(rootNode, JsonMapper.shared()));
+			return Collections.singletonList(parseJsonNode(rootNode, JSON_MAPPER));
 		}
 	}
 
@@ -121,7 +123,7 @@ public class JsonReader implements DocumentReader {
 	 */
 	public List<Document> get(String pointer) {
 		try {
-			JsonNode rootNode = JsonMapper.shared().readTree(this.resource.getInputStream());
+			JsonNode rootNode = JSON_MAPPER.readTree(this.resource.getInputStream());
 			JsonNode targetNode = rootNode.at(pointer);
 
 			if (targetNode.isMissingNode()) {

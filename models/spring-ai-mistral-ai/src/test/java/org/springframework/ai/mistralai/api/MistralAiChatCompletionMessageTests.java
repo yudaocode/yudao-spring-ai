@@ -22,11 +22,11 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.stream.Stream;
 
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
-import tools.jackson.databind.json.JsonMapper;
 
 import org.springframework.ai.mistralai.api.MistralAiApi.ChatCompletionMessage;
 import org.springframework.ai.mistralai.api.MistralAiApi.ChatCompletionMessage.ContentChunk;
@@ -121,7 +121,7 @@ class MistralAiChatCompletionMessageTests {
 
 	@BeforeAll
 	void initializeJacksonTester() {
-		JacksonTester.initFields(this, JsonMapper.shared());
+		JacksonTester.initFields(this, JsonMapper.builder().findAndAddModules().build());
 	}
 
 	private static String extractResourceContent(String path) {
@@ -174,7 +174,7 @@ class MistralAiChatCompletionMessageTests {
 		private final ContentSerializer contentSerializer = new ContentSerializer();
 
 		@Test
-		void serializeInteger() {
+		void serializeInteger() throws Exception {
 			// @formatter:off
 			assertThatThrownBy(() -> serialize(123))
 				.isInstanceOf(IllegalArgumentException.class)
@@ -183,7 +183,7 @@ class MistralAiChatCompletionMessageTests {
 		}
 
 		@Test
-		void serializeIntegers() {
+		void serializeIntegers() throws Exception {
 			// @formatter:off
 			assertThatThrownBy(() -> serialize(List.of(123, 234, 456)))
 				.isInstanceOf(IllegalArgumentException.class)
@@ -192,19 +192,19 @@ class MistralAiChatCompletionMessageTests {
 		}
 
 		@Test
-		void serializeString() {
+		void serializeString() throws Exception {
 			assertThat(serialize(STRING)).isEqualTo(JSON_STRING);
 		}
 
 		@Test
-		void serializeContentChunks() {
+		void serializeContentChunks() throws Exception {
 			assertThat(basicJsonTester.from(serialize(CONTENT_CHUNKS))).isEqualToJson(CONTENT_CHUNKS_AS_STRING);
 		}
 
-		private String serialize(Object value) {
+		private String serialize(Object value) throws Exception {
 			var stringWriter = new StringWriter();
-			var jsonMapper = JsonMapper.shared();
-			var serializationContext = jsonMapper._serializationContext();
+			var jsonMapper = JsonMapper.builder().findAndAddModules().build();
+			var serializationContext = jsonMapper.getSerializerProviderInstance();
 
 			try (var jsonGenerator = jsonMapper.createGenerator(stringWriter)) {
 				this.contentSerializer.serialize(value, jsonGenerator, serializationContext);
@@ -221,7 +221,7 @@ class MistralAiChatCompletionMessageTests {
 		private final ContentDeserializer contentDeserializer = new ContentDeserializer();
 
 		@Test
-		void deserializeInteger() {
+		void deserializeInteger() throws Exception {
 			// @formatter:off
 			assertThatThrownBy(() -> deserialize("123"))
 				.isInstanceOf(IllegalStateException.class)
@@ -230,7 +230,7 @@ class MistralAiChatCompletionMessageTests {
 		}
 
 		@Test
-		void deserializeIntegers() {
+		void deserializeIntegers() throws Exception {
 			// @formatter:off
 			assertThatThrownBy(() -> deserialize("[123, 234, 456]"))
 				.isInstanceOf(IllegalStateException.class)
@@ -239,20 +239,22 @@ class MistralAiChatCompletionMessageTests {
 		}
 
 		@Test
-		void deserializeString() {
+		void deserializeString() throws Exception {
 			assertThat(deserialize(JSON_STRING)).isEqualTo(STRING);
 		}
 
 		@Test
-		void deserializeContentChunks() {
+		void deserializeContentChunks() throws Exception {
 			assertThat(deserialize(CONTENT_CHUNKS_AS_STRING)).isEqualTo(CONTENT_CHUNKS);
 		}
 
-		private Object deserialize(String value) {
-			var jsonMapper = JsonMapper.shared();
-			var deserializationContext = jsonMapper._deserializationContext();
+		private Object deserialize(String value) throws Exception {
+			var jsonMapper = JsonMapper.builder().findAndAddModules().build();
 
 			try (var jsonParser = jsonMapper.createParser(value)) {
+				var deserializationContext = ((com.fasterxml.jackson.databind.deser.DefaultDeserializationContext) jsonMapper
+					.getDeserializationContext()).createInstance(jsonMapper.getDeserializationConfig(), jsonParser,
+							jsonMapper.getInjectableValues());
 				var ignored = jsonParser.nextToken();
 
 				return this.contentDeserializer.deserialize(jsonParser, deserializationContext);

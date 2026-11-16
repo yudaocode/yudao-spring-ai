@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.jspecify.annotations.Nullable;
-import redis.clients.jedis.RedisClient;
+import redis.clients.jedis.JedisPooled;
 
 import org.springframework.util.Assert;
 
@@ -50,7 +50,7 @@ public final class RedisChatMemoryConfig {
 	public static final int DEFAULT_MAX_RESULTS = 1000;
 
 	/** The Redis client */
-	private final RedisClient jedisClient;
+	private final JedisPooled jedisClient;
 
 	/** The index name for Redis Search */
 	private final String indexName;
@@ -81,7 +81,7 @@ public final class RedisChatMemoryConfig {
 	private final List<Map<String, String>> metadataFields;
 
 	private RedisChatMemoryConfig(final Builder builder) {
-		Assert.notNull(builder.jedisClient, "RedisClient client must not be null");
+		Assert.notNull(builder.jedisClient, "JedisPooled client must not be null");
 		Assert.hasText(builder.indexName, "Index name must not be empty");
 		Assert.hasText(builder.keyPrefix, "Key prefix must not be empty");
 
@@ -99,7 +99,7 @@ public final class RedisChatMemoryConfig {
 		return new Builder();
 	}
 
-	public RedisClient getJedisClient() {
+	public JedisPooled getJedisClient() {
 		return this.jedisClient;
 	}
 
@@ -149,7 +149,7 @@ public final class RedisChatMemoryConfig {
 	public static class Builder {
 
 		/** The Redis client */
-		private @Nullable RedisClient jedisClient;
+		private @Nullable JedisPooled jedisClient;
 
 		/** The index name */
 		private String indexName = DEFAULT_INDEX_NAME;
@@ -177,7 +177,7 @@ public final class RedisChatMemoryConfig {
 		 * @param jedisClient the Redis client to use
 		 * @return the builder instance
 		 */
-		public Builder jedisClient(final RedisClient jedisClient) {
+		public Builder jedisClient(final JedisPooled jedisClient) {
 			this.jedisClient = jedisClient;
 			return this;
 		}

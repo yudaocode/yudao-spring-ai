@@ -36,10 +36,10 @@ import org.springframework.ai.embedding.EmbeddingResponse;
 import org.springframework.ai.google.genai.embedding.GoogleGenAiEmbeddingConnectionDetails;
 import org.springframework.ai.retry.RetryUtils;
 import org.springframework.ai.retry.TransientAiException;
-import org.springframework.core.retry.RetryListener;
-import org.springframework.core.retry.RetryPolicy;
-import org.springframework.core.retry.RetryTemplate;
-import org.springframework.core.retry.Retryable;
+import org.springframework.retry.RetryCallback;
+import org.springframework.retry.RetryContext;
+import org.springframework.retry.RetryListener;
+import org.springframework.retry.support.RetryTemplate;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
@@ -75,7 +75,7 @@ public class GoogleGenAiTextEmbeddingRetryTests {
 	public void setUp() throws Exception {
 		this.retryTemplate = RetryUtils.SHORT_RETRY_TEMPLATE;
 		this.retryListener = new TestRetryListener();
-		this.retryTemplate.setRetryListener(this.retryListener);
+		this.retryTemplate.setListeners(new RetryListener[] { this.retryListener });
 
 		// Create a mock Client and use reflection to set the models field
 		this.mockGenAiClient = mock(Client.class);
@@ -143,13 +143,14 @@ public class GoogleGenAiTextEmbeddingRetryTests {
 		int onSuccessRetryCount = 0;
 
 		@Override
-		public void beforeRetry(final RetryPolicy retryPolicy, final Retryable<?> retryable) {
+		public <T, E extends Throwable> void onError(RetryContext context, RetryCallback<T, E> callback,
+				Throwable throwable) {
 			// Count each retry attempt
 			this.onErrorRetryCount++;
 		}
 
 		@Override
-		public void onRetrySuccess(final RetryPolicy retryPolicy, final Retryable<?> retryable, final Object result) {
+		public <T, E extends Throwable> void onSuccess(RetryContext context, RetryCallback<T, E> callback, T result) {
 			// Count successful retries - we increment when we succeed after a failure
 			this.onSuccessRetryCount++;
 		}

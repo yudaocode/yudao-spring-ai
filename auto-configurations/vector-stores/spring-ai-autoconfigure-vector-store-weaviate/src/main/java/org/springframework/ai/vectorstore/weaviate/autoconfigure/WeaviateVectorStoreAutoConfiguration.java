@@ -102,7 +102,7 @@ public class WeaviateVectorStoreAutoConfiguration {
 	WeaviateVectorStoreOptions mappingPropertiesToOptions(WeaviateVectorStoreProperties properties) {
 		WeaviateVectorStoreOptions weaviateVectorStoreOptions = new WeaviateVectorStoreOptions();
 
-		PropertyMapper mapper = PropertyMapper.get();
+		PropertyMapper mapper = PropertyMapper.get().alwaysApplyingWhenNonNull();
 		mapper.from(properties::getContentFieldName).whenHasText().to(weaviateVectorStoreOptions::setContentFieldName);
 		mapper.from(properties::getObjectClass).whenHasText().to(weaviateVectorStoreOptions::setObjectClass);
 		mapper.from(properties::getMetaFieldPrefix).whenHasText().to(weaviateVectorStoreOptions::setMetaFieldPrefix);

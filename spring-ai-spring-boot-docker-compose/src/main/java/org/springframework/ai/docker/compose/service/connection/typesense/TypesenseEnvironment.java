@@ -24,7 +24,7 @@ class TypesenseEnvironment {
 
 	private final @Nullable String apiKey;
 
-	TypesenseEnvironment(Map<String, @Nullable String> env) {
+	TypesenseEnvironment(Map<String, ? extends @Nullable String> env) {
 		this.apiKey = env.get("TYPESENSE_API_KEY");
 	}
 

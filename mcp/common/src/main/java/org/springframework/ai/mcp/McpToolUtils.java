@@ -28,7 +28,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.micrometer.common.util.StringUtils;
 import io.modelcontextprotocol.client.McpAsyncClient;
 import io.modelcontextprotocol.client.McpSyncClient;
-import io.modelcontextprotocol.json.jackson3.JacksonMcpJsonMapper;
+import io.modelcontextprotocol.json.jackson2.JacksonMcpJsonMapper;
 import io.modelcontextprotocol.server.McpServerFeatures;
 import io.modelcontextprotocol.server.McpStatelessServerFeatures;
 import io.modelcontextprotocol.server.McpSyncServerExchange;
@@ -96,7 +96,7 @@ public final class McpToolUtils {
 		}
 
 		String input = shorten(format(prefix));
-		if (!StringUtils.isEmpty(title)) {
+		if (title != null && !title.isEmpty()) {
 			input = input + "_" + format(title); // Do not shorten the title.
 		}
 

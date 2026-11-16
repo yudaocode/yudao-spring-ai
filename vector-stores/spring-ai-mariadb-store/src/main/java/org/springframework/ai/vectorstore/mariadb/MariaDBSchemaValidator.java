@@ -176,8 +176,7 @@ public class MariaDBSchemaValidator {
 			// Include the schema name in the query to target the correct table
 			String query = "SELECT COLUMN_NAME, DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS "
 					+ "WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ?";
-			List<Map<String, @Nullable Object>> columns = this.jdbcTemplate.queryForList(query, resolvedSchemaName,
-					tableName);
+			var columns = this.jdbcTemplate.queryForList(query, resolvedSchemaName, tableName);
 
 			if (columns.isEmpty()) {
 				throw new IllegalStateException("Error while validating table schema, Table " + tableName

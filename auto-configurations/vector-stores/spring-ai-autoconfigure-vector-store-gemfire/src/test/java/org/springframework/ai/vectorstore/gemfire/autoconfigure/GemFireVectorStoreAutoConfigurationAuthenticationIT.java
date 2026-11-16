@@ -19,6 +19,8 @@ package org.springframework.ai.vectorstore.gemfire.autoconfigure;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.github.dockerjava.api.model.ExposedPort;
 import com.github.dockerjava.api.model.PortBinding;
 import com.github.dockerjava.api.model.Ports;
@@ -28,8 +30,6 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.json.JsonMapper;
 
 import org.springframework.ai.embedding.EmbeddingModel;
 import org.springframework.ai.transformers.TransformersEmbeddingModel;
@@ -112,7 +112,7 @@ class GemFireVectorStoreAutoConfigurationAuthenticationIT {
 	}
 
 	@Test
-	void ensureGemFireVectorStoreCustomConfiguration() {
+	void ensureGemFireVectorStoreCustomConfiguration() throws Exception {
 		this.contextRunner.run(context -> {
 			GemFireVectorStore store = context.getBean(GemFireVectorStore.class);
 
@@ -133,13 +133,13 @@ class GemFireVectorStoreAutoConfigurationAuthenticationIT {
 		});
 	}
 
-	private Map<String, Object> parseIndex(String json) {
+	private Map<String, Object> parseIndex(String json) throws Exception {
 		try {
-			JsonNode rootNode = JsonMapper.shared().readTree(json);
+			JsonNode rootNode = JsonMapper.builder().findAndAddModules().build().readTree(json);
 			Map<String, Object> indexDetails = new HashMap<>();
 			if (rootNode.isObject()) {
 				if (rootNode.has("name")) {
-					indexDetails.put("name", rootNode.get("name").asString());
+					indexDetails.put("name", rootNode.get("name").asText());
 				}
 				if (rootNode.has("beam-width")) {
 					indexDetails.put("beam-width", rootNode.get("beam-width").asInt());
@@ -148,8 +148,7 @@ class GemFireVectorStoreAutoConfigurationAuthenticationIT {
 					indexDetails.put("max-connections", rootNode.get("max-connections").asInt());
 				}
 				if (rootNode.has("vector-similarity-function")) {
-					indexDetails.put("vector-similarity-function",
-							rootNode.get("vector-similarity-function").asString());
+					indexDetails.put("vector-similarity-function", rootNode.get("vector-similarity-function").asText());
 				}
 				if (rootNode.has("buckets")) {
 					indexDetails.put("buckets", rootNode.get("buckets").asInt());

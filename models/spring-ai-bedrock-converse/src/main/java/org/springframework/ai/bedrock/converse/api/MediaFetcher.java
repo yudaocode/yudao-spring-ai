@@ -148,7 +148,7 @@ public final class MediaFetcher {
 						+ "' is not in the allowed hosts list. Configure MediaFetcher with the appropriate allowed hosts.");
 			}
 		}
-		return this.restClient.get().uri(uri).exchange((request, response) -> {
+		return java.util.Objects.requireNonNull(this.restClient.get().uri(uri).exchange((request, response) -> {
 			long contentLength = response.getHeaders().getContentLength();
 			if (contentLength > DEFAULT_MAX_FETCH_SIZE_BYTES) {
 				throw new SecurityException("Media URL response exceeds maximum allowed size of "
@@ -157,7 +157,7 @@ public final class MediaFetcher {
 			try (InputStream body = response.getBody()) {
 				return readWithSizeLimit(body, DEFAULT_MAX_FETCH_SIZE_BYTES);
 			}
-		}, true);
+		}, true));
 	}
 
 	/**

@@ -32,7 +32,7 @@ import org.springframework.ai.systemone.api.SystemOneClient;
 import org.springframework.ai.systemone.api.SystemOneRetryUtils;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.http.client.ClientHttpRequestFactoryBuilder;
-import org.springframework.boot.http.client.HttpClientSettings;
+import org.springframework.boot.http.client.ClientHttpRequestFactorySettings;
 import org.springframework.boot.test.context.FilteredClassLoader;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Bean;
@@ -97,7 +97,6 @@ class SystemOneDecisionAutoConfigurationTests {
 				assertThat(connection.getRetry().getInitialBackoff()).isEqualTo(Duration.ofMillis(200));
 				assertThat(connection.getRetry().getMaxBackoff()).isEqualTo(Duration.ofSeconds(2));
 				assertThat(connection.getRetry().getTimeout()).isEqualTo(Duration.ofMinutes(1));
-				assertThat(connection.getRetry().toRetryPolicy().getTimeout()).isEqualTo(Duration.ofMinutes(1));
 
 				SystemOneDecisionProperties decision = context.getBean(SystemOneDecisionProperties.class);
 				assertThat(decision.getModel()).isEqualTo("english");
@@ -113,9 +112,18 @@ class SystemOneDecisionAutoConfigurationTests {
 	@Test
 	void theRetrySettingsKeepTheSystemOneClassification() {
 		SystemOneConnectionProperties.Retry retry = new SystemOneConnectionProperties.Retry();
-		retry.setMaxRetries(0);
+		retry.setMaxRetries(1);
 
-		assertThat(retry.toRetryPolicy().shouldRetry(new IllegalStateException("not ours"))).isFalse();
+		org.springframework.retry.RetryPolicy policy = retry.toRetryPolicy();
+		org.springframework.retry.RetryContext context = policy.open(null);
+		policy.registerThrowable(context, new IllegalStateException("not ours"));
+		assertThat(policy.canRetry(context)).isFalse();
+		policy.close(context);
+		context = policy.open(null);
+		policy.registerThrowable(context,
+				new org.springframework.ai.systemone.api.exception.SystemOneApiConnectionException("temporary", null));
+		assertThat(policy.canRetry(context)).isTrue();
+		policy.close(context);
 		assertThat(SystemOneRetryUtils.isTransient(new IllegalStateException("not ours"))).isFalse();
 	}
 
@@ -281,22 +289,22 @@ class SystemOneDecisionAutoConfigurationTests {
 	}
 
 	@Test
-	void appliesTheReadTimeoutOnTopOfTheApplicationHttpClientSettings() {
-		AtomicReference<@Nullable HttpClientSettings> used = new AtomicReference<>();
+	void appliesTheReadTimeoutOnTopOfTheApplicationClientHttpRequestFactorySettings() {
+		AtomicReference<@Nullable ClientHttpRequestFactorySettings> used = new AtomicReference<>();
 		ClientHttpRequestFactoryBuilder<JdkClientHttpRequestFactory> factoryBuilder = settings -> {
 			used.set(settings);
 			return new JdkClientHttpRequestFactory();
 		};
-		HttpClientSettings applicationSettings = HttpClientSettings.defaults()
+		ClientHttpRequestFactorySettings applicationSettings = ClientHttpRequestFactorySettings.defaults()
 			.withConnectTimeout(Duration.ofSeconds(3));
 
 		this.contextRunner.withPropertyValues("spring.ai.systemone.timeout=7s")
 			.withBean(RestClient.Builder.class, RestClient::builder)
 			.withBean(ClientHttpRequestFactoryBuilder.class, () -> factoryBuilder)
-			.withBean(HttpClientSettings.class, () -> applicationSettings)
+			.withBean(ClientHttpRequestFactorySettings.class, () -> applicationSettings)
 			.run(context -> {
 				assertThat(context).hasSingleBean(SystemOneClient.class);
-				HttpClientSettings settings = used.get();
+				ClientHttpRequestFactorySettings settings = used.get();
 				assertThat(settings).isNotNull();
 				assertThat(settings.readTimeout()).isEqualTo(Duration.ofSeconds(7));
 				assertThat(settings.connectTimeout()).isEqualTo(Duration.ofSeconds(3));
@@ -305,7 +313,7 @@ class SystemOneDecisionAutoConfigurationTests {
 
 	@Test
 	void leavesTheApplicationTransportAloneWhenNoTimeoutIsSet() {
-		AtomicReference<@Nullable HttpClientSettings> used = new AtomicReference<>();
+		AtomicReference<@Nullable ClientHttpRequestFactorySettings> used = new AtomicReference<>();
 		ClientHttpRequestFactoryBuilder<JdkClientHttpRequestFactory> factoryBuilder = settings -> {
 			used.set(settings);
 			return new JdkClientHttpRequestFactory();

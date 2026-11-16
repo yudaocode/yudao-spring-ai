@@ -20,7 +20,7 @@ import org.apache.commons.pool2.PooledObjectFactory;
 import org.junit.jupiter.api.Test;
 import redis.clients.jedis.ConnectionFactory;
 import redis.clients.jedis.JedisClientConfig;
-import redis.clients.jedis.RedisClient;
+import redis.clients.jedis.JedisPooled;
 import redis.clients.jedis.providers.PooledConnectionProvider;
 import redis.clients.jedis.util.Pool;
 
@@ -87,7 +87,7 @@ class RedisChatMemoryAutoConfigurationTests {
 				assertThat(properties.getUsername()).isEqualTo("app-user");
 				assertThat(properties.getPassword()).isEqualTo("secret");
 
-				JedisClientConfig clientConfig = extractJedisClientConfig(context.getBean(RedisClient.class));
+				JedisClientConfig clientConfig = extractJedisClientConfig(context.getBean(JedisPooled.class));
 				assertThat(clientConfig.getUser()).isEqualTo("app-user");
 				assertThat(clientConfig.getPassword()).isEqualTo("secret");
 			});
@@ -107,7 +107,7 @@ class RedisChatMemoryAutoConfigurationTests {
 				assertThat(properties.getUsername()).isEqualTo("app-user");
 				assertThat(properties.getPassword()).isEqualTo("secret");
 
-				JedisClientConfig clientConfig = extractJedisClientConfig(context.getBean(RedisClient.class));
+				JedisClientConfig clientConfig = extractJedisClientConfig(context.getBean(JedisPooled.class));
 				assertThat(clientConfig.getUser()).isEqualTo("app-user");
 				assertThat(clientConfig.getPassword()).isEqualTo("secret");
 			});
@@ -122,7 +122,7 @@ class RedisChatMemoryAutoConfigurationTests {
 			.run(context -> {
 				assertThat(context.getBean(RedisChatMemoryRepositoryProperties.class).getPassword())
 					.isEqualTo("secret");
-				assertThat(extractJedisClientConfig(context.getBean(RedisClient.class)).getPassword())
+				assertThat(extractJedisClientConfig(context.getBean(JedisPooled.class)).getPassword())
 					.isEqualTo("secret");
 			});
 	}
@@ -137,7 +137,7 @@ class RedisChatMemoryAutoConfigurationTests {
 			.run(context -> {
 				assertThat(context.getBean(RedisChatMemoryRepositoryProperties.class).getPassword())
 					.isEqualTo("secret");
-				assertThat(extractJedisClientConfig(context.getBean(RedisClient.class)).getPassword())
+				assertThat(extractJedisClientConfig(context.getBean(JedisPooled.class)).getPassword())
 					.isEqualTo("secret");
 			});
 	}
@@ -154,13 +154,13 @@ class RedisChatMemoryAutoConfigurationTests {
 				assertThat(properties.getUsername()).isNull();
 				assertThat(properties.getPassword()).isNull();
 
-				JedisClientConfig clientConfig = extractJedisClientConfig(context.getBean(RedisClient.class));
+				JedisClientConfig clientConfig = extractJedisClientConfig(context.getBean(JedisPooled.class));
 				assertThat(clientConfig.getUser()).isNull();
 				assertThat(clientConfig.getPassword()).isNull();
 			});
 	}
 
-	private static JedisClientConfig extractJedisClientConfig(RedisClient redisClient) {
+	private static JedisClientConfig extractJedisClientConfig(JedisPooled redisClient) {
 		Object provider = ReflectionTestUtils.getField(redisClient, "provider");
 		assertThat(provider).isInstanceOf(PooledConnectionProvider.class);
 		Pool<?> pool = ((PooledConnectionProvider) provider).getPool();

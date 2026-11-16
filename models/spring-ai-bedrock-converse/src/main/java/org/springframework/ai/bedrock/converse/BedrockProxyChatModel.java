@@ -253,7 +253,7 @@ public class BedrockProxyChatModel implements ChatModel {
 				return response;
 			});
 
-		return chatResponse;
+		return java.util.Objects.requireNonNull(chatResponse);
 	}
 
 	/**

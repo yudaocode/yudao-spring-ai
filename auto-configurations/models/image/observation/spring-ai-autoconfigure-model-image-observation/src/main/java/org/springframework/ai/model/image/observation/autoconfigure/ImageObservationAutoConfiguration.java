@@ -45,7 +45,7 @@ import org.springframework.context.annotation.Configuration;
  * @since 1.0.0
  */
 @AutoConfiguration(
-		afterName = "org.springframework.boot.micrometer.metrics.autoconfigure.CompositeMeterRegistryAutoConfiguration")
+		afterName = "org.springframework.boot.actuate.autoconfigure.metrics.CompositeMeterRegistryAutoConfiguration")
 @ConditionalOnClass(ImageModel.class)
 @EnableConfigurationProperties(ImageObservationProperties.class)
 public class ImageObservationAutoConfiguration {

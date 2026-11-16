@@ -19,8 +19,8 @@ package org.springframework.ai.util.json.schema
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.ai.tool.annotation.Tool
-import tools.jackson.databind.JsonNode
-import tools.jackson.databind.json.JsonMapper
+import com.fasterxml.jackson.databind.JsonNode
+import com.fasterxml.jackson.databind.json.JsonMapper
 
 /**
  * @author Sebastien Deleuze
@@ -81,7 +81,7 @@ class JsonSchemaGeneratorKotlinTests {
 		if (required == null || required.isNull) {
 			return emptyList()
 		}
-		return required.iterator().asSequence().map { it.asString() }.toList()
+		return required.iterator().asSequence().map { it.asText() }.toList()
 	}
 
 	private data class Filter(val name: String?, val ids: List<String>?)

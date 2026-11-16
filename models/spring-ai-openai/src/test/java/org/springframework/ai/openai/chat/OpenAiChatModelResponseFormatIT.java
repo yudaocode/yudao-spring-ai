@@ -18,11 +18,11 @@ package org.springframework.ai.openai.chat;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
-import tools.jackson.core.JacksonException;
-import tools.jackson.databind.DeserializationFeature;
-import tools.jackson.databind.json.JsonMapper;
 
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.prompt.Prompt;
@@ -51,18 +51,18 @@ public class OpenAiChatModelResponseFormatIT {
 	@Autowired
 	private OpenAiChatModel chatModel;
 
-	public static boolean isValidJson(String json) {
+	public static boolean isValidJson(String json) throws Exception {
 		try {
 			jsonMapper.readTree(json);
 		}
-		catch (JacksonException e) {
+		catch (JsonProcessingException e) {
 			return false;
 		}
 		return true;
 	}
 
 	@Test
-	void jsonObject() {
+	void jsonObject() throws Exception {
 
 		Prompt prompt = new Prompt("List 8 planets. Use JSON response",
 				OpenAiChatOptions.builder()
@@ -81,7 +81,7 @@ public class OpenAiChatModelResponseFormatIT {
 	}
 
 	@Test
-	void jsonSchema() {
+	void jsonSchema() throws Exception {
 
 		var jsonSchema = """
 				{
@@ -125,7 +125,7 @@ public class OpenAiChatModelResponseFormatIT {
 	}
 
 	@Test
-	void jsonSchemaThroughIndividualSetters() {
+	void jsonSchemaThroughIndividualSetters() throws Exception {
 
 		var jsonSchema = """
 				{
@@ -166,7 +166,7 @@ public class OpenAiChatModelResponseFormatIT {
 	}
 
 	@Test
-	void jsonSchemaBeanConverter() {
+	void jsonSchemaBeanConverter() throws Exception {
 
 		@JsonPropertyOrder({ "steps", "final_answer" })
 		record MathReasoning(@JsonProperty(required = true, value = "steps") Steps steps,

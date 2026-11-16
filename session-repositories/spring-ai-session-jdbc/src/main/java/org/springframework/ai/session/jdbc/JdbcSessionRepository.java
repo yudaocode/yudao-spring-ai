@@ -34,10 +34,10 @@ import java.util.Set;
 
 import javax.sql.DataSource;
 
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import tools.jackson.databind.json.JsonMapper;
 
 import org.springframework.ai.chat.messages.MessageType;
 import org.springframework.ai.session.EventFilter;
@@ -427,8 +427,8 @@ public final class JdbcSessionRepository implements SessionRepository {
 	 * with one more query per further {@value #MAX_IN_LIST_SIZE} ids.
 	 */
 	private List<SessionEvent> findActiveView(String sessionId, EventFilter filter) {
-		List<Map<String, @Nullable Object>> boundaries = this.jdbcTemplate.queryForList(
-				SELECT_NEWEST_BOUNDARY + this.dialect.getLimitClause(), sessionId, EventType.COMPACTION.name(), 1);
+		var boundaries = this.jdbcTemplate.queryForList(SELECT_NEWEST_BOUNDARY + this.dialect.getLimitClause(),
+				sessionId, EventType.COMPACTION.name(), 1);
 		SessionEventRowMapper eventRowMapper = new SessionEventRowMapper();
 		RowMapper<SequencedEvent> rowMapper = (rs, rowNum) -> new SequencedEvent(rs.getLong("seq"),
 				eventRowMapper.mapRow(rs, rowNum));
@@ -438,7 +438,7 @@ public final class JdbcSessionRepository implements SessionRepository {
 		List<List<String>> namedChunks = List.of();
 		long boundarySeq = 0;
 		if (!boundaries.isEmpty()) {
-			Map<String, @Nullable Object> boundary = boundaries.get(0);
+			var boundary = boundaries.get(0);
 			boundarySeq = ((Number) Objects.requireNonNull(boundary.get("seq"))).longValue();
 			Map<String, Object> payload = this.codec
 				.fromJsonMap(Objects.requireNonNull((String) boundary.get("payload"), "payload"));

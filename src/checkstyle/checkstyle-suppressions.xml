@@ -3,6 +3,8 @@
 		"-//Checkstyle//DTD SuppressionFilter Configuration 1.2//EN"
 		"https://checkstyle.org/dtds/suppressions_1_2.dtd">
 <suppressions>
+    <!-- Retain the original Spring Core copyright on this source backport. -->
+    <suppress files="org[\\/]springframework[\\/]ai[\\/]util[\\/]Nullness\.java$" checks="RegexpHeader" />
 	<suppress files="[\\/]src[\\/]test[\\/]java[\\/]" checks="Javadoc*" />
 	<suppress files=".*Tests\.java" checks="Javadoc*" />
 	<suppress files="generated-sources" checks="[a-zA-Z0-9]*" />

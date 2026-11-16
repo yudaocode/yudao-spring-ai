@@ -21,11 +21,10 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import org.jspecify.annotations.Nullable;
-import tools.jackson.core.JacksonException;
-import tools.jackson.core.type.TypeReference;
-import tools.jackson.databind.DatabindException;
-import tools.jackson.databind.json.JsonMapper;
 
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.util.Assert;
@@ -65,7 +64,7 @@ public class JsonHelper {
 		try {
 			return this.jsonMapper.readValue(json, type);
 		}
-		catch (JacksonException ex) {
+		catch (JsonProcessingException ex) {
 			throw new IllegalStateException("Conversion from JSON to %s failed".formatted(type.getName()), ex);
 		}
 	}
@@ -83,7 +82,7 @@ public class JsonHelper {
 		try {
 			return this.jsonMapper.readValue(json, this.jsonMapper.constructType(type));
 		}
-		catch (JacksonException ex) {
+		catch (JsonProcessingException ex) {
 			throw new IllegalStateException("Conversion from JSON to %s failed".formatted(type.getTypeName()), ex);
 		}
 	}
@@ -101,7 +100,7 @@ public class JsonHelper {
 		try {
 			return this.jsonMapper.readValue(json, this.jsonMapper.constructType(type.getType()));
 		}
-		catch (JacksonException ex) {
+		catch (JsonProcessingException ex) {
 			throw new IllegalStateException("Conversion from JSON to %s failed".formatted(type.getType().getTypeName()),
 					ex);
 		}
@@ -117,7 +116,7 @@ public class JsonHelper {
 			Map<String, Object> map = this.jsonMapper.readValue(json, MAP_TYPE_REF);
 			return map != null ? map : Collections.emptyMap();
 		}
-		catch (JacksonException ex) {
+		catch (JsonProcessingException ex) {
 			throw new IllegalStateException(
 					"Conversion from JSON to %s failed".formatted(MAP_TYPE_REF.getType().getTypeName()), ex);
 		}
@@ -139,7 +138,12 @@ public class JsonHelper {
 		if (forwardIfValidJson && object instanceof String str && isValidJson(str)) {
 			return str;
 		}
-		return this.jsonMapper.writeValueAsString(object);
+		try {
+			return this.jsonMapper.writeValueAsString(object);
+		}
+		catch (JsonProcessingException ex) {
+			throw new IllegalStateException("Conversion to JSON failed", ex);
+		}
 	}
 
 	/**
@@ -150,7 +154,7 @@ public class JsonHelper {
 			this.jsonMapper.readTree(input);
 			return true;
 		}
-		catch (JacksonException e) {
+		catch (JsonProcessingException e) {
 			return false;
 		}
 	}
@@ -196,7 +200,7 @@ public class JsonHelper {
 			try {
 				result = this.jsonMapper.convertValue(jsonString, type);
 			}
-			catch (DatabindException e) {
+			catch (IllegalArgumentException e) {
 				// If the type is a raw string that should read as JSON String,
 				// parsing will fail but pass the following toJson -> fromJson cycle.
 				// Example: LocalDate, with jsonString = "2026-04-22", which is not valid

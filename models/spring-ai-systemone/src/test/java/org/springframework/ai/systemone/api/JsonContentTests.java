@@ -20,8 +20,8 @@ import java.util.List;
 import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonValue;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import org.junit.jupiter.api.Test;
-import tools.jackson.databind.json.JsonMapper;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -39,18 +39,18 @@ class JsonContentTests {
 	private final JsonMapper mapper = JsonMapper.builder().build();
 
 	@Test
-	void serializesTextAsABareString() {
+	void serializesTextAsABareString() throws Exception {
 		assertThat(this.mapper.writeValueAsString(JsonContent.of("Calm"))).isEqualTo("\"Calm\"");
 	}
 
 	@Test
-	void serializesAnObjectAsAJsonObject() {
+	void serializesAnObjectAsAJsonObject() throws Exception {
 		JsonContent content = JsonContent.of(Map.of("question", "Does this convey urgency?"));
 		assertThat(this.mapper.writeValueAsString(content)).isEqualTo("{\"question\":\"Does this convey urgency?\"}");
 	}
 
 	@Test
-	void buildsAnObjectThatKeepsTheOrderItsKeysAreWrittenIn() {
+	void buildsAnObjectThatKeepsTheOrderItsKeysAreWrittenIn() throws Exception {
 		JsonContent content = JsonContent.object("question", "Does the `message` ask for a password?", "inspect",
 				"message", "focus", "A request to send it, not to reset it.");
 
@@ -61,7 +61,7 @@ class JsonContentTests {
 	}
 
 	@Test
-	void nestsAndAcceptsNullValuesInAnObject() {
+	void nestsAndAcceptsNullValuesInAnObject() throws Exception {
 		JsonContent content = JsonContent.object("ticket", JsonContent.object("id", 7, "sender", null), "tags",
 				List.of("billing"));
 
@@ -88,21 +88,21 @@ class JsonContentTests {
 	}
 
 	@Test
-	void serializesAnArrayAsAJsonArray() {
+	void serializesAnArrayAsAJsonArray() throws Exception {
 		JsonContent content = JsonContent.of(List.of("ticket.sender.display_name", "ticket.sender.email"));
 		assertThat(this.mapper.writeValueAsString(content))
 			.isEqualTo("[\"ticket.sender.display_name\",\"ticket.sender.email\"]");
 	}
 
 	@Test
-	void serializesNullAsJsonNull() {
+	void serializesNullAsJsonNull() throws Exception {
 		assertThat(this.mapper.writeValueAsString(JsonContent.NULL)).isEqualTo("null");
 		assertThat(JsonContent.of((Object) null)).isSameAs(JsonContent.NULL);
 		assertThat(JsonContent.NULL.isNull()).isTrue();
 	}
 
 	@Test
-	void readsEveryShapeBack() {
+	void readsEveryShapeBack() throws Exception {
 		assertThat(this.mapper.readValue("\"Calm\"", JsonContent.class).asText()).isEqualTo("Calm");
 		assertThat(this.mapper.readValue("{\"what\":\"Charges\"}", JsonContent.class).asMap()).containsEntry("what",
 				"Charges");
@@ -171,7 +171,7 @@ class JsonContentTests {
 	}
 
 	@Test
-	void serializesAPojoThroughItsOwnJsonValue() {
+	void serializesAPojoThroughItsOwnJsonValue() throws Exception {
 		assertThat(this.mapper.writeValueAsString(JsonContent.of(new Money("EUR", 1250)))).isEqualTo("\"EUR 1250\"");
 		assertThat(this.mapper.writeValueAsString(JsonContent.of(new Level("Calm", 0))))
 			.isEqualTo("{\"name\":\"Calm\",\"ordinal\":0}");

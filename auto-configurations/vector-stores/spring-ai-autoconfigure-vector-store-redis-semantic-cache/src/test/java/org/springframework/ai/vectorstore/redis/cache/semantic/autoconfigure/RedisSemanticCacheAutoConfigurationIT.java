@@ -33,7 +33,7 @@ import org.springframework.ai.openai.OpenAiEmbeddingModel;
 import org.springframework.ai.openai.OpenAiEmbeddingOptions;
 import org.springframework.ai.vectorstore.redis.cache.semantic.DefaultSemanticCache;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
-import org.springframework.boot.data.redis.autoconfigure.DataRedisAutoConfiguration;
+import org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -54,7 +54,7 @@ class RedisSemanticCacheAutoConfigurationIT {
 
 	private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
 		.withConfiguration(
-				AutoConfigurations.of(DataRedisAutoConfiguration.class, RedisSemanticCacheAutoConfiguration.class))
+				AutoConfigurations.of(RedisAutoConfiguration.class, RedisSemanticCacheAutoConfiguration.class))
 		.withUserConfiguration(TestConfig.class)
 		.withPropertyValues("spring.data.redis.host=" + redisContainer.getHost(),
 				"spring.data.redis.port=" + redisContainer.getFirstMappedPort(), "spring.data.redis.client-type=jedis");

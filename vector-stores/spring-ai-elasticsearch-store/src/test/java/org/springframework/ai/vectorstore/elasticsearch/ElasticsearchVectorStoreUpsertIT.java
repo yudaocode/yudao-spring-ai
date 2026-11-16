@@ -24,18 +24,18 @@ import java.util.function.Consumer;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch.cat.indices.IndicesRecord;
-import co.elastic.clients.json.jackson.Jackson3JsonpMapper;
-import co.elastic.clients.transport.rest5_client.Rest5ClientTransport;
-import co.elastic.clients.transport.rest5_client.low_level.Rest5Client;
-import org.apache.hc.core5.http.HttpHost;
+import co.elastic.clients.json.jackson.JacksonJsonpMapper;
+import co.elastic.clients.transport.rest_client.RestClientTransport;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.json.JsonMapper;
+import org.apache.http.HttpHost;
+import org.elasticsearch.client.RestClient;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.elasticsearch.ElasticsearchContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import tools.jackson.databind.DeserializationFeature;
-import tools.jackson.databind.cfg.DateTimeFeature;
-import tools.jackson.databind.json.JsonMapper;
 
 import org.springframework.ai.embedding.EmbeddingModel;
 import org.springframework.ai.test.vectorstore.AbstractVectorStoreUpsertTests;
@@ -82,7 +82,7 @@ public class ElasticsearchVectorStoreUpsertIT extends AbstractVectorStoreUpsertT
 			ElasticsearchClient elasticsearchClient = context.getBean(ElasticsearchClient.class);
 			List<String> indices = elasticsearchClient.cat()
 				.indices()
-				.indices()
+				.valueBody()
 				.stream()
 				.map(IndicesRecord::index)
 				.toList();
@@ -198,16 +198,16 @@ public class ElasticsearchVectorStoreUpsertIT extends AbstractVectorStoreUpsertT
 
 	// Reuse the schema owner's connection rather than opening one the test would have to
 	// close.
-	private static Rest5Client restClient(VectorStore schemaOwner) {
+	private static RestClient restClient(VectorStore schemaOwner) {
 		ElasticsearchClient client = schemaOwner.<ElasticsearchClient>getNativeClient().orElseThrow();
-		return ((Rest5ClientTransport) client._transport()).restClient();
+		return ((RestClientTransport) client._transport()).restClient();
 	}
 
 	@SpringBootConfiguration
 	public static class TestApplication {
 
 		@Bean
-		public ElasticsearchVectorStore vectorStore(EmbeddingModel embeddingModel, Rest5Client restClient) {
+		public ElasticsearchVectorStore vectorStore(EmbeddingModel embeddingModel, RestClient restClient) {
 			ElasticsearchVectorStoreOptions options = new ElasticsearchVectorStoreOptions();
 			options.setDimensions(EMBEDDING_DIMENSIONS);
 			return ElasticsearchVectorStore.builder(restClient, embeddingModel)
@@ -222,17 +222,17 @@ public class ElasticsearchVectorStoreUpsertIT extends AbstractVectorStoreUpsertT
 		}
 
 		@Bean
-		Rest5Client restClient() throws URISyntaxException {
-			return Rest5Client.builder(HttpHost.create(elasticsearchContainer.getHttpHostAddress())).build();
+		RestClient restClient() throws URISyntaxException {
+			return RestClient.builder(HttpHost.create(elasticsearchContainer.getHttpHostAddress())).build();
 		}
 
 		@Bean
-		ElasticsearchClient elasticsearchClient(Rest5Client restClient) {
+		ElasticsearchClient elasticsearchClient(RestClient restClient) {
 			JsonMapper jsonMapper = JsonMapper.builder()
 				.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-				.enable(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS)
+				.enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
 				.build();
-			return new ElasticsearchClient(new Rest5ClientTransport(restClient, new Jackson3JsonpMapper(jsonMapper)));
+			return new ElasticsearchClient(new RestClientTransport(restClient, new JacksonJsonpMapper(jsonMapper)));
 		}
 
 	}

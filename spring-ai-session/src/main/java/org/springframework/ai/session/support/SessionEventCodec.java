@@ -19,12 +19,12 @@ package org.springframework.ai.session.support;
 import java.util.List;
 import java.util.Map;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import tools.jackson.core.JacksonException;
-import tools.jackson.core.type.TypeReference;
-import tools.jackson.databind.json.JsonMapper;
 
 import org.springframework.ai.chat.messages.AbstractMessage;
 import org.springframework.ai.chat.messages.AssistantMessage;
@@ -130,7 +130,7 @@ public final class SessionEventCodec {
 		try {
 			return this.jsonMapper.writeValueAsString(value);
 		}
-		catch (JacksonException ex) {
+		catch (JsonProcessingException ex) {
 			throw new IllegalStateException("Failed to serialize value to JSON", ex);
 		}
 	}
@@ -149,7 +149,7 @@ public final class SessionEventCodec {
 		try {
 			return this.jsonMapper.readValue(json, MAP_TYPE);
 		}
-		catch (JacksonException ex) {
+		catch (JsonProcessingException ex) {
 			logger.warn("Failed to deserialize JSON object; returning empty map", ex);
 			return Map.of();
 		}
@@ -165,7 +165,7 @@ public final class SessionEventCodec {
 		try {
 			return this.jsonMapper.writeValueAsString(new MessageBody(parts, message.getMetadata(), payload));
 		}
-		catch (JacksonException ex) {
+		catch (JsonProcessingException ex) {
 			logger.warn("Message metadata is not JSON-serializable; storing the message without it", ex);
 			return writeMessageBody(new MessageBody(parts, Map.of(), payload));
 		}
@@ -188,7 +188,7 @@ public final class SessionEventCodec {
 		try {
 			return this.jsonMapper.writeValueAsString(body);
 		}
-		catch (JacksonException ex) {
+		catch (JsonProcessingException ex) {
 			throw new IllegalStateException("Failed to serialize message parts to JSON", ex);
 		}
 	}
@@ -203,7 +203,7 @@ public final class SessionEventCodec {
 					body.metadata() != null ? body.metadata() : Map.of(),
 					body.payload() != null ? body.payload() : Map.of());
 		}
-		catch (JacksonException ex) {
+		catch (JsonProcessingException ex) {
 			logger.warn("Failed to deserialize message parts from JSON; returning the text only", ex);
 			return new MessageBody(List.of(), Map.of());
 		}

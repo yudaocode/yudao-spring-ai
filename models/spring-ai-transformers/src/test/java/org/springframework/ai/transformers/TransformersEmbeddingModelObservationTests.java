@@ -95,8 +95,12 @@ public class TransformersEmbeddingModelObservationTests {
 		}
 
 		@Bean
-		public TransformersEmbeddingModel openAiEmbeddingModel(TestObservationRegistry observationRegistry) {
-			return new TransformersEmbeddingModel(MetadataMode.NONE, observationRegistry);
+		public TransformersEmbeddingModel openAiEmbeddingModel(TestObservationRegistry observationRegistry)
+				throws java.io.IOException {
+			TransformersEmbeddingModel model = new TransformersEmbeddingModel(MetadataMode.NONE, observationRegistry);
+			model.setTokenizerResource(org.springframework.ai.test.model.MiniLmTestResources.tokenizer());
+			model.setModelResource(org.springframework.ai.test.model.MiniLmTestResources.model());
+			return model;
 		}
 
 	}

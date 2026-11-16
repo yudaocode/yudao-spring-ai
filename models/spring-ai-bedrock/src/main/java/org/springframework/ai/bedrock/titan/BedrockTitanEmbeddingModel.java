@@ -112,6 +112,7 @@ public class BedrockTitanEmbeddingModel extends AbstractEmbeddingModel {
 						return r;
 					});
 
+				java.util.Objects.requireNonNull(response);
 				if (response.embedding() == null || response.embedding().length == 0) {
 					if (logger.isWarnEnabled()) {
 						logger.warn("Empty embedding vector returned for input at index " + indexCounter.get()

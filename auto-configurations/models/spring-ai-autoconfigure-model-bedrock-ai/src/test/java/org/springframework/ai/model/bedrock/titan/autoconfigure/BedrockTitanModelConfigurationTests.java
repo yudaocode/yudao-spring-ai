@@ -16,8 +16,8 @@
 
 package org.springframework.ai.model.bedrock.titan.autoconfigure;
 
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import org.junit.jupiter.api.Test;
-import tools.jackson.databind.json.JsonMapper;
 
 import org.springframework.ai.bedrock.titan.BedrockTitanEmbeddingModel;
 import org.springframework.boot.autoconfigure.AutoConfigurations;

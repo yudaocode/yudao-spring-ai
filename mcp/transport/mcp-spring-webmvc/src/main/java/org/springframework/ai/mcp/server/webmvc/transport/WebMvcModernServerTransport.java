@@ -185,7 +185,7 @@ public final class WebMvcModernServerTransport {
 				.body("Unsupported Media Type: Content-Type must be application/json");
 		}
 		if (request.headers().asHttpHeaders().getContentLength() > this.requestMaxSize) {
-			return ServerResponse.status(HttpStatus.CONTENT_TOO_LARGE).build();
+			return ServerResponse.status(HttpStatus.PAYLOAD_TOO_LARGE).build();
 		}
 
 		McpTransportContext transportContext = this.contextExtractor.extract(request);
@@ -195,7 +195,7 @@ public final class WebMvcModernServerTransport {
 			body = readBody(request.servletRequest(), this.requestMaxSize);
 		}
 		catch (BodyTooLargeException e) {
-			return ServerResponse.status(HttpStatus.CONTENT_TOO_LARGE).build();
+			return ServerResponse.status(HttpStatus.PAYLOAD_TOO_LARGE).build();
 		}
 		catch (IOException | RuntimeException e) {
 			logger.debug("Failed to read request body: " + e.getMessage());
@@ -507,6 +507,11 @@ public final class WebMvcModernServerTransport {
 		@Override
 		public HttpStatusCode statusCode() {
 			return this.delegate.statusCode();
+		}
+
+		@Override
+		public int rawStatusCode() {
+			return this.delegate.statusCode().value();
 		}
 
 		@Override

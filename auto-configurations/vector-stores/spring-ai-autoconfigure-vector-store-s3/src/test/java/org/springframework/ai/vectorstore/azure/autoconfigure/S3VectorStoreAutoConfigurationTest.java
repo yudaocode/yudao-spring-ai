@@ -23,7 +23,7 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3vectors.S3VectorsClient;
 
 import org.springframework.ai.embedding.EmbeddingModel;
-import org.springframework.ai.transformers.TransformersEmbeddingModel;
+import org.springframework.ai.test.vectorstore.FixedDimensionEmbeddingModel;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.ai.vectorstore.s3.S3VectorStore;
 import org.springframework.ai.vectorstore.s3.autoconfigure.S3VectorStoreAutoConfiguration;
@@ -86,7 +86,7 @@ public class S3VectorStoreAutoConfigurationTest {
 
 		@Bean
 		public EmbeddingModel embeddingModel() {
-			return new TransformersEmbeddingModel();
+			return new FixedDimensionEmbeddingModel(384);
 		}
 
 	}

@@ -24,7 +24,7 @@ class OpenSearchEnvironment {
 
 	private final @Nullable String password;
 
-	OpenSearchEnvironment(Map<String, @Nullable String> env) {
+	OpenSearchEnvironment(Map<String, ? extends @Nullable String> env) {
 		this.password = env.get("OPENSEARCH_INITIAL_ADMIN_PASSWORD");
 	}
 

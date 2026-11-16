@@ -16,22 +16,18 @@
 
 package org.springframework.ai.vectorstore.mongodb.autoconfigure;
 
-import com.mongodb.MongoDriverInformation;
 import com.mongodb.client.MongoClient;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
 
 import org.springframework.ai.embedding.EmbeddingModel;
 import org.springframework.ai.vectorstore.mongodb.atlas.MongoDBAtlasVectorStore;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
-import org.springframework.boot.data.mongodb.autoconfigure.DataMongoAutoConfiguration;
-import org.springframework.boot.mongodb.autoconfigure.MongoAutoConfiguration;
+import org.springframework.boot.autoconfigure.data.mongo.MongoDataAutoConfiguration;
+import org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 
 /**
  * Unit tests for {@link MongoDBAtlasVectorStoreAutoConfiguration}.
@@ -42,20 +38,20 @@ import static org.mockito.Mockito.verify;
 class MongoDBAtlasVectorStoreAutoConfigurationTests {
 
 	private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
-		.withConfiguration(AutoConfigurations.of(MongoAutoConfiguration.class, DataMongoAutoConfiguration.class,
+		.withConfiguration(AutoConfigurations.of(MongoAutoConfiguration.class, MongoDataAutoConfiguration.class,
 				MongoDBAtlasVectorStoreAutoConfiguration.class))
 		.withPropertyValues("spring.ai.vectorstore.mongodb.initialize-schema=false")
 		.withBean(EmbeddingModel.class, () -> mock(EmbeddingModel.class));
 
 	@Test
-	void appendsFrameworkMetadataWhenMongoClientBeanIsPresent() {
+	void configuresStoreWithBoot3MongoClient() {
 		MongoClient mongoClient = mock(MongoClient.class);
 		this.contextRunner.withBean(MongoClient.class, () -> mongoClient).run(context -> {
 			assertThat(context).hasSingleBean(MongoDBAtlasVectorStore.class);
 
-			ArgumentCaptor<MongoDriverInformation> captor = ArgumentCaptor.forClass(MongoDriverInformation.class);
-			verify(mongoClient, times(1)).appendMetadata(captor.capture());
-			assertThat(captor.getValue().getDriverNames()).contains("spring-ai");
+			assertThat(context).hasNotFailed();
+			assertThat(context.getBean(MongoClient.class)).isSameAs(mongoClient);
+			assertThat(context).doesNotHaveBean("mongoDriverMetadataInitializer");
 		});
 	}
 

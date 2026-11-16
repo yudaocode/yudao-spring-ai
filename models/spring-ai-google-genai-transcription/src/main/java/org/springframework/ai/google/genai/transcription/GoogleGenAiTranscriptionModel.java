@@ -45,7 +45,7 @@ import org.springframework.ai.chat.metadata.Usage;
 import org.springframework.ai.observation.conventions.AiProvider;
 import org.springframework.ai.retry.RetryUtils;
 import org.springframework.core.io.Resource;
-import org.springframework.core.retry.RetryTemplate;
+import org.springframework.retry.support.RetryTemplate;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -120,40 +120,43 @@ public class GoogleGenAiTranscriptionModel implements TranscriptionModel {
 			.provider(AiProvider.GOOGLE_GENAI_AI.value())
 			.build();
 
-		return TranscriptionModelObservationDocumentation.TRANSCRIPTION_MODEL_OPERATION
-			.observation(this.observationConvention, DEFAULT_OBSERVATION_CONVENTION, () -> observationContext,
-					this.observationRegistry)
-			.observe(() -> {
-				final GoogleGenAiAudioTranscriptionOptions options = (GoogleGenAiAudioTranscriptionOptions) transcriptionPrompt
-					.getOptions();
-				Assert.notNull(options, "Transcription options must not be null");
+		return java.util.Objects.requireNonNull(
+				TranscriptionModelObservationDocumentation.TRANSCRIPTION_MODEL_OPERATION
+					.observation(this.observationConvention, DEFAULT_OBSERVATION_CONVENTION, () -> observationContext,
+							this.observationRegistry)
+					.observe(() -> {
+						final GoogleGenAiAudioTranscriptionOptions options = (GoogleGenAiAudioTranscriptionOptions) transcriptionPrompt
+							.getOptions();
+						Assert.notNull(options, "Transcription options must not be null");
 
-				final Resource audioResource = transcriptionPrompt.getInstructions();
-				Assert.notNull(audioResource, "Audio resource must not be null");
+						final Resource audioResource = transcriptionPrompt.getInstructions();
+						Assert.notNull(audioResource, "Audio resource must not be null");
 
-				final Content content = Content.builder()
-					.role(USER_ROLE)
-					.parts(Part.fromBytes(readAudioBytes(audioResource), detectMimeType(audioResource)),
-							Part.fromText(buildTranscriptionInstruction(options)))
-					.build();
+						final Content content = Content.builder()
+							.role(USER_ROLE)
+							.parts(Part.fromBytes(readAudioBytes(audioResource), detectMimeType(audioResource)),
+									Part.fromText(buildTranscriptionInstruction(options)))
+							.build();
 
-				final GenerateContentConfig config = buildGenerateContentConfig(options);
+						final GenerateContentConfig config = buildGenerateContentConfig(options);
 
-				final GenerateContentResponse generateContentResponse = RetryUtils.execute(this.retryTemplate,
-						() -> this.genAiClient.models.generateContent(options.getModel(), content, config));
+						final GenerateContentResponse generateContentResponse = RetryUtils.execute(this.retryTemplate,
+								() -> this.genAiClient.models.generateContent(options.getModel(), content, config));
 
-				final AudioTranscriptionResponse response = new AudioTranscriptionResponse(new AudioTranscription(
-						Optional.ofNullable(generateContentResponse).map(GenerateContentResponse::text).orElse("")),
-						new GoogleGenAiAudioTranscriptionMetadata(
-								Optional.ofNullable(generateContentResponse.modelVersion())
-									.orElseGet(Optional::empty)
-									.orElse(null),
-								toUsage(generateContentResponse)));
+						final AudioTranscriptionResponse response = new AudioTranscriptionResponse(
+								new AudioTranscription(Optional.ofNullable(generateContentResponse)
+									.map(GenerateContentResponse::text)
+									.orElse("")),
+								new GoogleGenAiAudioTranscriptionMetadata(
+										Optional.ofNullable(generateContentResponse.modelVersion())
+											.orElseGet(Optional::empty)
+											.orElse(null),
+										toUsage(generateContentResponse)));
 
-				observationContext.setResponse(response);
+						observationContext.setResponse(response);
 
-				return response;
-			});
+						return response;
+					}));
 	}
 
 	public void setObservationConvention(@Nullable TranscriptionModelObservationConvention observationConvention) {

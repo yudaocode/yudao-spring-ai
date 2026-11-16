@@ -16,15 +16,15 @@
 
 package org.springframework.ai.chat.metadata;
 
-import java.util.function.Consumer;
+import java.io.IOException;
 
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.JsonSerializer;
+import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.jsontype.TypeSerializer;
+import com.fasterxml.jackson.databind.util.TokenBuffer;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import tools.jackson.core.JsonGenerator;
-import tools.jackson.databind.SerializationContext;
-import tools.jackson.databind.ValueSerializer;
-import tools.jackson.databind.jsontype.TypeSerializer;
-import tools.jackson.databind.util.TokenBuffer;
 
 /**
  * Jackson serializer for {@link DefaultUsage#getNativeUsage()} that never fails.
@@ -44,28 +44,29 @@ import tools.jackson.databind.util.TokenBuffer;
  * @author Soby Chacko
  * @since 2.0.2
  */
-class NativeUsageSerializer extends ValueSerializer<Object> {
+class NativeUsageSerializer extends JsonSerializer<Object> {
 
 	private static final Log logger = LogFactory.getLog(NativeUsageSerializer.class);
 
 	@Override
-	public void serialize(Object value, JsonGenerator gen, SerializationContext ctxt) {
-		serializeOrFallback(value, gen, ctxt, buffer -> ctxt.writeValue(buffer, value));
+	public void serialize(Object value, JsonGenerator gen, SerializerProvider ctxt) throws java.io.IOException {
+		serializeOrFallback(value, gen, ctxt, buffer -> ctxt.defaultSerializeValue(value, buffer));
 	}
 
 	@Override
-	public void serializeWithType(Object value, JsonGenerator gen, SerializationContext ctxt, TypeSerializer typeSer) {
+	public void serializeWithType(Object value, JsonGenerator gen, SerializerProvider ctxt, TypeSerializer typeSer)
+			throws java.io.IOException {
 		serializeOrFallback(value, gen, ctxt,
 				buffer -> ctxt.findValueSerializer(value.getClass()).serializeWithType(value, buffer, ctxt, typeSer));
 	}
 
-	private void serializeOrFallback(Object value, JsonGenerator gen, SerializationContext ctxt,
-			Consumer<TokenBuffer> writer) {
-		TokenBuffer buffer = new TokenBuffer(ctxt, false);
+	private void serializeOrFallback(Object value, JsonGenerator gen, SerializerProvider ctxt, BufferWriter writer)
+			throws IOException {
+		TokenBuffer buffer = new TokenBuffer(gen.getCodec(), false);
 		try {
-			writer.accept(buffer);
+			writer.write(buffer);
 		}
-		catch (RuntimeException ex) {
+		catch (IOException | RuntimeException ex) {
 			if (logger.isDebugEnabled()) {
 				logger.debug("Native usage of type " + value.getClass().getName()
 						+ " is not JSON serializable, falling back to toString()", ex);
@@ -74,6 +75,13 @@ class NativeUsageSerializer extends ValueSerializer<Object> {
 			return;
 		}
 		buffer.serialize(gen);
+	}
+
+	@FunctionalInterface
+	private interface BufferWriter {
+
+		void write(TokenBuffer buffer) throws IOException;
+
 	}
 
 }

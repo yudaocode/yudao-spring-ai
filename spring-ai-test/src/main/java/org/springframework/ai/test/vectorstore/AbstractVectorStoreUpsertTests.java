@@ -232,7 +232,10 @@ public abstract class AbstractVectorStoreUpsertTests {
 		executeTest(vectorStore -> {
 			CallCountingEmbeddingModel embeddingModel = new CallCountingEmbeddingModel(embeddingDimensions());
 			VectorStore writer = createStoreOverExistingSchema(vectorStore, embeddingModel);
-			Assumptions.assumeTrue(writer != null, "store does not support building over an existing schema");
+			if (writer == null) {
+				Assumptions.assumeTrue(false, "store does not support building over an existing schema");
+				return;
+			}
 
 			String id = UUID.randomUUID().toString();
 			writer.upsert(List.of(embeddedDocument(id, "written without a model", Map.of("tag", "w"))));
@@ -252,7 +255,10 @@ public abstract class AbstractVectorStoreUpsertTests {
 		executeTest(vectorStore -> {
 			CallCountingEmbeddingModel embeddingModel = new CallCountingEmbeddingModel(embeddingDimensions());
 			VectorStore store = createStoreWithConfiguredDimensions(vectorStore, embeddingModel, embeddingDimensions());
-			Assumptions.assumeTrue(store != null, "store does not support a configured dimension");
+			if (store == null) {
+				Assumptions.assumeTrue(false, "store does not support a configured dimension");
+				return;
+			}
 
 			String id = UUID.randomUUID().toString();
 			store.upsert(List.of(embeddedDocument(id, "configured dimension", Map.of("tag", "c"))));
@@ -330,7 +336,10 @@ public abstract class AbstractVectorStoreUpsertTests {
 		executeTest(vectorStore -> {
 			CallCountingEmbeddingModel embeddingModel = new CallCountingEmbeddingModel(embeddingDimensions());
 			VectorStore store = createStoreOverExistingSchema(vectorStore, embeddingModel);
-			Assumptions.assumeTrue(store != null, "store does not support building over an existing schema");
+			if (store == null) {
+				Assumptions.assumeTrue(false, "store does not support building over an existing schema");
+				return;
+			}
 
 			String id = UUID.randomUUID().toString();
 			store
@@ -438,7 +447,10 @@ public abstract class AbstractVectorStoreUpsertTests {
 
 			CallCountingEmbeddingModel embeddingModel = new CallCountingEmbeddingModel(embeddingDimensions());
 			VectorStore searcher = createStoreOverExistingSchema(vectorStore, embeddingModel);
-			Assumptions.assumeTrue(searcher != null, "store does not support building over an existing schema");
+			if (searcher == null) {
+				Assumptions.assumeTrue(false, "store does not support building over an existing schema");
+				return;
+			}
 
 			// This store has never written anything, so its first call is the search
 			await().atMost(5, TimeUnit.SECONDS).pollInterval(Duration.ofMillis(500)).untilAsserted(() -> {
@@ -457,7 +469,10 @@ public abstract class AbstractVectorStoreUpsertTests {
 		executeTest(vectorStore -> {
 			CallCountingEmbeddingModel embeddingModel = new CallCountingEmbeddingModel(embeddingDimensions());
 			VectorStore writer = createStoreOverExistingSchema(vectorStore, embeddingModel);
-			Assumptions.assumeTrue(writer != null, "store does not support building over an existing schema");
+			if (writer == null) {
+				Assumptions.assumeTrue(false, "store does not support building over an existing schema");
+				return;
+			}
 
 			ExecutorService executor = Executors.newFixedThreadPool(threads);
 			try {

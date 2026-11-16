@@ -23,10 +23,10 @@ import java.lang.reflect.Type;
 import java.util.Map;
 import java.util.stream.Stream;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jspecify.annotations.Nullable;
-import tools.jackson.core.JacksonException;
 
 import org.springframework.ai.chat.model.ToolContext;
 import org.springframework.ai.tool.ToolCallback;
@@ -138,7 +138,7 @@ public final class MethodToolCallback implements ToolCallback {
 		}
 		catch (Exception ex) {
 			logger.warn("Conversion from JSON failed", ex);
-			Throwable cause = (ex.getCause() instanceof JacksonException) ? ex.getCause() : ex;
+			Throwable cause = (ex.getCause() instanceof JsonProcessingException) ? ex.getCause() : ex;
 			throw new ToolExecutionException(this.getToolDefinition(), cause);
 		}
 	}
@@ -170,7 +170,7 @@ public final class MethodToolCallback implements ToolCallback {
 		}
 		catch (Exception ex) {
 			logger.warn("Conversion from JSON failed", ex);
-			Throwable cause = (ex.getCause() instanceof JacksonException) ? ex.getCause() : ex;
+			Throwable cause = (ex.getCause() instanceof JsonProcessingException) ? ex.getCause() : ex;
 			throw new ToolExecutionException(this.getToolDefinition(), cause);
 		}
 	}

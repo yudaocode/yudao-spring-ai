@@ -93,10 +93,10 @@ public class PostgresMlEmbeddingModel extends AbstractEmbeddingModel implements 
 
 	@Override
 	public float[] embed(String text) {
-		return this.jdbcTemplate.queryForObject(
+		return java.util.Objects.requireNonNull(this.jdbcTemplate.queryForObject(
 				"SELECT pgml.embed(?, ?, ?::JSONB)" + this.options.getVectorType().cast + " AS embedding",
 				this.options.getVectorType().rowMapper, this.options.getTransformer(), text,
-				jsonHelper.toJson(this.options.getKwargs()));
+				jsonHelper.toJson(this.options.getKwargs())));
 	}
 
 	@Override

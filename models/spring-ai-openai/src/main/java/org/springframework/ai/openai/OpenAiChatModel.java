@@ -30,6 +30,7 @@ import java.util.stream.Stream;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.openai.client.OpenAIClient;
 import com.openai.client.OpenAIClientAsync;
@@ -79,7 +80,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jspecify.annotations.Nullable;
 import reactor.core.publisher.Flux;
-import tools.jackson.databind.JsonNode;
 
 import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.messages.Message;
@@ -283,31 +283,33 @@ public final class OpenAiChatModel implements ChatModel {
 			.provider(AiProvider.OPENAI.value())
 			.build();
 
-		return ChatModelObservationDocumentation.CHAT_MODEL_OPERATION
-			.observation(this.observationConvention, DEFAULT_OBSERVATION_CONVENTION, () -> observationContext,
-					this.observationRegistry)
-			.observe(() -> {
+		return java.util.Objects.requireNonNull(
+				ChatModelObservationDocumentation.CHAT_MODEL_OPERATION
+					.observation(this.observationConvention, DEFAULT_OBSERVATION_CONVENTION, () -> observationContext,
+							this.observationRegistry)
+					.observe(() -> {
 
-				// The raw response carries the x-ratelimit-* headers alongside the parsed
-				// body; the plain create(...) call discards them.
-				HttpResponseFor<ChatCompletion> rawResponse = this.openAiClient.chat()
-					.completions()
-					.withRawResponse()
-					.create(request, requestOptions);
-				ChatCompletion chatCompletion = rawResponse.parse();
-				RateLimit rateLimit = OpenAiRateLimit.from(rawResponse.headers());
+						// The raw response carries the x-ratelimit-* headers alongside
+						// the parsed
+						// body; the plain create(...) call discards them.
+						HttpResponseFor<ChatCompletion> rawResponse = this.openAiClient.chat()
+							.completions()
+							.withRawResponse()
+							.create(request, requestOptions);
+						ChatCompletion chatCompletion = rawResponse.parse();
+						RateLimit rateLimit = OpenAiRateLimit.from(rawResponse.headers());
 
-				if (chatCompletion.choices().isEmpty()) {
-					if (logger.isWarnEnabled()) {
-						logger.warn("No choices returned for prompt: " + prompt);
-					}
-					return new ChatResponse(List.of());
-				}
+						if (chatCompletion.choices().isEmpty()) {
+							if (logger.isWarnEnabled()) {
+								logger.warn("No choices returned for prompt: " + prompt);
+							}
+							return new ChatResponse(List.of());
+						}
 
-				ChatResponse chatResponse = toChatResponse(chatCompletion, request, rateLimit);
-				observationContext.setResponse(chatResponse);
-				return chatResponse;
-			});
+						ChatResponse chatResponse = toChatResponse(chatCompletion, request, rateLimit);
+						observationContext.setResponse(chatResponse);
+						return chatResponse;
+					}));
 	}
 
 	private ChatResponse toChatResponse(ChatCompletion chatCompletion, ChatCompletionCreateParams request,
@@ -1353,7 +1355,7 @@ public final class OpenAiChatModel implements ChatModel {
 	private static ChatCompletionToolChoiceOption parseToolChoiceJson(String json) {
 		try {
 			// Jackson 3 rather than the Jackson 2 objectMapper field: the public
-			// parseToolChoice(JsonNode) takes a tools.jackson tree.
+			// parseToolChoice(JsonNode) takes a com.fasterxml.jackson tree.
 			return parseToolChoice(JacksonUtils.getDefaultJsonMapper().readTree(json));
 		}
 		catch (Exception e) {
@@ -1410,10 +1412,10 @@ public final class OpenAiChatModel implements ChatModel {
 	}
 
 	public static ChatCompletionToolChoiceOption parseToolChoice(JsonNode node) {
-		String type = node.get("type").asString();
+		String type = node.get("type").asText();
 		switch (type) {
 			case "function":
-				String functionName = node.get("function").get("name").asString();
+				String functionName = node.get("function").get("name").asText();
 				ChatCompletionNamedToolChoice.Function func = ChatCompletionNamedToolChoice.Function.builder()
 					.name(functionName)
 					.build();

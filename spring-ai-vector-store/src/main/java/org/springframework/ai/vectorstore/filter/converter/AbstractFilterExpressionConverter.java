@@ -24,8 +24,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import tools.jackson.core.JacksonException;
-import tools.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.springframework.ai.vectorstore.filter.Filter;
 import org.springframework.ai.vectorstore.filter.Filter.Expression;
@@ -276,7 +276,7 @@ public abstract class AbstractFilterExpressionConverter implements FilterExpress
 		try {
 			context.append(OBJECT_MAPPER.writeValueAsString(value));
 		}
-		catch (JacksonException e) {
+		catch (JsonProcessingException e) {
 			throw new RuntimeException("Error serializing value to JSON.", e);
 		}
 	}

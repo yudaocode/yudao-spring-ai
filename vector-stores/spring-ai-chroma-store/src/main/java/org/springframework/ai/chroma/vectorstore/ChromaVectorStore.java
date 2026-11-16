@@ -22,10 +22,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jspecify.annotations.Nullable;
-import tools.jackson.databind.json.JsonMapper;
 
 import org.springframework.ai.chroma.vectorstore.ChromaApi.AddEmbeddingsRequest;
 import org.springframework.ai.chroma.vectorstore.ChromaApi.DeleteEmbeddingsRequest;
@@ -332,7 +332,7 @@ public class ChromaVectorStore extends AbstractObservationVectorStore implements
 
 	@SuppressWarnings("unchecked")
 	private Map<String, Object> jsonToMap(String jsonText) {
-		return (Map<String, Object>) this.jsonMapper.readValue(jsonText, Map.class);
+		return new org.springframework.ai.util.JsonHelper(this.jsonMapper).fromJsonToMap(jsonText);
 	}
 
 	@Override

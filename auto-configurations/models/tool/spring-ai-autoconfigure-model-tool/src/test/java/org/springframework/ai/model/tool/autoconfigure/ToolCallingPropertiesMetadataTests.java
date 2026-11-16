@@ -20,9 +20,9 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import org.junit.jupiter.api.Test;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.json.JsonMapper;
 
 import org.springframework.core.io.ClassPathResource;
 
@@ -62,7 +62,7 @@ class ToolCallingPropertiesMetadataTests {
 		try (InputStream in = new ClassPathResource("META-INF/additional-spring-configuration-metadata.json")
 			.getInputStream()) {
 			for (JsonNode property : JsonMapper.builder().build().readTree(in).get("properties")) {
-				defaults.put(property.get("name").asString(), property.get("defaultValue").asString());
+				defaults.put(property.get("name").asText(), property.get("defaultValue").asText());
 			}
 		}
 		return defaults;

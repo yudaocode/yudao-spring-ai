@@ -25,10 +25,10 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jspecify.annotations.Nullable;
-import tools.jackson.databind.json.JsonMapper;
 
 import org.springframework.ai.document.Document;
 import org.springframework.ai.embedding.EmbeddingModel;
@@ -336,7 +336,7 @@ public class MariaDBVectorStore extends AbstractObservationVectorStore implement
 	}
 
 	private String toJson(Map<String, Object> map) {
-		return this.jsonMapper.writeValueAsString(map);
+		return new org.springframework.ai.util.JsonHelper(this.jsonMapper).toJson(map);
 	}
 
 	@Override
@@ -608,7 +608,7 @@ public class MariaDBVectorStore extends AbstractObservationVectorStore implement
 		}
 
 		private Map<String, Object> toMap(String source) {
-			return (Map<String, Object>) this.jsonMapper.readValue(source, Map.class);
+			return new org.springframework.ai.util.JsonHelper(this.jsonMapper).fromJsonToMap(source);
 		}
 
 	}

@@ -117,28 +117,30 @@ public class OllamaEmbeddingModel extends AbstractEmbeddingModel {
 			.provider(OllamaApiConstants.PROVIDER_NAME)
 			.build();
 
-		return EmbeddingModelObservationDocumentation.EMBEDDING_MODEL_OPERATION
-			.observation(this.observationConvention, DEFAULT_OBSERVATION_CONVENTION, () -> observationContext,
-					this.observationRegistry)
-			.observe(() -> {
-				EmbeddingsResponse response = this.ollamaApi.embed(ollamaEmbeddingRequest);
+		return java.util.Objects.requireNonNull(
+				EmbeddingModelObservationDocumentation.EMBEDDING_MODEL_OPERATION
+					.observation(this.observationConvention, DEFAULT_OBSERVATION_CONVENTION, () -> observationContext,
+							this.observationRegistry)
+					.observe(() -> {
+						EmbeddingsResponse response = this.ollamaApi.embed(ollamaEmbeddingRequest);
 
-				AtomicInteger indexCounter = new AtomicInteger(0);
+						AtomicInteger indexCounter = new AtomicInteger(0);
 
-				List<Embedding> embeddings = response.embeddings()
-					.stream()
-					.map(e -> new Embedding(e, indexCounter.getAndIncrement()))
-					.toList();
+						List<Embedding> embeddings = response.embeddings()
+							.stream()
+							.map(e -> new Embedding(e, indexCounter.getAndIncrement()))
+							.toList();
 
-				EmbeddingResponseMetadata embeddingResponseMetadata = new EmbeddingResponseMetadata(response.model(),
-						getDefaultUsage(response));
+						EmbeddingResponseMetadata embeddingResponseMetadata = new EmbeddingResponseMetadata(
+								response.model(), getDefaultUsage(response));
 
-				EmbeddingResponse embeddingResponse = new EmbeddingResponse(embeddings, embeddingResponseMetadata);
+						EmbeddingResponse embeddingResponse = new EmbeddingResponse(embeddings,
+								embeddingResponseMetadata);
 
-				observationContext.setResponse(embeddingResponse);
+						observationContext.setResponse(embeddingResponse);
 
-				return embeddingResponse;
-			});
+						return embeddingResponse;
+					}));
 	}
 
 	private DefaultUsage getDefaultUsage(OllamaApi.EmbeddingsResponse response) {

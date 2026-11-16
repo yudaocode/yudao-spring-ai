@@ -24,6 +24,7 @@ import java.util.Optional;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jspecify.annotations.Nullable;
@@ -41,7 +42,6 @@ import org.typesense.model.MultiSearchCollectionParameters;
 import org.typesense.model.MultiSearchResult;
 import org.typesense.model.MultiSearchResultItem;
 import org.typesense.model.MultiSearchSearchesParameter;
-import tools.jackson.databind.JsonNode;
 
 import org.springframework.ai.document.Document;
 import org.springframework.ai.document.DocumentMetadata;
@@ -235,10 +235,16 @@ public class TypesenseVectorStore extends AbstractObservationVectorStore impleme
 			if (lines[i].isBlank()) {
 				continue;
 			}
-			JsonNode result = JacksonUtils.getDefaultJsonMapper().readTree(lines[i]);
+			JsonNode result;
+			try {
+				result = JacksonUtils.getDefaultJsonMapper().readTree(lines[i]);
+			}
+			catch (com.fasterxml.jackson.core.JsonProcessingException ex) {
+				throw new IllegalStateException("Invalid Typesense import result at index " + i, ex);
+			}
 			if (!result.path("success").asBoolean(false)) {
 				throw new IllegalStateException("Typesense rejected the document at index " + i + ": "
-						+ result.path("error").asString("no error given"));
+						+ result.path("error").asText("no error given"));
 			}
 		}
 	}

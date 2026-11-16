@@ -36,12 +36,10 @@ import org.springframework.ai.systemone.api.question.SystemOneRequest;
 import org.springframework.ai.systemone.api.response.ListModelsResponse;
 import org.springframework.ai.systemone.api.response.ModelMetadata;
 import org.springframework.ai.systemone.api.response.SystemOneResponse;
-import org.springframework.core.retry.RetryException;
-import org.springframework.core.retry.RetryTemplate;
-import org.springframework.core.retry.Retryable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.JdkClientHttpRequestFactory;
+import org.springframework.retry.support.RetryTemplate;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.ResourceAccessException;
@@ -207,33 +205,7 @@ public class SystemOneClient {
 	 * typed exceptions first so that the template can classify them.
 	 */
 	private <T> T execute(String endpoint, Supplier<T> call) {
-		try {
-			return this.retryTemplate.execute(new Retryable<T>() {
-
-				@Override
-				public T execute() {
-					return attempt(endpoint, call);
-				}
-
-				@Override
-				public String getName() {
-					return "System One " + endpoint;
-				}
-
-			});
-		}
-		catch (RetryException ex) {
-			// The cause is the last typed failure; earlier ones are its suppressed
-			// exceptions.
-			Throwable cause = ex.getCause();
-			if (cause instanceof RuntimeException runtime) {
-				throw runtime;
-			}
-			if (cause instanceof Error error) {
-				throw error;
-			}
-			throw new IllegalStateException("Unexpected failure of System One " + endpoint, cause);
-		}
+		return this.retryTemplate.execute(context -> attempt(endpoint, call));
 	}
 
 	private <T> T attempt(String endpoint, Supplier<T> call) {

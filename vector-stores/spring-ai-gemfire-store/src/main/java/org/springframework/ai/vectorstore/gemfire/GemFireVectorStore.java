@@ -25,10 +25,10 @@ import java.util.stream.IntStream;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jspecify.annotations.Nullable;
-import tools.jackson.databind.json.JsonMapper;
 
 import org.springframework.ai.document.Document;
 import org.springframework.ai.document.DocumentMetadata;
@@ -234,7 +234,7 @@ public class GemFireVectorStore extends AbstractObservationVectorStore implement
 					Objects.requireNonNullElse(document.getText(), ""), document.getMetadata());
 		}).toList());
 
-		String embeddingString = this.jsonMapper.writeValueAsString(upload);
+		String embeddingString = new org.springframework.ai.util.JsonHelper(this.jsonMapper).toJson(upload);
 		String embeddingsJson = embeddingString.substring("{\"embeddings\":".length());
 
 		this.client.post()
@@ -304,7 +304,7 @@ public class GemFireVectorStore extends AbstractObservationVectorStore implement
 		CreateRequest createRequest = new CreateRequest(this.indexName, this.beamWidth, this.maxConnections,
 				this.vectorSimilarityFunction, this.fields, this.buckets);
 
-		String index = this.jsonMapper.writeValueAsString(createRequest);
+		String index = new org.springframework.ai.util.JsonHelper(this.jsonMapper).toJson(createRequest);
 
 		this.client.post()
 			.contentType(MediaType.APPLICATION_JSON)

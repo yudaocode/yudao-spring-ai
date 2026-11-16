@@ -129,23 +129,24 @@ public final class OpenAiResponsesChatModel implements ChatModel {
 			.provider(AiProvider.OPENAI.value())
 			.build();
 
-		return ChatModelObservationDocumentation.CHAT_MODEL_OPERATION
-			.observation(this.observationConvention, DEFAULT_OBSERVATION_CONVENTION, () -> observationContext,
-					this.observationRegistry)
-			.observe(() -> {
-				Response response = this.openAiClient.responses().create(request, requestOptions);
-				if (isFailed(response)) {
-					throw ResponsesItemMapper.failure(response);
-				}
+		return java.util.Objects.requireNonNull(
+				ChatModelObservationDocumentation.CHAT_MODEL_OPERATION
+					.observation(this.observationConvention, DEFAULT_OBSERVATION_CONVENTION, () -> observationContext,
+							this.observationRegistry)
+					.observe(() -> {
+						Response response = this.openAiClient.responses().create(request, requestOptions);
+						if (isFailed(response)) {
+							throw ResponsesItemMapper.failure(response);
+						}
 
-				Generation generation = ResponsesItemMapper.toGeneration(response);
-				Usage usage = ResponsesItemMapper.toUsage(response);
-				ChatResponse chatResponse = new ChatResponse(List.of(generation),
-						ResponsesItemMapper.toResponseMetadata(response, usage));
+						Generation generation = ResponsesItemMapper.toGeneration(response);
+						Usage usage = ResponsesItemMapper.toUsage(response);
+						ChatResponse chatResponse = new ChatResponse(List.of(generation),
+								ResponsesItemMapper.toResponseMetadata(response, usage));
 
-				observationContext.setResponse(chatResponse);
-				return chatResponse;
-			});
+						observationContext.setResponse(chatResponse);
+						return chatResponse;
+					}));
 	}
 
 	@Override

@@ -579,7 +579,7 @@ class WebFluxMcpTransportTests {
 			.header("Mcp-Name", "echo")
 			.exchange()
 			.expectStatus()
-			.isEqualTo(HttpStatus.CONTENT_TOO_LARGE);
+			.isEqualTo(HttpStatus.PAYLOAD_TOO_LARGE);
 	}
 
 	@Test
@@ -598,7 +598,7 @@ class WebFluxMcpTransportTests {
 			.body(body, DataBuffer.class)
 			.exchange()
 			.expectStatus()
-			.isEqualTo(HttpStatus.CONTENT_TOO_LARGE);
+			.isEqualTo(HttpStatus.PAYLOAD_TOO_LARGE);
 	}
 
 	@Test

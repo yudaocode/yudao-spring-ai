@@ -167,7 +167,7 @@ final class ModernTransportSupport {
 
 			@Override
 			public List<String> getHeaderNames() {
-				return List.copyOf(request.headers().asHttpHeaders().headerNames());
+				return List.copyOf(request.headers().asHttpHeaders().keySet());
 			}
 		};
 	}

@@ -219,14 +219,13 @@ class OpenSearchVectorStoreTest {
 		OpenSearchDocument openSearchDocument = new OpenSearchDocument("doc-1", "Spring AI is great",
 				Map.of("author", "tester", "priority", 1), new float[] { 0.1f, 0.2f, 0.3f });
 
-		Hit<OpenSearchDocument> hit = Hit.<OpenSearchDocument>builder()
-			.id("doc-1")
+		Hit<OpenSearchDocument> hit = new Hit.Builder<OpenSearchDocument>().id("doc-1")
 			.index("spring-ai-document-index")
 			.score(0.95)
 			.source(openSearchDocument)
 			.build();
 
-		HitsMetadata<OpenSearchDocument> hitsMetadata = HitsMetadata.<OpenSearchDocument>builder()
+		HitsMetadata<OpenSearchDocument> hitsMetadata = new HitsMetadata.Builder<OpenSearchDocument>()
 			.hits(List.of(hit))
 			.total(TotalHits.of(t -> t.value(1).relation(TotalHitsRelation.Eq)))
 			.build();

@@ -30,7 +30,7 @@ class ChromaEnvironment {
 
 	private final @Nullable String keyToken;
 
-	ChromaEnvironment(Map<String, @Nullable String> env) {
+	ChromaEnvironment(Map<String, ? extends @Nullable String> env) {
 		if (env.containsKey(CHROMA_SERVER_AUTH_CREDENTIALS)) {
 			this.keyToken = env.get(CHROMA_SERVER_AUTH_CREDENTIALS);
 			return;
