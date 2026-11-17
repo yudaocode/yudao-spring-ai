@@ -17,6 +17,12 @@
 	</properties>
 
 	<dependencies>
+		<dependency>
+			<groupId>cn.iocoder.spring-ai</groupId>
+			<artifactId>spring-ai-boot-testcontainers-compat</artifactId>
+			<version>${project.parent.version}</version>
+		</dependency>
+
 
 		<!-- TODO: Once all the per module autoconfigurations are updated, the following autoconfiguration should be removed -->
 
@@ -325,9 +331,9 @@
 		</dependency>
 
 		<dependency>
-			<groupId>org.opensearch</groupId>
-			<artifactId>opensearch-testcontainers</artifactId>
-			<version>${opensearch-testcontainers.version}</version>
+			<groupId>cn.iocoder.spring-ai</groupId>
+			<artifactId>spring-ai-opensearch-testcontainers-compat</artifactId>
+			<version>${project.parent.version}</version>
 			<optional>true</optional>
 		</dependency>
 

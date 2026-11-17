@@ -1,0 +1,14 @@
+{
+  "upstreamVersion": "2.1.3",
+  "sourceArtifact": "org.opensearch:opensearch-testcontainers:2.1.3:jar:sources",
+  "sourceArtifactSha256": "da5d382c0457ac0f2767fdf5524735e4b8130628e7f06b453155c3e078361678",
+  "files": [
+    {
+      "path": "src/main/java/org/opensearch/testcontainers/OpensearchContainer.java",
+      "upstreamSha256": "7f4b8465ec4a0f64370ff18f541e663a00add31e50ee76922f10403abe5dcb33",
+      "sha256": "976a4e218feaca08c950b0bcf700b90e004f9b21aa0f9359d4e39c24c29cb117"
+    }
+  ],
+  "note": "Highest inspected release retaining the legacy OpensearchContainer type used by Spring AI. Official binary major55 is replaced with a Java8 source build.4.1 renames the type to OpenSearchContainer and is not included.",
+  "additionalBackport": "Preserve explicitly configured discovery.type, matching the4.1.0 source behavior; native8 regression reproduced old forced single-node behavior first."
+}

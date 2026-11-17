@@ -121,7 +121,7 @@ No real AWS account was called; the engine is a local test container and AWS sig
 
 ## Coherence Java8 vector port
 
-The default reactor contains196 modules, adding the Coherence store and a focused source compatibility SDK.
+The Coherence checkpoint expanded the default reactor to196 modules, adding the store and a focused source compatibility SDK.
 The runtime is core14.1.1-0-29 with24.09 vector/HNSW source families, not the unmodified24.09 runtime.
 The final component gate passed18 native8 unit cases and28 native8 integrations: six Java/POF × NONE/BINARY/HNSW cases across two JVMs plus22 original real-MiniLM cases.
 All have zero failures/errors/skips and retries disabled.
@@ -133,3 +133,27 @@ See [usage and runtime boundaries](compatibility/coherence-ai/README.md) and [so
 The196-module native8 clean install completed with8072 cases, zero failures/errors and17 existing conditional skips.
 Its full-log suite totals agree with the native8 XML totals; the focused Coherence unit/IT gate was also rerun after the final test infrastructure fixes.
 The earlier194/8052 checkpoint is historical.
+
+## Boot2 Testcontainers development services
+
+The Java8 default reactor now has200 modules, restoring `spring-ai-spring-boot-testcontainers` with three focused compatibility helpers.
+They port Boot3.5.15's four factory/exception sources, Boot3.1.12's21 ordinary-JVM lifecycle/context sources, and the Java11 OpenSearch container2.1.3 source.
+The OpenSearch legacy generic type is retained; the discovery-setting fix from4.1 is backported without introducing its renamed API.
+Original modern Boot/OpenSearch runtime jars are excluded and rejected by the Boot2 build constraints.
+
+Focused native8 gates passed58 units, four real Docker integrations and two installed Boot2 consumer cases, all zero failures/errors/skips with retries disabled.
+All nine AI factory kinds have SPI/property mapping units; real Docker acceptance covers nginx and OpenSearch, including the original real-MiniLM integration.
+Bean, static-field/dynamic-property and composed-annotation registration follow the actual Boot context lifetime.
+Shutdown assertions run before manual cleanup.
+
+The200-module dependency validation passes.
+The196-module8072-case full unit checkpoint remains separately recorded; this batch does not claim a new full200-module unit/IT run.
+All64 owned producer classes pass member-linkage checks against their compile classpaths, including the declared provided Boot2 core and optional provider SDKs.
+The active consumer's32 bridge/OpenSearch-factory classes pass against the actual installed test/runtime classpath.
+An incomplete producer runtime-only scan omitted the provided Boot core and produced unresolved references; that raw result is retained separately from the completed compile/consumer checks.
+
+The consumer test/runtime closure contains133 jars and45847 effective base classes, all major52 or below.
+Whole-dependency static API findings remain15:12 Java9 Flow adapter references, two old SLF4J binder fallback calls and one reflection-filtered Unsafe method which exists in the Java8 runtime.
+Native8 tests exercise the relevant logging and shaded Guava cache/hash/comparator/future paths.
+Java9 Flow interop, native-image/AOT and live acceptance for every optional provider are outside these checks.
+See [usage and source boundaries](compatibility/boot-testcontainers/README.md), the three helper provenance receipts and the standalone fixture.

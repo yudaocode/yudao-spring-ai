@@ -95,8 +95,14 @@ OpenSearch2.19.3 的精确余弦评分已补三线统一配置：设置 `spring.
 Coherence 向量库已接入 Java8 版本线：引入 `cn.iocoder.spring-ai:spring-ai-coherence-store`，由 BOM 管理版本。
 运行核心为 Coherence14.1.1-0-29，向量/HNSW 能力从24.09源码移植；需要显式配置存储节点和 POF 类型，不能混入官方24.09 Java17运行库。
 原生JDK8的18项单测、28项集成测试（含两个独立进程与真实MiniLM推理）和独立Boot2消费测试均通过。
-默认196模块完整 native8 clean install 已通过8072项测试，零失败/错误、17项条件跳过；上述集成和独立消费门禁另列。
+196模块完整 native8 clean install 检查点已通过8072项测试，零失败/错误、17项条件跳过；上述集成和独立消费门禁另列。
 完整配置、使用示例和支持边界见 [Coherence 使用说明](compatibility/coherence-ai/README.md)。
+
+Java8 版本线已恢复 `spring-ai-spring-boot-testcontainers`，默认构建扩至200模块。
+使用 `cn.iocoder.spring-ai:spring-ai-spring-boot-testcontainers`（test scope），可使用 `@ServiceConnection`、`@ImportTestcontainers` 和动态属性，容器随 Boot2 上下文启动、停止。
+这一批58项定向单测、4项真实Docker集成、2项独立Boot2消费测试均在原生JDK8零失败/错误/跳过；9类连接工厂均有SPI/属性映射单测，真实容器覆盖nginx与OpenSearch，并非所有后端均已实服验收。
+200模块依赖约束检查已通过；全量单测仍分别保留上面的196模块检查点，没有把分项结果写成新一轮200模块全量。
+依赖配置、示例和边界见 [Testcontainers 使用说明](compatibility/boot-testcontainers/README.md)。
 
 <!-- YUDAO-COMPATIBILITY-INTRO-END -->
 

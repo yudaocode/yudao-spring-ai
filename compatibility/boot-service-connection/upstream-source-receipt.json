@@ -1,0 +1,34 @@
+{
+  "runtimeBoot": "2.7.18",
+  "sources": [
+    {
+      "path": "src/main/java/org/springframework/boot/autoconfigure/service/connection/ConnectionDetailsFactory.java",
+      "sha256": "b19e6202021565aa289323347d1b113429df5f11ea126c4f711817c18d6f915d",
+      "sourceArtifact": "spring-boot-autoconfigure-3.5.15-sources.jar",
+      "sourcePath": "org/springframework/boot/autoconfigure/service/connection/ConnectionDetailsFactory.java",
+      "sourceSha256": "c176bb7e5e808f71de8e0f200b9aa4328bb2db8e225ff8849c3351599aef2f6d"
+    },
+    {
+      "path": "src/main/java/org/springframework/boot/autoconfigure/service/connection/ConnectionDetailsFactoryNotFoundException.java",
+      "sha256": "bba13ed7fb770641948c43a9257800f08e6eba6a8e254b8d9e09467ca55d4357",
+      "sourceArtifact": "spring-boot-autoconfigure-3.5.15-sources.jar",
+      "sourcePath": "org/springframework/boot/autoconfigure/service/connection/ConnectionDetailsFactoryNotFoundException.java",
+      "sourceSha256": "98685295ac16351c015876a7f4157ae21cf9865989ade8eacd01089954506cc9"
+    },
+    {
+      "path": "src/main/java/org/springframework/boot/autoconfigure/service/connection/ConnectionDetailsNotFoundException.java",
+      "sha256": "99cbf1d39ace0b35662640e127b1adc0e1cb0ea2181bc75fe68b5b90c697f1be",
+      "sourceArtifact": "spring-boot-autoconfigure-3.5.15-sources.jar",
+      "sourcePath": "org/springframework/boot/autoconfigure/service/connection/ConnectionDetailsNotFoundException.java",
+      "sourceSha256": "7c341718de4bda7bdeac9628d3f2f368fc4a89f47ce8cba9fadb2af70d274132"
+    },
+    {
+      "path": "src/main/java/org/springframework/boot/autoconfigure/service/connection/ConnectionDetailsFactories.java",
+      "sha256": "bdd20133f84e12e63e7f44623ee85c7dcbcc54144c66cd64abffbc02b7259d64",
+      "sourceArtifact": "spring-boot-autoconfigure-3.5.15-sources.jar",
+      "sourcePath": "org/springframework/boot/autoconfigure/service/connection/ConnectionDetailsFactories.java",
+      "sourceSha256": "70b402cd8a15fb7ff9b1c1748cb23bdfceffe8c3b1635bcd4d99b4fc21e9c712"
+    }
+  ],
+  "note": "JVM-only adaptation; native-image/AOT classes omitted; required lifecycle and SPI are implemented."
+}

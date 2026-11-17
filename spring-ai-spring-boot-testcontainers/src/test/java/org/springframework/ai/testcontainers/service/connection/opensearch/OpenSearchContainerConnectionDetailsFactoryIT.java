@@ -47,6 +47,7 @@ import org.springframework.core.io.DefaultResourceLoader;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 
+@org.junit.jupiter.api.Timeout(180)
 class OpenSearchContainerConnectionDetailsFactoryIT {
 
 	private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
@@ -121,13 +122,22 @@ class OpenSearchContainerConnectionDetailsFactoryIT {
 
 		@Bean
 		public EmbeddingModel embeddingModel() {
-			return new TransformersEmbeddingModel();
+			TransformersEmbeddingModel model = new TransformersEmbeddingModel();
+			model.setResourceCacheDirectory("target/service-connection-model-cache");
+			model.setTokenizerResource("classpath:/onnx/all-MiniLM-L6-v2/tokenizer.json");
+			String localModel = System.getProperty("compat.embedding.model");
+			if (localModel != null) {
+				model.setModelResource(localModel);
+			}
+			return model;
 		}
 
 		@Bean
 		@ServiceConnection
 		OpensearchContainer<?> opensearch() {
-			return new OpensearchContainer<>(OpenSearchImage.DEFAULT_IMAGE);
+			return new OpensearchContainer<>(OpenSearchImage.DEFAULT_IMAGE)
+				.withEnv("OPENSEARCH_JAVA_OPTS", "-Xms512m -Xmx512m")
+				.withLabel("org.yudao.compat.task", "boot2-ai-opensearch-service-connection");
 		}
 
 	}

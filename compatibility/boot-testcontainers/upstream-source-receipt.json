@@ -1,0 +1,153 @@
+{
+  "runtimeBoot": "2.7.18",
+  "sources": [
+    {
+      "path": "src/main/java/org/springframework/boot/testcontainers/context/ContainerFieldsImporter.java",
+      "sha256": "8b04f07e4d0ca43d28fea7d628bf58bdba66a4faad1e6fd0e7d8dcf0cb2f7986",
+      "sourceArtifact": "boot-testcontainers-3.1.12-sources.jar",
+      "sourcePath": "org/springframework/boot/testcontainers/context/ContainerFieldsImporter.java",
+      "sourceSha256": "8b04f07e4d0ca43d28fea7d628bf58bdba66a4faad1e6fd0e7d8dcf0cb2f7986"
+    },
+    {
+      "path": "src/main/java/org/springframework/boot/testcontainers/context/ImportTestcontainers.java",
+      "sha256": "1271d8c5339e20d9983bcbc10b4d9ef8120173bcd18500727823f4d36608bd4e",
+      "sourceArtifact": "boot-testcontainers-3.1.12-sources.jar",
+      "sourcePath": "org/springframework/boot/testcontainers/context/ImportTestcontainers.java",
+      "sourceSha256": "1271d8c5339e20d9983bcbc10b4d9ef8120173bcd18500727823f4d36608bd4e"
+    },
+    {
+      "path": "src/main/java/org/springframework/boot/testcontainers/context/TestcontainerFieldBeanDefinition.java",
+      "sha256": "5171d331d5f3cf7a911944b5f7ea564236519121e860869ab1bbadd48141a854",
+      "sourceArtifact": "boot-testcontainers-3.1.12-sources.jar",
+      "sourcePath": "org/springframework/boot/testcontainers/context/TestcontainerFieldBeanDefinition.java",
+      "sourceSha256": "5171d331d5f3cf7a911944b5f7ea564236519121e860869ab1bbadd48141a854"
+    },
+    {
+      "path": "src/main/java/org/springframework/boot/testcontainers/context/ImportTestcontainersRegistrar.java",
+      "sha256": "14e512d7af380ad2a7f9225e6d99a83c77d8c2381b1170418e5750a3b250be3b",
+      "sourceArtifact": "boot-testcontainers-3.1.12-sources.jar",
+      "sourcePath": "org/springframework/boot/testcontainers/context/ImportTestcontainersRegistrar.java",
+      "sourceSha256": "14e512d7af380ad2a7f9225e6d99a83c77d8c2381b1170418e5750a3b250be3b"
+    },
+    {
+      "path": "src/main/java/org/springframework/boot/testcontainers/context/DynamicPropertySourceMethodsImporter.java",
+      "sha256": "d4c68b32325075c6a2f82d91013b1a9d1a74fc8f5224820ab3afd5cfd963529e",
+      "sourceArtifact": "boot-testcontainers-3.1.12-sources.jar",
+      "sourcePath": "org/springframework/boot/testcontainers/context/DynamicPropertySourceMethodsImporter.java",
+      "sourceSha256": "d4c68b32325075c6a2f82d91013b1a9d1a74fc8f5224820ab3afd5cfd963529e"
+    },
+    {
+      "path": "src/main/java/org/springframework/boot/testcontainers/lifecycle/TestcontainersLifecycleBeanPostProcessor.java",
+      "sha256": "07dda5947f370efb95440e04c10d65a35bbf4de5fc0f7de1986a631f5f2db8ac",
+      "sourceArtifact": "boot-testcontainers-3.1.12-sources.jar",
+      "sourcePath": "org/springframework/boot/testcontainers/lifecycle/TestcontainersLifecycleBeanPostProcessor.java",
+      "sourceSha256": "07dda5947f370efb95440e04c10d65a35bbf4de5fc0f7de1986a631f5f2db8ac"
+    },
+    {
+      "path": "src/main/java/org/springframework/boot/testcontainers/lifecycle/TestcontainersLifecycleApplicationContextInitializer.java",
+      "sha256": "941c38c570f049b15a74b624639931cf91483849c2c6c796a368172e7d92e583",
+      "sourceArtifact": "boot-testcontainers-3.1.12-sources.jar",
+      "sourcePath": "org/springframework/boot/testcontainers/lifecycle/TestcontainersLifecycleApplicationContextInitializer.java",
+      "sourceSha256": "941c38c570f049b15a74b624639931cf91483849c2c6c796a368172e7d92e583"
+    },
+    {
+      "path": "src/main/java/org/springframework/boot/testcontainers/lifecycle/TestcontainersLifecycleBeanFactoryPostProcessor.java",
+      "sha256": "e252da4200c774a6370b6eddf86e806f6a878316005d7bec6f60e6ece915a19d",
+      "sourceArtifact": "boot-testcontainers-3.1.12-sources.jar",
+      "sourcePath": "org/springframework/boot/testcontainers/lifecycle/TestcontainersLifecycleBeanFactoryPostProcessor.java",
+      "sourceSha256": "e252da4200c774a6370b6eddf86e806f6a878316005d7bec6f60e6ece915a19d"
+    },
+    {
+      "path": "src/main/java/org/springframework/boot/testcontainers/properties/TestcontainersPropertySourceAutoConfiguration.java",
+      "sha256": "d251e9615b592d7313a40f7062cb75ac8e3033bcfb92cbc4ec1751be9fc0342f",
+      "sourceArtifact": "boot-testcontainers-3.1.12-sources.jar",
+      "sourcePath": "org/springframework/boot/testcontainers/properties/TestcontainersPropertySourceAutoConfiguration.java",
+      "sourceSha256": "d251e9615b592d7313a40f7062cb75ac8e3033bcfb92cbc4ec1751be9fc0342f"
+    },
+    {
+      "path": "src/main/java/org/springframework/boot/testcontainers/properties/TestcontainersPropertySource.java",
+      "sha256": "cfda8d54277f71499f8ff5b11d20ceeb4a126756f050c359d5bdc8e4ad8255a2",
+      "sourceArtifact": "boot-testcontainers-3.1.12-sources.jar",
+      "sourcePath": "org/springframework/boot/testcontainers/properties/TestcontainersPropertySource.java",
+      "sourceSha256": "cfda8d54277f71499f8ff5b11d20ceeb4a126756f050c359d5bdc8e4ad8255a2"
+    },
+    {
+      "path": "src/main/java/org/springframework/boot/testcontainers/beans/TestcontainerBeanDefinition.java",
+      "sha256": "951db96d6ae3f3bdebb3098b06fd7ceb1e40ee2c30d7c0982fa7d543d463e63b",
+      "sourceArtifact": "boot-testcontainers-3.1.12-sources.jar",
+      "sourcePath": "org/springframework/boot/testcontainers/beans/TestcontainerBeanDefinition.java",
+      "sourceSha256": "951db96d6ae3f3bdebb3098b06fd7ceb1e40ee2c30d7c0982fa7d543d463e63b"
+    },
+    {
+      "path": "src/main/java/org/springframework/boot/testcontainers/service/connection/ContainerConnectionSource.java",
+      "sha256": "8bfbd7efde68cdd981125c33bacbc9ac160f44466d9c023c98f87386d1aec948",
+      "sourceArtifact": "boot-testcontainers-3.1.12-sources.jar",
+      "sourcePath": "org/springframework/boot/testcontainers/service/connection/ContainerConnectionSource.java",
+      "sourceSha256": "8bfbd7efde68cdd981125c33bacbc9ac160f44466d9c023c98f87386d1aec948"
+    },
+    {
+      "path": "src/main/java/org/springframework/boot/testcontainers/service/connection/ServiceConnectionContextCustomizerFactory.java",
+      "sha256": "d287d86d35aab9875b236587a2e77bee53554ec30e86bea80db75967ad489dcc",
+      "sourceArtifact": "boot-testcontainers-3.1.12-sources.jar",
+      "sourcePath": "org/springframework/boot/testcontainers/service/connection/ServiceConnectionContextCustomizerFactory.java",
+      "sourceSha256": "d287d86d35aab9875b236587a2e77bee53554ec30e86bea80db75967ad489dcc"
+    },
+    {
+      "path": "src/main/java/org/springframework/boot/testcontainers/service/connection/ServiceConnectionContextCustomizer.java",
+      "sha256": "80148c2ccc3c44062012cadeaf6c5ac07db8795c235aa7926688b220afd5d23b",
+      "sourceArtifact": "boot-testcontainers-3.1.12-sources.jar",
+      "sourcePath": "org/springframework/boot/testcontainers/service/connection/ServiceConnectionContextCustomizer.java",
+      "sourceSha256": "80148c2ccc3c44062012cadeaf6c5ac07db8795c235aa7926688b220afd5d23b"
+    },
+    {
+      "path": "src/main/java/org/springframework/boot/testcontainers/service/connection/ServiceConnectionAutoConfiguration.java",
+      "sha256": "ef15b15486a49520d4769257413a054ccab8995a792519985a524f53b0de5d59",
+      "sourceArtifact": "boot-testcontainers-3.1.12-sources.jar",
+      "sourcePath": "org/springframework/boot/testcontainers/service/connection/ServiceConnectionAutoConfiguration.java",
+      "sourceSha256": "ef15b15486a49520d4769257413a054ccab8995a792519985a524f53b0de5d59"
+    },
+    {
+      "path": "src/main/java/org/springframework/boot/testcontainers/service/connection/ContainerConnectionDetailsFactory.java",
+      "sha256": "be79d85dcd578b2b4f9322c2eada0b0982149f1e7f63028636953d8fbcf5b84e",
+      "sourceArtifact": "boot-testcontainers-3.1.12-sources.jar",
+      "sourcePath": "org/springframework/boot/testcontainers/service/connection/ContainerConnectionDetailsFactory.java",
+      "sourceSha256": "04af71803b334e74ee022f36aab7e2106e02093b75f6f066e5f3525e10a741c3"
+    },
+    {
+      "path": "src/main/java/org/springframework/boot/testcontainers/service/connection/ServiceConnectionAutoConfigurationRegistrar.java",
+      "sha256": "9763019a044cbd72ccd15d1d3a9479776712a0ae2aaf87ba5194472452097e18",
+      "sourceArtifact": "boot-testcontainers-3.1.12-sources.jar",
+      "sourcePath": "org/springframework/boot/testcontainers/service/connection/ServiceConnectionAutoConfigurationRegistrar.java",
+      "sourceSha256": "ce26beb925625d2769cb8a8c7e00b12c04f89ff212b561e96c71bb641088beb9"
+    },
+    {
+      "path": "src/main/java/org/springframework/boot/testcontainers/service/connection/ConnectionDetailsRegistrar.java",
+      "sha256": "c6b104a3d3c18c8e1334fd4baea4936c9c1e45b7d1ed469301ed4fcf6d46f53d",
+      "sourceArtifact": "boot-testcontainers-3.1.12-sources.jar",
+      "sourcePath": "org/springframework/boot/testcontainers/service/connection/ConnectionDetailsRegistrar.java",
+      "sourceSha256": "9bfc08ca43d070e08ca500b351f44c44c56f4aafccad11e82f4f8c69840fc326"
+    },
+    {
+      "path": "src/main/java/org/springframework/boot/testcontainers/service/connection/BeanOrigin.java",
+      "sha256": "6ee4c5ba79805f63ea7858a657f88ee5dba94cd4f8beba645765966a87ed2648",
+      "sourceArtifact": "boot-testcontainers-3.1.12-sources.jar",
+      "sourcePath": "org/springframework/boot/testcontainers/service/connection/BeanOrigin.java",
+      "sourceSha256": "6ee4c5ba79805f63ea7858a657f88ee5dba94cd4f8beba645765966a87ed2648"
+    },
+    {
+      "path": "src/main/java/org/springframework/boot/testcontainers/service/connection/ServiceConnection.java",
+      "sha256": "da2844fb1f0760073404340c4bfaf6c0eb1d3a2c3f5f46e52226762bcd782083",
+      "sourceArtifact": "boot-testcontainers-3.1.12-sources.jar",
+      "sourcePath": "org/springframework/boot/testcontainers/service/connection/ServiceConnection.java",
+      "sourceSha256": "da2844fb1f0760073404340c4bfaf6c0eb1d3a2c3f5f46e52226762bcd782083"
+    },
+    {
+      "path": "src/main/java/org/springframework/boot/testcontainers/service/connection/FieldOrigin.java",
+      "sha256": "9001ff9cdf5a16095c72228222c0f84422706286062d019894c81b568c4aa431",
+      "sourceArtifact": "boot-testcontainers-3.1.12-sources.jar",
+      "sourcePath": "org/springframework/boot/testcontainers/service/connection/FieldOrigin.java",
+      "sourceSha256": "9001ff9cdf5a16095c72228222c0f84422706286062d019894c81b568c4aa431"
+    }
+  ],
+  "note": "JVM-only adaptation; native-image/AOT classes omitted; required lifecycle and SPI are implemented."
+}

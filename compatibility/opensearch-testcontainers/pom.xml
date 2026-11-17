@@ -1,0 +1,31 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<project xmlns="http://maven.apache.org/POM/4.0.0">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>cn.iocoder.spring-ai</groupId>
+        <artifactId>spring-ai-parent</artifactId>
+        <version>2.1.0-jdk8-SNAPSHOT</version>
+        <relativePath>../../pom.xml</relativePath>
+    </parent>
+    <artifactId>spring-ai-opensearch-testcontainers-compat</artifactId>
+    <properties>
+        <disable.checks>true</disable.checks>
+    </properties>
+    <dependencies>
+        <dependency>
+            <groupId>cn.iocoder.spring-ai</groupId>
+            <artifactId>spring-ai-commons</artifactId>
+            <version>${project.parent.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>testcontainers</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <version>${spring-boot.version}</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+</project>

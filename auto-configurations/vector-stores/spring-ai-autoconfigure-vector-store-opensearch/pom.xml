@@ -94,9 +94,9 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>org.opensearch</groupId>
-			<artifactId>opensearch-testcontainers</artifactId>
-			<version>${opensearch-testcontainers.version}</version>			
+			<groupId>cn.iocoder.spring-ai</groupId>
+			<artifactId>spring-ai-opensearch-testcontainers-compat</artifactId>
+			<version>${project.parent.version}</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>

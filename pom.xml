@@ -11,6 +11,10 @@
 	<modules>
 		<module>compatibility/opensearch-client</module>
 		<module>compatibility/coherence-ai</module>
+		<module>compatibility/opensearch-testcontainers</module>
+		<module>compatibility/boot-service-connection</module>
+		<module>compatibility/boot-testcontainers</module>
+		<module>spring-ai-spring-boot-testcontainers</module>
 		<module>vector-stores/spring-ai-coherence-store</module>
 		<module>compatibility/agent-utils-common</module>
 		<module>compatibility/agent-utils</module>
@@ -296,7 +300,6 @@
 		<json-schema-validator.version>2.0.8</json-schema-validator.version>
 		<json-unit-assertj.version>2.40.1</json-unit-assertj.version>
 		<mockk-jvm.version>1.13.13</mockk-jvm.version>
-		<opensearch-testcontainers.version>1.0.0</opensearch-testcontainers.version>
 		<rest-assured-bom.version>5.5.6</rest-assured-bom.version>
 		<!-- Build plugins -->
 		<antlr.version>4.13.1</antlr.version>
@@ -487,6 +490,7 @@
 										<exclude>io.modelcontextprotocol.sdk:mcp-json-jackson3</exclude>
 										<!-- The source port in spring-ai-commons replaces all original ITU jars. -->
 										<exclude>com.ethlo.time:itu</exclude>
+										<exclude>org.opensearch:opensearch-testcontainers</exclude>
 										<exclude>org.testcontainers:*:[2,)</exclude>
 										<exclude>org.junit.jupiter:*:[6,)</exclude>
 										<exclude>jakarta.servlet:jakarta.servlet-api:[5,)</exclude>
