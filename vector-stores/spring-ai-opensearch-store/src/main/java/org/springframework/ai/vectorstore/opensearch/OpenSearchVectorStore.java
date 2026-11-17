@@ -387,7 +387,7 @@ public class OpenSearchVectorStore extends AbstractObservationVectorStore implem
 						.query(getOpenSearchQueryString(filterExpression)))))
 				.field("embedding")
 				.k(topK)
-				.vector(embedding))))
+				.vector(toFloatList(embedding)))))
 			.minScore(similarityThreshold)
 			.build();
 	}
@@ -411,7 +411,7 @@ public class OpenSearchVectorStore extends AbstractObservationVectorStore implem
 					.query(getOpenSearchQueryString(filterExpression))))
 				.script(scriptBuilder -> scriptBuilder
 					.inline(inlineScriptBuilder -> inlineScriptBuilder.source("knn_score")
-						.lang("knn")
+						.lang(language -> language.custom("knn"))
 						.params("field", JsonData.of("embedding"))
 						.params("query_value", JsonData.of(toFloatList(embedding)))
 						.params("space_type", JsonData.of(this.similarityFunction))));

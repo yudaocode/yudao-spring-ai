@@ -40,6 +40,36 @@
 			<artifactId>apache-client</artifactId>
 			<version>${awssdk.version}</version>
 		</dependency>
-	<dependency><groupId>cn.iocoder.spring-ai</groupId><artifactId>spring-ai-autoconfigure-observation-compat</artifactId><version>${project.parent.version}</version></dependency></dependencies>
+	<dependency><groupId>cn.iocoder.spring-ai</groupId><artifactId>spring-ai-autoconfigure-observation-compat</artifactId><version>${project.parent.version}</version></dependency>
+		<dependency>
+			<groupId>software.amazon.awssdk</groupId>
+			<artifactId>sdk-core</artifactId>
+			<version>${awssdk.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>software.amazon.awssdk</groupId>
+			<artifactId>auth</artifactId>
+			<version>${awssdk.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>software.amazon.awssdk</groupId>
+			<artifactId>regions</artifactId>
+			<version>${awssdk.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>software.amazon.awssdk</groupId>
+			<artifactId>http-auth-aws</artifactId>
+			<version>${awssdk.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>cn.iocoder.spring-ai</groupId>
+			<artifactId>spring-ai-spring-web-compat</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+	</dependencies>
 
 </project>

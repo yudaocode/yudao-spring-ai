@@ -1,0 +1,27 @@
+{
+  "upstream": "org.opensearch.client:opensearch-java:3.11.0",
+  "binaryUrl": "https://repo.maven.apache.org/maven2/org/opensearch/client/opensearch-java/3.11.0/opensearch-java-3.11.0.jar",
+  "binarySha256": "335cebbd36c883fa130094867f03384e7b281348caed35dc6d395933bd138fa6",
+  "sourcesSha256": "1bfd069d7cceb5bf1bb23083268e3a9917a4fe629d918cb44990f0918626f666",
+  "recompiledSources": [
+    {
+      "path": "org/opensearch/client/util/PercentCodec.java",
+      "upstreamSha256": "e0a0fcc982b011114f06874648405c2fa7a02e4da83cf37cd53939553d1dca6a",
+      "changes": "Add port author only; original code is compiled against --release8."
+    },
+    {
+      "path": "org/opensearch/client/transport/httpclient5/ApacheHttpClient5Transport.java",
+      "upstreamSha256": "45e029b0502556f343521c94895ccf48fe88a283ea00a4ec793b4495fa9ce460",
+      "changes": "Add port author only; original code is compiled against --release8."
+    }
+  ],
+  "unpackedExcludes": [
+    "META-INF/MANIFEST.MF",
+    "META-INF/versions/**",
+    "module-info.class",
+    "org/opensearch/client/util/PercentCodec.class",
+    "org/opensearch/client/util/PercentCodec$*.class",
+    "org/opensearch/client/transport/httpclient5/ApacheHttpClient5Transport.class",
+    "org/opensearch/client/transport/httpclient5/ApacheHttpClient5Transport$*.class"
+  ]
+}

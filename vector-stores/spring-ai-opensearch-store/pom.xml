@@ -19,9 +19,9 @@
 			<version>${project.parent.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>org.opensearch.client</groupId>
-			<artifactId>opensearch-java</artifactId>
-			<version>${opensearch-client.version}</version>
+			<groupId>cn.iocoder.spring-ai</groupId>
+			<artifactId>spring-ai-opensearch-client-compat</artifactId>
+			<version>${project.version}</version>
 		</dependency>
 		<!-- TESTING -->
 		<dependency>

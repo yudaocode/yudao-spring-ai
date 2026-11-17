@@ -79,6 +79,10 @@ Java 8 分支默认构建另包含 Agent Utils 0.13.0 的 common/tools 兼容模
 
 MCP 的 Jackson2 schema 运行库已排除重复的官方 ITU，统一使用随兼容版提供的 Java8-safe ITU1.17；宿主不要再引入原版 `com.ethlo.time:itu`。
 
+Java8 的 OpenSearch starter 现使用 3.11.0 客户端兼容制品，修复原始 major52 字节码中仍调用 Java9 ByteBuffer 方法的问题。
+SDK 保留原包名，两个原始类按 Java8 API 重编译，其他6,610个载荷条目逐字节校验。
+Boot2 parent 下还需覆盖 HTTP5/Core5 与 JSON-P/JSON-B/Yasson 版本；完整依赖、两种 starter 和本地签名验收见 [OpenSearch 使用说明](compatibility/opensearch-client/README.md)。
+
 详细构建、源码基线、API 差异及当前支持边界见 [COMPATIBILITY.md](COMPATIBILITY.md)。
 
 下方逐字保留官方项目原始 README，其中的官方 Maven 坐标和发布状态仅针对上游项目；使用本兼容版时，以本节坐标、版本线和支持范围为准。

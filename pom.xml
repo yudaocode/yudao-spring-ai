@@ -9,6 +9,7 @@
 	<name>Spring AI Parent</name>
 	<description>Building AI applications with Spring Boot</description>
 	<modules>
+		<module>compatibility/opensearch-client</module>
 		<module>compatibility/agent-utils-common</module>
 		<module>compatibility/agent-utils</module>
 		<module>spring-ai-bom</module>
@@ -271,7 +272,7 @@
 		<coherence.version>24.09</coherence.version>
 		<milvus.version>2.6.21</milvus.version>
 		<neo4j-cypher-dsl-bom.version>2024.5.1</neo4j-cypher-dsl-bom.version>
-		<opensearch-client.version>2.23.0</opensearch-client.version>
+		<opensearch-client.version>3.11.0</opensearch-client.version>
 		<pgvector.version>0.1.6</pgvector.version>
 		<pinecone.version>6.2.0</pinecone.version>
 		<qdrant.version>1.18.0</qdrant.version>
@@ -1090,10 +1091,15 @@
 	<dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot</artifactId><version>${spring-boot.version}</version><scope>provided</scope><optional>true</optional></dependency></dependencies>
 	<dependencyManagement>
 		<dependencies>
+			<dependency>
+				<groupId>cn.iocoder.spring-ai</groupId>
+				<artifactId>spring-ai-opensearch-client-compat</artifactId>
+				<version>${project.version}</version>
+			</dependency>
 			<dependency><groupId>io.projectreactor</groupId><artifactId>reactor-bom</artifactId><version>2024.0.18</version><type>pom</type><scope>import</scope></dependency><dependency><groupId>io.netty</groupId><artifactId>netty-bom</artifactId><version>4.1.135.Final</version><type>pom</type><scope>import</scope></dependency><dependency>
 				<groupId>org.apache.httpcomponents.core5</groupId>
 				<artifactId>httpcore5-reactive</artifactId>
-				<version>5.3.6</version>
+				<version>5.4.4</version>
 			</dependency>
 			<dependency>
 				<groupId>cn.iocoder.spring-ai</groupId>
@@ -1238,22 +1244,22 @@
 			<dependency>
 				<groupId>org.apache.httpcomponents.client5</groupId>
 				<artifactId>httpclient5</artifactId>
-				<version>5.5.2</version>
+				<version>5.6.5</version>
 			</dependency>
 			<dependency>
 				<groupId>org.apache.httpcomponents.client5</groupId>
 				<artifactId>httpclient5-cache</artifactId>
-				<version>5.5.2</version>
+				<version>5.6.5</version>
 			</dependency>
 			<dependency>
 				<groupId>org.apache.httpcomponents.core5</groupId>
 				<artifactId>httpcore5</artifactId>
-				<version>5.3.6</version>
+				<version>5.4.4</version>
 			</dependency>
 			<dependency>
 				<groupId>org.apache.httpcomponents.core5</groupId>
 				<artifactId>httpcore5-h2</artifactId>
-				<version>5.3.6</version>
+				<version>5.4.4</version>
 			</dependency>
 			<dependency>
 				<groupId>cn.iocoder.spring-ai</groupId>

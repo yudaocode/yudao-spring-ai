@@ -60,7 +60,7 @@ See `compatibility-tests/boot2-agent-utils` for a reproducible source fixture.
 
 The expanded runtime scan covered835 jars /270702 effective base classes, all <=major52.
 Static API scanning remains a separate gate: besides optional modern-VM/Flow/SLF4J fallback branches in third-party libraries, it identified MCP's duplicate original ITU1.14 and OpenSearch2.23 PercentCodec's covariant ByteBuffer.flip call.
-The MCP finding is resolved by the follow-up below; OpenSearch remains an open runtime issue, and full unit success does not claim that uncovered SDK path works.
+The MCP finding is resolved by the follow-up below; the OpenSearch follow-up below resolves the separate codec/transport linkage issues.
 The new Agent Utils classes introduce no missing Java8 API references in that scan.
 
 ## MCP ITU dependency follow-up
@@ -71,4 +71,24 @@ The new class-resource uniqueness regression failed with two implementations bef
 The affected15-module native8 test gate passed2333 cases, zero failures/errors, 2 conditional skips, and all193 modules passed dependency validation.
 This is a follow-up component/dependency gate after the full8042-case checkpoint, not a new full193-module test run.
 The refreshed runtime audit removes the original ITU jar entirely.
-OpenSearch's separate codec issue remains open and has been reproduced on native8.
+OpenSearch's separate codec issue was reproduced on native8 and is resolved by the later3.11 follow-up below.
+
+## OpenSearch3.11 follow-up
+
+The Java8 default reactor expands to194 modules with `spring-ai-opensearch-client-compat`.
+The original3.11 jar has6631 effective base classes but links two Java9-only ByteBuffer method descriptors.
+Only PercentCodec and ApacheHttpClient5Transport source families are recompiled against Java8;6610 other SDK entries are retained unchanged and verified independently.
+The compatibility jar preserves all6631 base classes, including the separately named transport builder.
+The provided original jar is not propagated into applications; the standalone consumer requires exactly one SDK class resource.
+
+HTTP5/Core5 align at5.6.5/5.4.4, retaining the existing Jackson2.21.4/Reactor3.7.19/Jakarta JSON2.1.3 native8 stack.
+AWS starters now carry missing core/auth/region/signer dependencies, and the Java8 AWS starter includes the SSL facade.
+The native Boot2 parent fixture explicitly sets namespace version properties documented in the module README.
+
+Complete194-module native8 clean install:8052 cases,0 failures/errors,17 conditional skips.
+After that full checkpoint, the new static SDK JDK-symbol regression was added; the SDK component then passed9 native8 cases, including both HTTP modes.
+The standalone Boot2 consumer passed5 cases using the AWS starter alone, covering two vector-query modes, AWS client bean creation and actual SigV4 signing with a local mocked transport, and an optional JSON-B mapper round trip.
+The earlier ordinary-starter consumer passed3 cases separately.
+These are separate gates; no new full8053-case one-shot run or real OpenSearch/AWS/model account acceptance is claimed.
+
+The installed SDK also passed static member-linkage checks against the actual Boot2 consumer dependency classpath (HTTP5/Jackson2/JSON/AWS/Reactor), with zero missing references.

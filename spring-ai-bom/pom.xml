@@ -54,6 +54,11 @@
 		<dependencies>
 			<dependency>
 				<groupId>cn.iocoder.spring-ai</groupId>
+				<artifactId>spring-ai-opensearch-client-compat</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>cn.iocoder.spring-ai</groupId>
 				<artifactId>spring-ai-agent-utils-common-compat</artifactId>
 				<version>${project.version}</version>
 			</dependency>
@@ -71,7 +76,7 @@
 			<dependency><groupId>io.projectreactor</groupId><artifactId>reactor-bom</artifactId><version>2024.0.18</version><type>pom</type><scope>import</scope></dependency><dependency><groupId>io.netty</groupId><artifactId>netty-bom</artifactId><version>4.1.135.Final</version><type>pom</type><scope>import</scope></dependency><dependency>
 				<groupId>org.apache.httpcomponents.core5</groupId>
 				<artifactId>httpcore5-reactive</artifactId>
-				<version>5.3.6</version>
+				<version>5.4.4</version>
 			</dependency>
 			<dependency>
 				<groupId>cn.iocoder.spring-ai</groupId>
@@ -1082,17 +1087,17 @@
 			<dependency>
 				<groupId>org.apache.httpcomponents.client5</groupId>
 				<artifactId>httpclient5</artifactId>
-				<version>5.5.2</version>
+				<version>5.6.5</version>
 			</dependency>
 			<dependency>
 				<groupId>org.apache.httpcomponents.core5</groupId>
 				<artifactId>httpcore5</artifactId>
-				<version>5.3.6</version>
+				<version>5.4.4</version>
 			</dependency>
 			<dependency>
 				<groupId>org.apache.httpcomponents.core5</groupId>
 				<artifactId>httpcore5-h2</artifactId>
-				<version>5.3.6</version>
+				<version>5.4.4</version>
 			</dependency>
 			<dependency>
 				<groupId>cn.iocoder.spring-ai</groupId>
