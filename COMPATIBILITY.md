@@ -21,7 +21,7 @@ export JAVA8_HOME=/path/to/jdk8
 
 Java8CompatibilityTests 和 RestClientJava8Tests 会断言实际运行 VM 为 1.8。
 只修改 source/target 或在 JDK 17 上运行测试不视为 Java 8 验收。
-依赖 Enforcer 检查 Boot 2 / Spring 5 主版本、命名空间、传递依赖和字节码上界；默认190模块库级门禁已分段通过；不包含下文明确排除的可选模块。
+依赖 Enforcer 检查 Boot 2 / Spring 5 主版本、命名空间、传递依赖和字节码上界；当前默认202模块完整门禁已通过，历史分段及全量检查点分别保留。
 
 ## 框架兼容模块
 
@@ -31,16 +31,16 @@ Java8CompatibilityTests 和 RestClientJava8Tests 会断言实际运行 VM 为 1.
 - 保留 Spring AI 2.1 的模型/消息/工具 API，不能承诺与 1.1 调用源码完全兼容。旧 ZhiPu assistant 消息类型只为 Alibaba 图状态迁移保留，不恢复旧 provider。
 
 当前验证记录在用户指定的长期笔记目录。
-未向 GitHub/Gitee 或 Maven 远端发布。
+源码按批次提交到 GitHub/Gitee；这些开发坐标尚未向 Maven Central 或远端 SNAPSHOT 仓库发布。
 
 ## 验证范围
 
 - 上游基准：`4cce4caa9653092624b20ae1113633b3ad97d256`。本分支版本为 `2.1.0-jdk8-SNAPSHOT`，对应 Boot `2.7.18`，最低目标 JDK `8`，消费验证 JVM `8`。使用 `cn.iocoder.spring-ai`，保留原 artifactId 和 Java 包名。
-- 默认 reactor：Boot 2 为190模块，Boot 3/4为184模块。默认单元测试、依赖守卫和本地安装通过完整运行及后续按模块/测试类闭合；不冒充每次全量运行都一次通过。Boot 3/4库级全量测试使用JDK17，Java8分支用实际JVM8；实际业务消费另在JDK8/17/25验证。
+- 默认 reactor：Boot 2 当前为202模块，Boot 3/4为184模块。默认单元测试、依赖守卫和本地安装通过完整运行及后续按模块/测试类闭合；不冒充每次全量运行都一次通过。Boot 3/4库级全量测试使用JDK17，Java8分支用实际JVM8；实际业务消费另在JDK8/17/25验证。
 - 三套冻结业务快照跑通启动、同步/SSE聊天、Token入库、图片生成下载、知识库解析/异步切片/带元数据过滤检索/删除。AI1另有各301项按最新类结果合并覆盖，包含隔离Redis恢复验证。外部模型和向量服务并非全部在线验证。
 - 三套共同HTTP回归各10项通过，覆盖OpenAI、Azure Embedding、原生Gemini、通义Embedding/图片及应用ObservationRegistry、思考内容增量。相应服务层与工具类回归在实际JVM8/17/25分别51/54/61项通过。
 - Tika整族分别为Boot2=2.9.4、Boot3=3.3.1、Boot4=4.0.0；BOM仅管理Tika自身组件，避免父BOM覆盖应用框架依赖。
-- Java8分支不将Coherence、Boot3 devservices等受限可选模块计入默认支持；Agent Utils 0.13.0的common/tools两模块现纳入默认构建与BOM，Dream已按当前Session API适配，包含官方默认提示词资源；跨会话回忆要求应用写入一致的principal元数据，见[模块说明](compatibility/agent-utils/README.md)。具体依赖、模块和API边界见本文件对应说明及compatibility目录。
+- Java8分支已将Coherence向量源码兼容模块、Testcontainers及Docker Compose普通JVM开发辅助模块纳入默认构建；AOT/native-image不在本路线支持范围；Agent Utils 0.13.0的common/tools两模块现纳入默认构建与BOM，Dream已按当前Session API适配，包含官方默认提示词资源；跨会话回忆要求应用写入一致的principal元数据，见[模块说明](compatibility/agent-utils/README.md)。具体依赖、模块和API边界见本文件对应说明及compatibility目录。
 - 消费项目需要适配Spring AI 2.x API。既有平台存储值、业务新增功能及Boot/JDK原生类型仍可不同，不能把“能够编译运行”理解为三个业务仓库源码完全相同。当前为开发兼容分支，后续扩展需补实际目标JVM验收。
 
 ## Redis public API migration
@@ -136,7 +136,7 @@ The earlier194/8052 checkpoint is historical.
 
 ## Boot2 Testcontainers development services
 
-The Java8 default reactor now has200 modules, restoring `spring-ai-spring-boot-testcontainers` with three focused compatibility helpers.
+The Testcontainers checkpoint expanded the Java8 default reactor to200 modules, restoring `spring-ai-spring-boot-testcontainers` with three focused compatibility helpers.
 They port Boot3.5.15's four factory/exception sources, Boot3.1.12's21 ordinary-JVM lifecycle/context sources, and the Java11 OpenSearch container2.1.3 source.
 The OpenSearch legacy generic type is retained; the discovery-setting fix from4.1 is backported without introducing its renamed API.
 Original modern Boot/OpenSearch runtime jars are excluded and rejected by the Boot2 build constraints.
@@ -157,3 +157,25 @@ Whole-dependency static API findings remain15:12 Java9 Flow adapter references, 
 Native8 tests exercise the relevant logging and shaded Guava cache/hash/comparator/future paths.
 Java9 Flow interop, native-image/AOT and live acceptance for every optional provider are outside these checks.
 See [usage and source boundaries](compatibility/boot-testcontainers/README.md), the three helper provenance receipts and the standalone fixture.
+
+
+## Boot2 Docker Compose and current full checkpoint
+
+The default reactor now contains202 modules, including the restored Spring AI Docker Compose module and its focused Boot2 source port.
+The port contains44 core/SPI sources from Boot3.1.12, with the3.5.15 multi-name predicate and protected constructor needed by the current nine AI factories.
+It uses the previously ported3.5.15 shared connection registry; no original Boot3 Compose runtime jar or AOT implementation is included.
+Ordinary lifecycle and service-connection application listeners are both registered through Boot2 spring.factories.
+
+Focused native8 gates passed23 units, two actual Compose child-process integrations and one installed Boot2/OpenSearch consumer, all zero failures/errors/skips with retry disabled.
+Tests exercise real CLI execution, JSON parsing, SPI registration, readiness, vector write/filter/score/delete and VM-exit cleanup.
+Shutdown assertions run before explicit cleanup of the unique generated project.
+Services already running before application startup are retained; context.close alone has no additional stop guarantee.
+Docker24.0.6/Compose2.23.0-desktop.1 and local nginx/OpenSearch were used; other factory kinds have metadata/SPI units, not universal live-provider acceptance.
+
+202模块原生JDK8完整 clean install：8121项测试，零失败/错误，17项条件跳过；测试重试关闭，运行期间Java/POM输入哈希保持一致。
+Full-log suite totals match the saved native8 XML suites counted once, with no Java/POM changes during the run.
+The real Docker/Coherence/Compose and installed-artifact consumer gates are separate from this full default unit count.
+Both producer jars have105 classes and no missing JDK/Boot/Spring/Jackson member references against their compile classpaths.
+The actual installed consumer's82 related classes also have zero missing references; its test/runtime closure has123 jars/32584 effective base classes, all <=major52.
+Whole-dependency static findings remain14 optional branches (12 Flow and two SLF4J fallback references); these are not reported as an all-dependency zero-findings scan.
+See [Docker Compose usage and boundaries](compatibility/boot-docker-compose/README.md) and its source provenance receipt.

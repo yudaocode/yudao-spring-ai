@@ -14,6 +14,8 @@
 		<module>compatibility/opensearch-testcontainers</module>
 		<module>compatibility/boot-service-connection</module>
 		<module>compatibility/boot-testcontainers</module>
+		<module>compatibility/boot-docker-compose</module>
+		<module>spring-ai-spring-boot-docker-compose</module>
 		<module>spring-ai-spring-boot-testcontainers</module>
 		<module>vector-stores/spring-ai-coherence-store</module>
 		<module>compatibility/agent-utils-common</module>

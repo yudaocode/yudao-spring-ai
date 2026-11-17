@@ -98,11 +98,21 @@ Coherence 向量库已接入 Java8 版本线：引入 `cn.iocoder.spring-ai:spri
 196模块完整 native8 clean install 检查点已通过8072项测试，零失败/错误、17项条件跳过；上述集成和独立消费门禁另列。
 完整配置、使用示例和支持边界见 [Coherence 使用说明](compatibility/coherence-ai/README.md)。
 
-Java8 版本线已恢复 `spring-ai-spring-boot-testcontainers`，默认构建扩至200模块。
+Java8 版本线的 Testcontainers 批次已恢复 `spring-ai-spring-boot-testcontainers`，当时默认构建扩至200模块。
 使用 `cn.iocoder.spring-ai:spring-ai-spring-boot-testcontainers`（test scope），可使用 `@ServiceConnection`、`@ImportTestcontainers` 和动态属性，容器随 Boot2 上下文启动、停止。
 这一批58项定向单测、4项真实Docker集成、2项独立Boot2消费测试均在原生JDK8零失败/错误/跳过；9类连接工厂均有SPI/属性映射单测，真实容器覆盖nginx与OpenSearch，并非所有后端均已实服验收。
-200模块依赖约束检查已通过；全量单测仍分别保留上面的196模块检查点，没有把分项结果写成新一轮200模块全量。
+该批分项门禁与此前196模块全量分别保留；最新202模块全量检查点见下文。
 依赖配置、示例和边界见 [Testcontainers 使用说明](compatibility/boot-testcontainers/README.md)。
+
+
+Java8 版本线已恢复最后的 `spring-ai-spring-boot-docker-compose`，默认构建为202模块。
+导入本分支 BOM 后，添加 `cn.iocoder.spring-ai:spring-ai-spring-boot-docker-compose`（test scope），设置 `spring.docker.compose.file` 和 `spring.docker.compose.skip.in-tests=false` 即可用于 Boot2 本地开发测试。
+兼容底座从 Boot3.1.12 core/SPI 源码回迁，并补充3.5.15镜像别名匹配；运行依赖保持 Boot2/Spring5/Jackson2，不携带原 Boot3 Compose 二进制。
+23项定向单测、2项真实Compose子进程生命周期测试、1项独立Boot2/OpenSearch消费测试均在原生JDK8零失败/错误/跳过。
+应用退出时按配置停止自己启动的服务，并保留此前已运行的服务；不额外承诺每次 `context.close()` 均停止共享服务。
+202模块原生JDK8完整 clean install：8121项测试，零失败/错误，17项条件跳过；测试重试关闭，运行期间Java/POM输入哈希保持一致。
+真实服务验收覆盖本批 nginx/OpenSearch，其他后端工厂有SPI/属性映射单测，全部云账号/平台组合及AOT未作为通过项。
+使用配置、实际子进程验证与边界见 [Docker Compose 使用说明](compatibility/boot-docker-compose/README.md)。
 
 <!-- YUDAO-COMPATIBILITY-INTRO-END -->
 

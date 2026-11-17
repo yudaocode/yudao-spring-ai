@@ -29,7 +29,6 @@ import org.junit.jupiter.api.io.TempDir;
 import org.testcontainers.utility.DockerImageName;
 
 import org.springframework.boot.SpringApplication;
-import org.springframework.boot.SpringApplicationShutdownHandlers;
 import org.springframework.boot.WebApplicationType;
 import org.springframework.boot.autoconfigure.service.connection.ConnectionDetails;
 import org.springframework.boot.testsupport.DisabledIfProcessUnavailable;
@@ -37,7 +36,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.util.FileCopyUtils;
-import org.springframework.util.function.ThrowingSupplier;
 
 import static org.assertj.core.api.Assertions.fail;
 
@@ -66,20 +64,31 @@ public abstract class AbstractDockerComposeIT {
 
 	@AfterAll
 	static void shutDown() {
-		SpringApplicationShutdownHandlers shutdownHandlers = SpringApplication.getShutdownHandlers();
-		((Runnable) shutdownHandlers).run();
+		org.springframework.boot.docker.compose.lifecycle.Boot2DockerComposeTestLifecycle.shutdown();
 	}
 
 	protected final <T extends ConnectionDetails> T run(Class<T> type) {
 		SpringApplication application = new SpringApplication(Config.class);
+		org.springframework.boot.docker.compose.lifecycle.Boot2DockerComposeTestLifecycle.configure(application);
 		application.setWebApplicationType(WebApplicationType.NONE);
 		Map<String, Object> properties = new LinkedHashMap<>();
 		properties.put("spring.docker.compose.skip.in-tests", "false");
 		properties.put("spring.docker.compose.file",
-				transformedComposeFile(ThrowingSupplier.of(this.composeResource::getFile).get(), this.dockerImageName));
+				transformedComposeFile(composeResourceFile(), this.dockerImageName));
 		properties.put("spring.docker.compose.stop.command", "down");
 		application.setDefaultProperties(properties);
-		return application.run().getBean(type);
+		return org.springframework.boot.docker.compose.lifecycle.Boot2DockerComposeTestLifecycle
+			.track(application.run())
+			.getBean(type);
+	}
+
+	private File composeResourceFile() {
+		try {
+			return this.composeResource.getFile();
+		}
+		catch (IOException ex) {
+			throw new RuntimeException(ex.getMessage(), ex);
+		}
 	}
 
 	private File transformedComposeFile(File composeFile, DockerImageName imageName) {

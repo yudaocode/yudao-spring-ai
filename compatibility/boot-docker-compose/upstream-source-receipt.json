@@ -1,0 +1,249 @@
+{
+  "sourceArtifact": "org.springframework.boot:spring-boot-docker-compose:3.1.12:jar:sources",
+  "sourceArtifactSha256": "c2556ac29f442f4ca7325968fabd05ad56308753e8342f5d06513c0919e5f81a",
+  "runtimeBoot": "2.7.18",
+  "sources": [
+    {
+      "path": "src/main/java/org/springframework/boot/docker/compose/core/DockerHost.java",
+      "upstreamSha256": "e89b89f19362702ab46a722e9b72c978adf6c6e5f79b9f789f2f9a0053de5dfd",
+      "sha256": "e89b89f19362702ab46a722e9b72c978adf6c6e5f79b9f789f2f9a0053de5dfd"
+    },
+    {
+      "path": "src/main/java/org/springframework/boot/docker/compose/core/Regex.java",
+      "upstreamSha256": "b79b7c6560af0042b55afc13c2abdbfcc248039005ab8b967cda2a4e9bef1c8f",
+      "sha256": "b79b7c6560af0042b55afc13c2abdbfcc248039005ab8b967cda2a4e9bef1c8f"
+    },
+    {
+      "path": "src/main/java/org/springframework/boot/docker/compose/core/DockerCliComposeConfigResponse.java",
+      "upstreamSha256": "0c47ceab8da1076f96449fc4c4d65856bf5b52dc95f9e54876ddbc10543efd31",
+      "sha256": "0c47ceab8da1076f96449fc4c4d65856bf5b52dc95f9e54876ddbc10543efd31"
+    },
+    {
+      "path": "src/main/java/org/springframework/boot/docker/compose/core/DockerException.java",
+      "upstreamSha256": "a9450438bb2ffd3086480868aa3a2c37a8da5337466d8b3dc614cf2d581ea3c4",
+      "sha256": "a9450438bb2ffd3086480868aa3a2c37a8da5337466d8b3dc614cf2d581ea3c4"
+    },
+    {
+      "path": "src/main/java/org/springframework/boot/docker/compose/core/ProcessRunner.java",
+      "upstreamSha256": "4c0f0fac5133dfdee47bbe6000e1bb13a680120956d21738dfc5e16c358e7f25",
+      "sha256": "4c0f0fac5133dfdee47bbe6000e1bb13a680120956d21738dfc5e16c358e7f25"
+    },
+    {
+      "path": "src/main/java/org/springframework/boot/docker/compose/core/DockerNotRunningException.java",
+      "upstreamSha256": "965a1e5e5c1fe12bea0912f3f2d3f2df0fed093476178240aefc4629473f67a2",
+      "sha256": "965a1e5e5c1fe12bea0912f3f2d3f2df0fed093476178240aefc4629473f67a2"
+    },
+    {
+      "path": "src/main/java/org/springframework/boot/docker/compose/core/ImageReference.java",
+      "upstreamSha256": "01693146c2543a194936b1bc49f1a22e1ce087c736068d3331c394e54efb491a",
+      "sha256": "01693146c2543a194936b1bc49f1a22e1ce087c736068d3331c394e54efb491a"
+    },
+    {
+      "path": "src/main/java/org/springframework/boot/docker/compose/core/DockerProcessStartException.java",
+      "upstreamSha256": "821b2cce82d25954f49963b66794a5cb5022d309b260c9c5409c49a80c61f233",
+      "sha256": "821b2cce82d25954f49963b66794a5cb5022d309b260c9c5409c49a80c61f233"
+    },
+    {
+      "path": "src/main/java/org/springframework/boot/docker/compose/core/DefaultRunningService.java",
+      "upstreamSha256": "659ace8a0b39068653e910b76424293ad39961b06a920faec43db08cfc2879d9",
+      "sha256": "659ace8a0b39068653e910b76424293ad39961b06a920faec43db08cfc2879d9"
+    },
+    {
+      "path": "src/main/java/org/springframework/boot/docker/compose/core/DockerComposeFile.java",
+      "upstreamSha256": "eed2528fcda76f81aaa68ac0e7040cf2e370aff5b8801774c9c154bdb1e427a9",
+      "sha256": "eed2528fcda76f81aaa68ac0e7040cf2e370aff5b8801774c9c154bdb1e427a9"
+    },
+    {
+      "path": "src/main/java/org/springframework/boot/docker/compose/core/DefaultDockerCompose.java",
+      "upstreamSha256": "0c78cc3d516f1c7849f97ba82229a9bc228bbb5396b08dbd09baf47209cd414a",
+      "sha256": "0c78cc3d516f1c7849f97ba82229a9bc228bbb5396b08dbd09baf47209cd414a"
+    },
+    {
+      "path": "src/main/java/org/springframework/boot/docker/compose/core/ImageName.java",
+      "upstreamSha256": "a57700ea4a040b9b4bac7a97b36e303d40f7f7da0735b309f2b281a2f25908f8",
+      "sha256": "a57700ea4a040b9b4bac7a97b36e303d40f7f7da0735b309f2b281a2f25908f8"
+    },
+    {
+      "path": "src/main/java/org/springframework/boot/docker/compose/core/DockerCliContextResponse.java",
+      "upstreamSha256": "55af830f27fdf0d943b318e613db50c6707bd21f5fefe0c9f6b33845cb9de316",
+      "sha256": "55af830f27fdf0d943b318e613db50c6707bd21f5fefe0c9f6b33845cb9de316"
+    },
+    {
+      "path": "src/main/java/org/springframework/boot/docker/compose/core/DockerComposeOrigin.java",
+      "upstreamSha256": "88839c0287d14aaefca5ad354b234072115f65fcb4c62cae244eb91417ef941d",
+      "sha256": "88839c0287d14aaefca5ad354b234072115f65fcb4c62cae244eb91417ef941d"
+    },
+    {
+      "path": "src/main/java/org/springframework/boot/docker/compose/core/DockerCliCommand.java",
+      "upstreamSha256": "edbfef7a2d62a9263330f3fa265599bbb14022c4e41ab0d33973b951f6fbf7f2",
+      "sha256": "4294770877d4dff4420624e0682b1b39db19d05fa804b8ba7d43522093c4b770"
+    },
+    {
+      "path": "src/main/java/org/springframework/boot/docker/compose/core/DockerOutputParseException.java",
+      "upstreamSha256": "978a561145293c00ffcd2e8425e56de66016b673747d3827cdb5931dd3e095fc",
+      "sha256": "978a561145293c00ffcd2e8425e56de66016b673747d3827cdb5931dd3e095fc"
+    },
+    {
+      "path": "src/main/java/org/springframework/boot/docker/compose/core/DockerJson.java",
+      "upstreamSha256": "9efbbed175cde371356dba6ad565544c40fe8492888917a6a71eb4a9a25e796d",
+      "sha256": "db020c65524ce68fe87dfe5838432ea9646cd5124a2da37137a88cade2b83be4"
+    },
+    {
+      "path": "src/main/java/org/springframework/boot/docker/compose/core/DockerCompose.java",
+      "upstreamSha256": "cad7d66ecc6af58c169501f85e0547900245fdd827ee29d8f3ceb4216e64f147",
+      "sha256": "cad7d66ecc6af58c169501f85e0547900245fdd827ee29d8f3ceb4216e64f147"
+    },
+    {
+      "path": "src/main/java/org/springframework/boot/docker/compose/core/DockerEnv.java",
+      "upstreamSha256": "a8647e0d9d037157e438ea8de2b578b5fb08cb77fd6b86f24187e4ab60735ff0",
+      "sha256": "a8647e0d9d037157e438ea8de2b578b5fb08cb77fd6b86f24187e4ab60735ff0"
+    },
+    {
+      "path": "src/main/java/org/springframework/boot/docker/compose/core/DockerCli.java",
+      "upstreamSha256": "8d4ff7b6c78c1493d20629bdd7aab8e8a5c1fdcaf4711393545e0fea0c26dc30",
+      "sha256": "70510c8b2b75f19a15899d157451d3459b7b6305edf05b80ffd1be5091f06f3b"
+    },
+    {
+      "path": "src/main/java/org/springframework/boot/docker/compose/core/DockerCliComposeVersionResponse.java",
+      "upstreamSha256": "6beb10e884a3f2298057283a18433ce308b38975cbfec47ab3f138d3eef7a92a",
+      "sha256": "6beb10e884a3f2298057283a18433ce308b38975cbfec47ab3f138d3eef7a92a"
+    },
+    {
+      "path": "src/main/java/org/springframework/boot/docker/compose/core/DockerCliInspectResponse.java",
+      "upstreamSha256": "574f186ec4c9a0f8ce1dd188c45ac74c9b63b4b9c9c5a3c14c087cce374de535",
+      "sha256": "574f186ec4c9a0f8ce1dd188c45ac74c9b63b4b9c9c5a3c14c087cce374de535"
+    },
+    {
+      "path": "src/main/java/org/springframework/boot/docker/compose/core/ConnectionPorts.java",
+      "upstreamSha256": "abec197c084470e3e81d55176421b776e1507545fcb025b60fb738f3368ac92b",
+      "sha256": "abec197c084470e3e81d55176421b776e1507545fcb025b60fb738f3368ac92b"
+    },
+    {
+      "path": "src/main/java/org/springframework/boot/docker/compose/core/ProcessStartException.java",
+      "upstreamSha256": "72717520234aa86bc95672ecfc90c86b0b170134607626b1c8c92fd8195de77b",
+      "sha256": "72717520234aa86bc95672ecfc90c86b0b170134607626b1c8c92fd8195de77b"
+    },
+    {
+      "path": "src/main/java/org/springframework/boot/docker/compose/core/DefaultConnectionPorts.java",
+      "upstreamSha256": "2e8bdcf845112ac9f51d9b021222ed165ee89e633110232bcd489575cac022cc",
+      "sha256": "2e8bdcf845112ac9f51d9b021222ed165ee89e633110232bcd489575cac022cc"
+    },
+    {
+      "path": "src/main/java/org/springframework/boot/docker/compose/core/RunningService.java",
+      "upstreamSha256": "cbfdd02366d857b6ac30a0cebbd39b21a2dc394dd3245d846c15616ad93a0d95",
+      "sha256": "cbfdd02366d857b6ac30a0cebbd39b21a2dc394dd3245d846c15616ad93a0d95"
+    },
+    {
+      "path": "src/main/java/org/springframework/boot/docker/compose/core/DockerCliComposePsResponse.java",
+      "upstreamSha256": "6f070f4b94ad5d84805cfd26cc1fdd292c8c9adf2733fb81468b529364d39a72",
+      "sha256": "6f070f4b94ad5d84805cfd26cc1fdd292c8c9adf2733fb81468b529364d39a72"
+    },
+    {
+      "path": "src/main/java/org/springframework/boot/docker/compose/core/ProcessExitException.java",
+      "upstreamSha256": "29676275b8e241456dac982de7c70c3e39bf7c2f1171cf0e091a8cd180921f85",
+      "sha256": "29676275b8e241456dac982de7c70c3e39bf7c2f1171cf0e091a8cd180921f85"
+    },
+    {
+      "path": "src/main/java/org/springframework/boot/docker/compose/lifecycle/StartCommand.java",
+      "upstreamSha256": "19614e0ff89267bf1be16616e046d91984822079a5985f39c8cfd1751561fb48",
+      "sha256": "19614e0ff89267bf1be16616e046d91984822079a5985f39c8cfd1751561fb48"
+    },
+    {
+      "path": "src/main/java/org/springframework/boot/docker/compose/lifecycle/LifecycleManagement.java",
+      "upstreamSha256": "c518ad6182dc8b6d0dd460e4edf4d9d30576aa1983ca0d101d5e69dfb29e77a8",
+      "sha256": "c518ad6182dc8b6d0dd460e4edf4d9d30576aa1983ca0d101d5e69dfb29e77a8"
+    },
+    {
+      "path": "src/main/java/org/springframework/boot/docker/compose/lifecycle/DockerComposeServicesReadyEvent.java",
+      "upstreamSha256": "55b221cba4cf26c260a56369073ada1e84064d199dff21c2f7192670a9abde6f",
+      "sha256": "55b221cba4cf26c260a56369073ada1e84064d199dff21c2f7192670a9abde6f"
+    },
+    {
+      "path": "src/main/java/org/springframework/boot/docker/compose/lifecycle/DockerComposeListener.java",
+      "upstreamSha256": "e32cc4695339496f2a72218d1d7691f83350e1e3467d074c598ae6989ca62bfa",
+      "sha256": "e32cc4695339496f2a72218d1d7691f83350e1e3467d074c598ae6989ca62bfa"
+    },
+    {
+      "path": "src/main/java/org/springframework/boot/docker/compose/lifecycle/StopCommand.java",
+      "upstreamSha256": "4ef5a48f905298e006000f82606db69eb3b4eaa583e0c34228ffd24b9d5e22b2",
+      "sha256": "4ef5a48f905298e006000f82606db69eb3b4eaa583e0c34228ffd24b9d5e22b2"
+    },
+    {
+      "path": "src/main/java/org/springframework/boot/docker/compose/lifecycle/DockerComposeSkipCheck.java",
+      "upstreamSha256": "40a5d73ecd10d4fe38fb2bc005e4aaf4e4234557337cd467247f79891b62e4bd",
+      "sha256": "cda17b6f754fe09946f7632726872d28c34af141607013744f2e12acb50eeef2"
+    },
+    {
+      "path": "src/main/java/org/springframework/boot/docker/compose/lifecycle/ServiceNotReadyException.java",
+      "upstreamSha256": "f5e8f2b47354aebbab58efb06526780d21d8dd405153a799db89f41bb7147dce",
+      "sha256": "f5e8f2b47354aebbab58efb06526780d21d8dd405153a799db89f41bb7147dce"
+    },
+    {
+      "path": "src/main/java/org/springframework/boot/docker/compose/lifecycle/TcpConnectServiceReadinessCheck.java",
+      "upstreamSha256": "24e6989481d465c96360d95860fa352c90b96516a344ac4845c93319cd2ce5a3",
+      "sha256": "24e6989481d465c96360d95860fa352c90b96516a344ac4845c93319cd2ce5a3"
+    },
+    {
+      "path": "src/main/java/org/springframework/boot/docker/compose/lifecycle/ServiceReadinessChecks.java",
+      "upstreamSha256": "197b82cfd0e559346b5417c90dc502bc2e8beb1138a9cb3d4b6c6c31b87d536a",
+      "sha256": "197b82cfd0e559346b5417c90dc502bc2e8beb1138a9cb3d4b6c6c31b87d536a"
+    },
+    {
+      "path": "src/main/java/org/springframework/boot/docker/compose/lifecycle/DockerComposeProperties.java",
+      "upstreamSha256": "665612e56494a5142ca8591a8be223d0de173cb1ffe220c85878b64644e6eb2c",
+      "sha256": "665612e56494a5142ca8591a8be223d0de173cb1ffe220c85878b64644e6eb2c"
+    },
+    {
+      "path": "src/main/java/org/springframework/boot/docker/compose/lifecycle/DockerComposeLifecycleManager.java",
+      "upstreamSha256": "6dc5e1d44d65364d546e87cdd9c47e8858fbcdaef6617a308c176b3e77c7e3b0",
+      "sha256": "a5e67fa7ad894a93c99009a32e9b745cad1d9162953263c2636b47f374ea2956"
+    },
+    {
+      "path": "src/main/java/org/springframework/boot/docker/compose/lifecycle/ReadinessTimeoutException.java",
+      "upstreamSha256": "b6a8fa9b3796040d8ef41d9129b0a9bbcf9e1eca1cc215468687685bfeccc598",
+      "sha256": "b6a8fa9b3796040d8ef41d9129b0a9bbcf9e1eca1cc215468687685bfeccc598"
+    },
+    {
+      "path": "src/main/java/org/springframework/boot/docker/compose/service/connection/DockerComposeConnectionSource.java",
+      "upstreamSha256": "6e4adcf70a31ac178517b5f7595c5061114a0df9d02377d931ecf2fa1c848ec6",
+      "sha256": "6e4adcf70a31ac178517b5f7595c5061114a0df9d02377d931ecf2fa1c848ec6"
+    },
+    {
+      "path": "src/main/java/org/springframework/boot/docker/compose/service/connection/DockerComposeConnectionDetailsFactory.java",
+      "upstreamSha256": "68594bbf71ef296fd199023d8f7bed191302de084dd6e3543132f1e557f22778",
+      "sha256": "7c8d09e743b0d605fc138f9f5bcb1c50dd4017201b6da0adc6a5b096e6cb03d7"
+    },
+    {
+      "path": "src/main/java/org/springframework/boot/docker/compose/service/connection/ConnectionNamePredicate.java",
+      "upstreamSha256": "38be82a736d79d5f917f43b0bd403c86334735b692a3acf95c9a5b80601c45b0",
+      "sha256": "38be82a736d79d5f917f43b0bd403c86334735b692a3acf95c9a5b80601c45b0",
+      "upstreamSourceVersion": "3.5.15",
+      "base3_1Sha256": "c1283bbdb2b7e1ac0c5ff04ec8e5f7339e0a850336eb852ccc4033671bde3134"
+    },
+    {
+      "path": "src/main/java/org/springframework/boot/docker/compose/service/connection/DockerComposeServiceConnectionsApplicationListener.java",
+      "upstreamSha256": "67b290f403c5ef04a2930d3cd3c63c5fee5576974aa96b3dbefadb414c49c372",
+      "sha256": "67b290f403c5ef04a2930d3cd3c63c5fee5576974aa96b3dbefadb414c49c372"
+    }
+  ],
+  "adaptations": [
+    "Use shared3.5.15 registry port",
+    "No AOT/native-image detection dependency; retain processing-request skip by string/property",
+    "Duration.getSeconds instead of toSeconds",
+    "BufferedReader.lines instead of chained String.lines",
+    "Route Boot2 log levels through commons-logging",
+    "Keep both actual lifecycle and service-connection application listeners; AI factories live in their own artifact"
+  ],
+  "additionalSourceBackports": [
+    {
+      "sourceArtifact": "org.springframework.boot:spring-boot-docker-compose:3.5.15:jar:sources",
+      "file": "ConnectionNamePredicate.java",
+      "sha256": "38be82a736d79d5f917f43b0bd403c86334735b692a3acf95c9a5b80601c45b0",
+      "purpose": "Multiple accepted connection names and canonical label matching"
+    },
+    {
+      "sourceFile": "DockerComposeConnectionDetailsFactory.java",
+      "purpose": "Protected String[] constructor from3.5.15 (introduced3.2) required by current AI Chroma/Weaviate factories"
+    }
+  ]
+}
