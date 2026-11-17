@@ -77,6 +77,8 @@ Java 8 分支默认构建另包含 Agent Utils 0.13.0 的 common/tools 兼容模
 使用 `cn.iocoder.spring-ai:spring-ai-agent-utils-compat`，不要同时引入官方同名类；Dream 需要应用显式提供 `spring-ai-session`。
 依赖示例、principal 隔离与分页约定见 [Agent Utils 使用说明](compatibility/agent-utils/README.md)。
 
+MCP 的 Jackson2 schema 运行库已排除重复的官方 ITU，统一使用随兼容版提供的 Java8-safe ITU1.17；宿主不要再引入原版 `com.ethlo.time:itu`。
+
 详细构建、源码基线、API 差异及当前支持边界见 [COMPATIBILITY.md](COMPATIBILITY.md)。
 
 下方逐字保留官方项目原始 README，其中的官方 Maven 坐标和发布状态仅针对上游项目；使用本兼容版时，以本节坐标、版本线和支持范围为准。

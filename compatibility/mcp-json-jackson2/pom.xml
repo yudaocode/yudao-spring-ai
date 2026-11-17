@@ -27,6 +27,29 @@
 		<dependency>
 			<groupId>com.networknt</groupId>
 			<artifactId>json-schema-validator</artifactId>
+			<exclusions>
+				<exclusion>
+					<groupId>com.ethlo.time</groupId>
+					<artifactId>itu</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
 		</dependency>
 	</dependencies>
-<build><plugins><plugin><groupId>io.spring.javaformat</groupId><artifactId>spring-javaformat-maven-plugin</artifactId><version>0.0.47</version><configuration><skip>true</skip></configuration></plugin></plugins></build></project>
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>io.spring.javaformat</groupId>
+				<artifactId>spring-javaformat-maven-plugin</artifactId>
+				<version>0.0.47</version>
+				<configuration>
+					<skip>true</skip>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+</project>

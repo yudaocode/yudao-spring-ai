@@ -482,6 +482,8 @@
 										<exclude>org.springframework.data:spring-data-ldap:[3,)</exclude>
 										<exclude>tools.jackson.*:*</exclude>
 										<exclude>io.modelcontextprotocol.sdk:mcp-json-jackson3</exclude>
+										<!-- The source port in spring-ai-commons replaces all original ITU jars. -->
+										<exclude>com.ethlo.time:itu</exclude>
 										<exclude>org.testcontainers:*:[2,)</exclude>
 										<exclude>org.junit.jupiter:*:[6,)</exclude>
 										<exclude>jakarta.servlet:jakarta.servlet-api:[5,)</exclude>

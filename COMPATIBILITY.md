@@ -59,6 +59,16 @@ A separate native Boot2.7.18 consumer passed one end-to-end Dream tool-call case
 See `compatibility-tests/boot2-agent-utils` for a reproducible source fixture.
 
 The expanded runtime scan covered835 jars /270702 effective base classes, all <=major52.
-Static API scanning remains a separate gate: besides optional modern-VM/Flow/SLF4J fallback branches in third-party libraries, it identified two outstanding pre-existing SDK paths requiring follow-up: MCP's transitive original ITU1.14 duration parser and OpenSearch2.23 PercentCodec's covariant ByteBuffer.flip call.
-They are recorded as open runtime issues; full unit success does not claim those uncovered SDK paths work.
+Static API scanning remains a separate gate: besides optional modern-VM/Flow/SLF4J fallback branches in third-party libraries, it identified MCP's duplicate original ITU1.14 and OpenSearch2.23 PercentCodec's covariant ByteBuffer.flip call.
+The MCP finding is resolved by the follow-up below; OpenSearch remains an open runtime issue, and full unit success does not claim that uncovered SDK path works.
 The new Agent Utils classes introduce no missing Java8 API references in that scan.
+
+## MCP ITU dependency follow-up
+
+The duplicate original ITU1.14 dependency is now excluded from the MCP Jackson2 schema module; the existing shared ITU1.17 Java8 source port remains the sole provider.
+The parent native Boot2 dependency rule rejects com.ethlo.time:itu in any module.
+The new class-resource uniqueness regression failed with two implementations before the fix and passes afterward; real NetworkNT duration-format valid/invalid assertions also pass on native8.
+The affected15-module native8 test gate passed2333 cases, zero failures/errors, 2 conditional skips, and all193 modules passed dependency validation.
+This is a follow-up component/dependency gate after the full8042-case checkpoint, not a new full193-module test run.
+The refreshed runtime audit removes the original ITU jar entirely.
+OpenSearch's separate codec issue remains open and has been reproduced on native8.
