@@ -48,3 +48,12 @@ Maven groupId 使用 `cn.iocoder.spring-ai`；artifactId 和 Java 包名保留�
 ## Redis public API migration
 
 This older-Boot branch uses `redis.clients.jedis.JedisPooled` in the public builders for `RedisVectorStore`, `RedisChatMemoryRepository` / `RedisChatMemoryConfig`, and `DefaultSemanticCache` / `RedisVectorStoreHelper`. Upstream Spring AI 2.1 and the Boot 4 `main` branch use `RedisClient` in these positions. Applications constructing these low-level objects must supply the native branch's `JedisPooled`; an upstream `RedisClient` bean cannot be passed unchanged. High-level Spring AI interfaces remain the preferred integration boundary. This deliberate dependency adaptation is not a claim of identical low-level Redis APIs across branches.
+
+## Standalone AWS OpenSearch starter dependency closure
+
+The AWS starter now declares sdk-core/auth/regions/http-auth-aws explicitly.
+Previously its apache-client dependency alone did not supply credentials/region classes; the standalone consumer failed to compile without them.
+The native Boot3.5.15 fixture depends only on the AWS starter and test starter, not on another model provider that could accidentally supply those classes.
+The same installed producer artifacts passed2 tests on native17 and2 on native25, zero failures/errors/skips: actual transport bean creation and local SigV4 signing with mocked HTTP execution.
+No cloud/model service acceptance or new full184-module test run is claimed.
+See [the consumer](compatibility-tests/aws-opensearch) for use and runtime selection.

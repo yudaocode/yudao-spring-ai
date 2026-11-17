@@ -73,6 +73,8 @@ spring:
 
 配置环境变量后，注入 `ChatModel` 或 `ChatClient.Builder` 使用；Java 导入仍为 `org.springframework.ai.*`。例如注入名为 `builder` 的 `ChatClient.Builder` 后，调用 `builder.build().prompt("你好").call().content()`。
 
+AWS OpenSearch starter 已补齐独立使用所需的 SDK core、认证、区域和签名依赖。原生 Boot 3.5.15 父工程仅引入该 starter，在 JDK17、JDK25 上各通过 2 项客户端自动配置/本地 SigV4 签名测试；示例见 [独立消费验证](compatibility-tests/aws-opensearch)。未调用真实 AWS 服务。
+
 详细构建、源码基线、API 差异及当前支持边界见 [COMPATIBILITY.md](COMPATIBILITY.md)。
 
 下方逐字保留官方项目原始 README，其中的官方 Maven 坐标和发布状态仅针对上游项目；使用本兼容版时，以本节坐标、版本线和支持范围为准。
