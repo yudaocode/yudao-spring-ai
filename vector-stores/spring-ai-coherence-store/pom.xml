@@ -10,12 +10,8 @@
 	<artifactId>spring-ai-coherence-store</artifactId>
 	<packaging>jar</packaging>
 	<name>Spring AI Vector Store - Coherence</name>
-	<description>AI Vector Search from Oracle Coherence 24.09+ as a Spring AI Vector Store</description>
+	<description>Coherence vector store using Java8 core14.1.1 and ported24.09 vector capabilities</description>
 	<url>https://github.com/spring-projects/spring-ai</url>
-
-	<properties>
-		<coherence.groupId>com.oracle.coherence.ce</coherence.groupId>
-	</properties>
 
 	<dependencies>
 		<dependency>
@@ -25,14 +21,9 @@
 		</dependency>
 
 		<dependency>
-			<groupId>${coherence.groupId}</groupId>
-			<artifactId>coherence</artifactId>
-			<version>${coherence.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>${coherence.groupId}</groupId>
-			<artifactId>coherence-hnsw</artifactId>
-			<version>${coherence.version}</version>
+			<groupId>cn.iocoder.spring-ai</groupId>
+			<artifactId>spring-ai-coherence-ai-compat</artifactId>
+			<version>${project.parent.version}</version>
 		</dependency>
 
 		<!-- TESTING -->
@@ -56,12 +47,6 @@
 			<scope>test</scope>
 		</dependency>
 
-		<dependency>
-			<groupId>${coherence.groupId}</groupId>
-			<artifactId>coherence-bedrock-testing-support</artifactId>
-			<version>${coherence.version}</version>
-			<scope>test</scope>
-		</dependency>
 	</dependencies>
 
 </project>

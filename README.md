@@ -92,6 +92,11 @@ OpenSearch2.19.3 的精确余弦评分已补三线统一配置：设置 `spring.
 真实引擎已验证相同向量得分1.0与0.9阈值；Boot2/JDK8消费7项、Boot3/4在JDK17/25各4项均零失败/错误/跳过。
 完整用法、验证边界见 [COMPATIBILITY.md](COMPATIBILITY.md#exact-cosine-scores-with-opensearch-219)。
 
+Coherence 向量库已接入 Java8 版本线：引入 `cn.iocoder.spring-ai:spring-ai-coherence-store`，由 BOM 管理版本。
+运行核心为 Coherence14.1.1-0-29，向量/HNSW 能力从24.09源码移植；需要显式配置存储节点和 POF 类型，不能混入官方24.09 Java17运行库。
+原生JDK8的18项单测、28项集成测试（含两个独立进程与真实MiniLM推理）和独立Boot2消费测试均通过。
+完整配置、使用示例和支持边界见 [Coherence 使用说明](compatibility/coherence-ai/README.md)。
+
 <!-- YUDAO-COMPATIBILITY-INTRO-END -->
 
 ---

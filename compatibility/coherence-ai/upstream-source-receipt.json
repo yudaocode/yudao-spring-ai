@@ -1,0 +1,323 @@
+{
+  "coherenceAiSourceVersion": "24.09",
+  "sourceCommit": "e7efd86662374c5b9bb20b621c3d2e8f5275b5f6",
+  "sourceUrl": "https://github.com/oracle/coherence/tree/24.09",
+  "coreRuntime": "14.1.1-0-29",
+  "nativeResourceArtifact": "com.oracle.coherence.ce:coherence-hnsw:24.09",
+  "files": [
+    {
+      "path": "src/main/java/com/oracle/coherence/ai/BitVector.java",
+      "sha256": "11b28592f4daed3352a98bb01ca40a6552c8caaa61ffb6fe691bffcf66796798",
+      "kind": "ported-upstream",
+      "upstreamPath": "prj/coherence-core/src/main/java/com/oracle/coherence/ai/BitVector.java",
+      "upstreamSha256": "2a6e66f32159860d3e649239e1b93b857ac294e4c88106fc577ec19563026bfc"
+    },
+    {
+      "path": "src/main/java/com/oracle/coherence/ai/DistanceAlgorithm.java",
+      "sha256": "ab26bc534090e91d6b09f3f935c72c35c621fac64a784120e182c5662218bd8a",
+      "kind": "ported-upstream",
+      "upstreamPath": "prj/coherence-core/src/main/java/com/oracle/coherence/ai/DistanceAlgorithm.java",
+      "upstreamSha256": "ab26bc534090e91d6b09f3f935c72c35c621fac64a784120e182c5662218bd8a"
+    },
+    {
+      "path": "src/main/java/com/oracle/coherence/ai/DocumentChunk.java",
+      "sha256": "ae7fca604248e9993516f56aacab63922fcfc6eec7d2cdf34d7c4623b576c65d",
+      "kind": "ported-upstream",
+      "upstreamPath": "prj/coherence-core/src/main/java/com/oracle/coherence/ai/DocumentChunk.java",
+      "upstreamSha256": "225b2eb666799511153c54ccf16210d5c317b65660f7bfb8f535893f462f6e0a"
+    },
+    {
+      "path": "src/main/java/com/oracle/coherence/ai/Float32Vector.java",
+      "sha256": "8d2b4a38f1d531aa3c0d926ce168e8ce4291764247585b4472d82767d41cc3e1",
+      "kind": "ported-upstream",
+      "upstreamPath": "prj/coherence-core/src/main/java/com/oracle/coherence/ai/Float32Vector.java",
+      "upstreamSha256": "c5c517201700b3025208b92cced4e8281d58adc15fbcd4fe17d2b348f703d59f"
+    },
+    {
+      "path": "src/main/java/com/oracle/coherence/ai/Int8Vector.java",
+      "sha256": "7f47a43f0d132df0df7c9c3d0842acde5ab88ee2e11574dcd2892b91c2eb7d9d",
+      "kind": "ported-upstream",
+      "upstreamPath": "prj/coherence-core/src/main/java/com/oracle/coherence/ai/Int8Vector.java",
+      "upstreamSha256": "7f47a43f0d132df0df7c9c3d0842acde5ab88ee2e11574dcd2892b91c2eb7d9d"
+    },
+    {
+      "path": "src/main/java/com/oracle/coherence/ai/QueryResult.java",
+      "sha256": "98f2873eec37230ade571f7409154a335a38e570565bf9b895e64ea714ec37c1",
+      "kind": "ported-upstream",
+      "upstreamPath": "prj/coherence-core/src/main/java/com/oracle/coherence/ai/QueryResult.java",
+      "upstreamSha256": "98f2873eec37230ade571f7409154a335a38e570565bf9b895e64ea714ec37c1"
+    },
+    {
+      "path": "src/main/java/com/oracle/coherence/ai/Vector.java",
+      "sha256": "e3d131ba141b194b02d2e87faba0f61b71abbe6c967c30a7a867a37d0499c94c",
+      "kind": "ported-upstream",
+      "upstreamPath": "prj/coherence-core/src/main/java/com/oracle/coherence/ai/Vector.java",
+      "upstreamSha256": "e3d131ba141b194b02d2e87faba0f61b71abbe6c967c30a7a867a37d0499c94c"
+    },
+    {
+      "path": "src/main/java/com/oracle/coherence/ai/VectorIndex.java",
+      "sha256": "4f0378be1c5155acf2af10ae2c8e988eb2ac1d0f08268f4dbe4ba4551d4a21c8",
+      "kind": "ported-upstream",
+      "upstreamPath": "prj/coherence-core/src/main/java/com/oracle/coherence/ai/VectorIndex.java",
+      "upstreamSha256": "4f0378be1c5155acf2af10ae2c8e988eb2ac1d0f08268f4dbe4ba4551d4a21c8"
+    },
+    {
+      "path": "src/main/java/com/oracle/coherence/ai/VectorIndexExtractor.java",
+      "sha256": "8aa9eee73dcb7432a9eda8e403073882dddb67d185383b4b49252eac2b456e65",
+      "kind": "ported-upstream",
+      "upstreamPath": "prj/coherence-core/src/main/java/com/oracle/coherence/ai/VectorIndexExtractor.java",
+      "upstreamSha256": "8aa9eee73dcb7432a9eda8e403073882dddb67d185383b4b49252eac2b456e65"
+    },
+    {
+      "path": "src/main/java/com/oracle/coherence/ai/distance/AbstractDistance.java",
+      "sha256": "a294c78f8172be4aac8063aacceb28f3a5b748efb28515bbdb200868ab148d33",
+      "kind": "ported-upstream",
+      "upstreamPath": "prj/coherence-core/src/main/java/com/oracle/coherence/ai/distance/AbstractDistance.java",
+      "upstreamSha256": "a294c78f8172be4aac8063aacceb28f3a5b748efb28515bbdb200868ab148d33"
+    },
+    {
+      "path": "src/main/java/com/oracle/coherence/ai/distance/CosineDistance.java",
+      "sha256": "dba05fc07487331f8007da59d282703d11a0311a245beffcd5bc3c0bab95ce36",
+      "kind": "ported-upstream",
+      "upstreamPath": "prj/coherence-core/src/main/java/com/oracle/coherence/ai/distance/CosineDistance.java",
+      "upstreamSha256": "dba05fc07487331f8007da59d282703d11a0311a245beffcd5bc3c0bab95ce36"
+    },
+    {
+      "path": "src/main/java/com/oracle/coherence/ai/distance/InnerProductDistance.java",
+      "sha256": "29a97cd7cf6f1504c723de244fb380f00745d4b117b76d3dba367e0fff8591c4",
+      "kind": "ported-upstream",
+      "upstreamPath": "prj/coherence-core/src/main/java/com/oracle/coherence/ai/distance/InnerProductDistance.java",
+      "upstreamSha256": "29a97cd7cf6f1504c723de244fb380f00745d4b117b76d3dba367e0fff8591c4"
+    },
+    {
+      "path": "src/main/java/com/oracle/coherence/ai/distance/L2SquaredDistance.java",
+      "sha256": "a38d12cccfcbdb2f71f14069d2e481b657560ad00194b038e37581310b94b5f5",
+      "kind": "ported-upstream",
+      "upstreamPath": "prj/coherence-core/src/main/java/com/oracle/coherence/ai/distance/L2SquaredDistance.java",
+      "upstreamSha256": "a38d12cccfcbdb2f71f14069d2e481b657560ad00194b038e37581310b94b5f5"
+    },
+    {
+      "path": "src/main/java/com/oracle/coherence/ai/hnsw/HnswIndex.java",
+      "sha256": "cfc500bd05ca551fe969362ad990d9327e7fccada06079c15ba05c9baa6e5142",
+      "kind": "ported-upstream",
+      "upstreamPath": "prj/coherence-hnsw/src/main/java/com/oracle/coherence/ai/hnsw/HnswIndex.java",
+      "upstreamSha256": "9dcfd32621c33c3aad94630a4189fe01ffe69fd74db2da310156d0dce435523d"
+    },
+    {
+      "path": "src/main/java/com/oracle/coherence/ai/hnsw/HnswPofConfigProvider.java",
+      "sha256": "d8e2bf7382f922cce21563ca53575a8a7d3bb257f11de003787d1f8b1af0746f",
+      "kind": "ported-upstream",
+      "upstreamPath": "prj/coherence-hnsw/src/main/java/com/oracle/coherence/ai/hnsw/HnswPofConfigProvider.java",
+      "upstreamSha256": "d8e2bf7382f922cce21563ca53575a8a7d3bb257f11de003787d1f8b1af0746f"
+    },
+    {
+      "path": "src/main/java/com/oracle/coherence/ai/index/BinaryQuantIndex.java",
+      "sha256": "ebbd8792e448792e7dfc963511bb2876c73b13629727068729d680c996f40229",
+      "kind": "ported-upstream",
+      "upstreamPath": "prj/coherence-core/src/main/java/com/oracle/coherence/ai/index/BinaryQuantIndex.java",
+      "upstreamSha256": "65cba79b4be55c5d6cd36ee73556a68ecfeb5e86d67d65e2f799dbeea888080b"
+    },
+    {
+      "path": "src/main/java/com/oracle/coherence/ai/search/BaseQueryResult.java",
+      "sha256": "6fdad497761ad08c958fbc1e0617f5311425e4ce417c6695f2eb16946d7b0312",
+      "kind": "ported-upstream",
+      "upstreamPath": "prj/coherence-core/src/main/java/com/oracle/coherence/ai/search/BaseQueryResult.java",
+      "upstreamSha256": "6fdad497761ad08c958fbc1e0617f5311425e4ce417c6695f2eb16946d7b0312"
+    },
+    {
+      "path": "src/main/java/com/oracle/coherence/ai/search/BinaryQueryResult.java",
+      "sha256": "bcf214dd80b74ecaba29999be247d4cc73797cc86b7e5671dc48bf24835b5f6b",
+      "kind": "ported-upstream",
+      "upstreamPath": "prj/coherence-core/src/main/java/com/oracle/coherence/ai/search/BinaryQueryResult.java",
+      "upstreamSha256": "bcf214dd80b74ecaba29999be247d4cc73797cc86b7e5671dc48bf24835b5f6b"
+    },
+    {
+      "path": "src/main/java/com/oracle/coherence/ai/search/ConverterResult.java",
+      "sha256": "cab4eaba40d94d903fcf1fee669588549a23ae1434f2021ca531e00e2e8f2b30",
+      "kind": "ported-upstream",
+      "upstreamPath": "prj/coherence-core/src/main/java/com/oracle/coherence/ai/search/ConverterResult.java",
+      "upstreamSha256": "cab4eaba40d94d903fcf1fee669588549a23ae1434f2021ca531e00e2e8f2b30"
+    },
+    {
+      "path": "src/main/java/com/oracle/coherence/ai/search/SimilaritySearch.java",
+      "sha256": "995fc8ede0d3e21c6d0be9cd0cc0d484dc5b09a9cc3b313a45c6936166071de5",
+      "kind": "ported-upstream",
+      "upstreamPath": "prj/coherence-core/src/main/java/com/oracle/coherence/ai/search/SimilaritySearch.java",
+      "upstreamSha256": "d83520c07321bf050ffaa4705f2f5b2c4553d4e73ef1e800dba2e8874b80a0a5"
+    },
+    {
+      "path": "src/main/java/com/oracle/coherence/ai/util/Vectors.java",
+      "sha256": "e9506744c3ad38be37f8be0c1f14fe3a4d4857528769a1952c60f57d8069d541",
+      "kind": "ported-upstream",
+      "upstreamPath": "prj/coherence-core/src/main/java/com/oracle/coherence/ai/util/Vectors.java",
+      "upstreamSha256": "e9506744c3ad38be37f8be0c1f14fe3a4d4857528769a1952c60f57d8069d541"
+    },
+    {
+      "path": "src/main/java/com/oracle/coherence/hnswlib/ConcurrentIndex.java",
+      "sha256": "48d534c3057f6ed643f6e6eb40b2fe690dd5212ae5dd040d0d5cb4400e599a7e",
+      "kind": "ported-upstream",
+      "upstreamPath": "prj/coherence-hnsw/src/main/java/com/oracle/coherence/hnswlib/ConcurrentIndex.java",
+      "upstreamSha256": "48d534c3057f6ed643f6e6eb40b2fe690dd5212ae5dd040d0d5cb4400e599a7e"
+    },
+    {
+      "path": "src/main/java/com/oracle/coherence/hnswlib/Hnswlib.java",
+      "sha256": "1fd59d31898759b2ae07246bf02c3f931d6543cbe96613dac411c9523607720f",
+      "kind": "ported-upstream",
+      "upstreamPath": "prj/coherence-hnsw/src/main/java/com/oracle/coherence/hnswlib/Hnswlib.java",
+      "upstreamSha256": "1fd59d31898759b2ae07246bf02c3f931d6543cbe96613dac411c9523607720f"
+    },
+    {
+      "path": "src/main/java/com/oracle/coherence/hnswlib/HnswlibFactory.java",
+      "sha256": "cb629f5e730dfeb0009df855d559fbbd4a0d0c6432f141cd59535a1f51e00478",
+      "kind": "ported-upstream",
+      "upstreamPath": "prj/coherence-hnsw/src/main/java/com/oracle/coherence/hnswlib/HnswlibFactory.java",
+      "upstreamSha256": "310eb0d417327901d5ed929a51abf7c9e5eb56212feb968f73d6720a8b40429a"
+    },
+    {
+      "path": "src/main/java/com/oracle/coherence/hnswlib/Index.java",
+      "sha256": "0ac79aa71c3564de7cae7297fbc0df27612a1d625a3c0e481664973d2eba9476",
+      "kind": "ported-upstream",
+      "upstreamPath": "prj/coherence-hnsw/src/main/java/com/oracle/coherence/hnswlib/Index.java",
+      "upstreamSha256": "0ac79aa71c3564de7cae7297fbc0df27612a1d625a3c0e481664973d2eba9476"
+    },
+    {
+      "path": "src/main/java/com/oracle/coherence/hnswlib/QueryTuple.java",
+      "sha256": "47d61aa3443aa5dea88cb1a66c49cf60e4ab3ca2c6a047f2b0924f98c39b0d37",
+      "kind": "ported-upstream",
+      "upstreamPath": "prj/coherence-hnsw/src/main/java/com/oracle/coherence/hnswlib/QueryTuple.java",
+      "upstreamSha256": "47d61aa3443aa5dea88cb1a66c49cf60e4ab3ca2c6a047f2b0924f98c39b0d37"
+    },
+    {
+      "path": "src/main/java/com/oracle/coherence/hnswlib/SpaceName.java",
+      "sha256": "d886e20896743d3f3c1ed7c765a9378f01f24c1b34c6f030c5f9439b4a4140db",
+      "kind": "ported-upstream",
+      "upstreamPath": "prj/coherence-hnsw/src/main/java/com/oracle/coherence/hnswlib/SpaceName.java",
+      "upstreamSha256": "d886e20896743d3f3c1ed7c765a9378f01f24c1b34c6f030c5f9439b4a4140db"
+    },
+    {
+      "path": "src/main/java/com/oracle/coherence/hnswlib/exception/IndexAlreadyInitializedException.java",
+      "sha256": "558a5f99f6fb2810969f29627168aee90411014d2ed2fcd42f457d4cf3011c3b",
+      "kind": "ported-upstream",
+      "upstreamPath": "prj/coherence-hnsw/src/main/java/com/oracle/coherence/hnswlib/exception/IndexAlreadyInitializedException.java",
+      "upstreamSha256": "558a5f99f6fb2810969f29627168aee90411014d2ed2fcd42f457d4cf3011c3b"
+    },
+    {
+      "path": "src/main/java/com/oracle/coherence/hnswlib/exception/IndexNotInitializedException.java",
+      "sha256": "f98e5a54cbda0b711a352b8bda57c3ba803dd21ef77abd3dcba15d5a905fb20a",
+      "kind": "ported-upstream",
+      "upstreamPath": "prj/coherence-hnsw/src/main/java/com/oracle/coherence/hnswlib/exception/IndexNotInitializedException.java",
+      "upstreamSha256": "f98e5a54cbda0b711a352b8bda57c3ba803dd21ef77abd3dcba15d5a905fb20a"
+    },
+    {
+      "path": "src/main/java/com/oracle/coherence/hnswlib/exception/ItemCannotBeInsertedIntoTheVectorSpaceException.java",
+      "sha256": "62374bec164856a1bf0a44148383bba20b5e6d22ebce50393b468e1ff5d8bcb4",
+      "kind": "ported-upstream",
+      "upstreamPath": "prj/coherence-hnsw/src/main/java/com/oracle/coherence/hnswlib/exception/ItemCannotBeInsertedIntoTheVectorSpaceException.java",
+      "upstreamSha256": "62374bec164856a1bf0a44148383bba20b5e6d22ebce50393b468e1ff5d8bcb4"
+    },
+    {
+      "path": "src/main/java/com/oracle/coherence/hnswlib/exception/OnceIndexIsClearedItCannotBeReusedException.java",
+      "sha256": "4cefe19da11862b0c9fcc7bf905dad10b14cbfe804c7a1f060a60221855b3b64",
+      "kind": "ported-upstream",
+      "upstreamPath": "prj/coherence-hnsw/src/main/java/com/oracle/coherence/hnswlib/exception/OnceIndexIsClearedItCannotBeReusedException.java",
+      "upstreamSha256": "4cefe19da11862b0c9fcc7bf905dad10b14cbfe804c7a1f060a60221855b3b64"
+    },
+    {
+      "path": "src/main/java/com/oracle/coherence/hnswlib/exception/QueryCannotReturnResultsException.java",
+      "sha256": "817c8d4f1174d55b2f357da9cc2952032e5cbe9d298976cc64ba7978d0682b6b",
+      "kind": "ported-upstream",
+      "upstreamPath": "prj/coherence-hnsw/src/main/java/com/oracle/coherence/hnswlib/exception/QueryCannotReturnResultsException.java",
+      "upstreamSha256": "817c8d4f1174d55b2f357da9cc2952032e5cbe9d298976cc64ba7978d0682b6b"
+    },
+    {
+      "path": "src/main/java/com/oracle/coherence/hnswlib/exception/UnableToCreateNewIndexInstanceException.java",
+      "sha256": "45d5d279ca7f3719fb2a3a2d70be761aa6fda6fdd87df511f1c895d8aef1a745",
+      "kind": "ported-upstream",
+      "upstreamPath": "prj/coherence-hnsw/src/main/java/com/oracle/coherence/hnswlib/exception/UnableToCreateNewIndexInstanceException.java",
+      "upstreamSha256": "45d5d279ca7f3719fb2a3a2d70be761aa6fda6fdd87df511f1c895d8aef1a745"
+    },
+    {
+      "path": "src/main/java/com/oracle/coherence/hnswlib/exception/UnexpectedNativeException.java",
+      "sha256": "c65a190eb09173493ff19f8ae07fe75f9ade64f739329991bd1453de6de27c66",
+      "kind": "ported-upstream",
+      "upstreamPath": "prj/coherence-hnsw/src/main/java/com/oracle/coherence/hnswlib/exception/UnexpectedNativeException.java",
+      "upstreamSha256": "c65a190eb09173493ff19f8ae07fe75f9ade64f739329991bd1453de6de27c66"
+    },
+    {
+      "path": "src/main/java/com/tangosol/io/pof/PofConfigProvider.java",
+      "sha256": "50a39aaee3ee8607cfff01473c2001765f0144952daf14671b697e8f162a7f72",
+      "kind": "ported-upstream",
+      "upstreamPath": "prj/coherence-core/src/main/java/com/tangosol/io/pof/PofConfigProvider.java",
+      "upstreamSha256": "50a39aaee3ee8607cfff01473c2001765f0144952daf14671b697e8f162a7f72"
+    },
+    {
+      "path": "src/main/java/org/springframework/ai/compat/coherence/Java8CoherenceEntries.java",
+      "sha256": "d72e9d0e27850433f785fc5476b6a545cc92fde5abfebfe33eee36bc5febc069",
+      "kind": "yudao-helper"
+    },
+    {
+      "path": "src/main/java/org/springframework/ai/compat/coherence/Java8Collections.java",
+      "sha256": "552ceb9cfa9ca46c7cdcaa81979b1eda3b7c79ddf34ce48479205c9cdf573eae",
+      "kind": "yudao-helper"
+    },
+    {
+      "path": "src/main/java/org/springframework/ai/compat/coherence/Java8Platform.java",
+      "sha256": "7f9f5fc12f4f16ed34a0907ded0f9b30faca2d8f8e8d73543de7f6f7784be2c1",
+      "kind": "yudao-helper"
+    },
+    {
+      "path": "src/main/java/org/springframework/ai/compat/coherence/Java8PofConfigDescriptor.java",
+      "sha256": "2067b7a0d6a6abb2c8fd75c6d975452f559ebc85c7d73cafe0b44803ca24adf5",
+      "kind": "yudao-helper"
+    },
+    {
+      "path": "src/main/java/org/springframework/ai/compat/coherence/Java8Record.java",
+      "sha256": "d31b5b7f731672b2c760c89e9b847a17594a863cf322215df20f489b030f5636",
+      "kind": "yudao-helper"
+    }
+  ],
+  "artifacts": [
+    {
+      "mavenPath": "com/oracle/coherence/ce/coherence/14.1.1-0-29/coherence-14.1.1-0-29.jar",
+      "sha256": "a8fd356687c41e3654edf6b549badbe1e93a6bc4d251d74438a731a71a6efa9a"
+    },
+    {
+      "mavenPath": "com/oracle/coherence/ce/coherence-hnsw/24.09/coherence-hnsw-24.09.jar",
+      "sha256": "ecfe4f6875e44a8d25fa6bd02749cf30ef78a2f2ecc43ed7eb38400252f81fc0"
+    }
+  ],
+  "unchangedNativeResources": [
+    {
+      "path": "libhnswlib-aarch64.dylib",
+      "sha256": "df22adb908147b30aa94e0ac6f8bef0194b311d3d8048f5c69b9bdce44025f98"
+    },
+    {
+      "path": "libhnswlib-x86-64.so",
+      "sha256": "3f221ba59be6a2d8421a8c99524fc5102231aa0da0a50f1df6bc82cc00921146"
+    },
+    {
+      "path": "coherence-hnsw-pof-config.xml",
+      "sha256": "48ab6ed2016e8df44701347a6f7d1d302776820d9dfea44fcaa6f74b54d9242b"
+    },
+    {
+      "path": "libhnswlib-x86-64.dylib",
+      "sha256": "010ca5792642464fd3a509bdd19baa733bc3756b4e878781b80d912334a1f176"
+    },
+    {
+      "path": "libhnswlib-x86-64.dll",
+      "sha256": "cbd751b1b2de2dff7516ccb1c84d34c5879fbe1c009d3318769ea5df0bd5b998"
+    },
+    {
+      "path": "libhnswlib-x86-64.exp",
+      "sha256": "8e86da378d08df69bd20a4171b4201a44868f3d65abb024f0358d734816caec7"
+    },
+    {
+      "path": "libhnswlib-aarch64.so",
+      "sha256": "a9dafba3c863068657f9f2129e852abbae33d3def42fa62c5730066b03f84fa5"
+    },
+    {
+      "path": "libhnswlib-x86-64.libw",
+      "sha256": "b39c566d774d7190d534570aa952928d6b101d3571f2971a62fe547c96221846"
+    }
+  ]
+}

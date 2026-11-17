@@ -118,3 +118,16 @@ The32 OpenSearch module units passed in all three source routes (native8,17,17 r
 An SSE keep-alive test now accepts a comment already queued during graceful close while still asserting the final RPC result and timely completion.
 Its39 cases passed on Boot2/native8 and Boot3/4 ×native17/25 with retry disabled.
 No real AWS account was called; the engine is a local test container and AWS signing uses a dummy-credential local fixture.
+
+## Coherence Java8 vector port
+
+The default working reactor contains196 modules, adding the Coherence store and a focused source compatibility SDK.
+The runtime is core14.1.1-0-29 with24.09 vector/HNSW source families, not the unmodified24.09 runtime.
+The final component gate passed18 native8 unit cases and28 native8 integrations: six Java/POF × NONE/BINARY/HNSW cases across two JVMs plus22 original real-MiniLM cases.
+All have zero failures/errors/skips and retries disabled.
+The original assertion suite remains intact; each test context gets its own cache, local test storage is explicit, and UDP cluster/WKA ports are selected using DatagramSocket.
+The independent Boot2 consumer exercises all three indexes using installed jars, Unicode, filters, threshold, deletion and native Session.
+The two produced jars have54 classes and zero missing JDK/core/Spring member references on the actual consumer classpath.
+Bytecode and whole-dependency API findings are recorded separately; optional Java9 Flow adapters and logging fallbacks are not described as zero findings.
+See [usage and runtime boundaries](compatibility/coherence-ai/README.md) and [source provenance](compatibility/coherence-ai/UPSTREAM.md).
+The previously published194-module full checkpoint remains historical; the196-module full run is tracked separately until it completes.

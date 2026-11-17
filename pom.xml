@@ -10,6 +10,8 @@
 	<description>Building AI applications with Spring Boot</description>
 	<modules>
 		<module>compatibility/opensearch-client</module>
+		<module>compatibility/coherence-ai</module>
+		<module>vector-stores/spring-ai-coherence-store</module>
 		<module>compatibility/agent-utils-common</module>
 		<module>compatibility/agent-utils</module>
 		<module>spring-ai-bom</module>

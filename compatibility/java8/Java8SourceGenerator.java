@@ -141,6 +141,9 @@ public final class Java8SourceGenerator {
                 Path target = output.resolve(input.relativize(path));
                 Files.createDirectories(target.getParent());
                 String content = unit.toString();
+                if (args.length > 2) {
+                    content = content.replace("org.springframework.ai.util.Java8", args[2] + ".Java8");
+                }
                 generated.add(target);
                 if (!Files.exists(target) || !Files.readString(target).equals(content)) {
                     Files.writeString(target, content);

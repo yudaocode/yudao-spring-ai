@@ -27,21 +27,8 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Stream;
 
-import com.oracle.bedrock.junit.CoherenceClusterExtension;
-import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
-import com.oracle.bedrock.runtime.coherence.options.ClusterName;
-import com.oracle.bedrock.runtime.coherence.options.LocalHost;
-import com.oracle.bedrock.runtime.coherence.options.RoleName;
-import com.oracle.bedrock.runtime.coherence.options.WellKnownAddress;
-import com.oracle.bedrock.runtime.java.options.IPv4Preferred;
-import com.oracle.bedrock.runtime.java.options.SystemProperty;
-import com.oracle.bedrock.runtime.options.DisplayName;
-import com.oracle.bedrock.testsupport.junit.TestLogsExtension;
-import com.tangosol.net.Coherence;
 import com.tangosol.net.Session;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -65,17 +52,29 @@ import org.springframework.util.CollectionUtils;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
-@Disabled("Crashes on github actions run")
+@org.junit.jupiter.api.condition.EnabledIfSystemProperty(named = "compat.coherence.tests", matches = "true")
+@org.junit.jupiter.api.Timeout(120)
 public class CoherenceVectorStoreIT {
 
-	@RegisterExtension
-	static TestLogsExtension testLogs = new TestLogsExtension();
+	@org.junit.jupiter.api.BeforeAll
+	@org.junit.jupiter.api.Timeout(45)
+	static void configureLegacyRuntime() throws Exception {
+		org.junit.jupiter.api.Assertions.assertEquals("1.8", System.getProperty("java.specification.version"));
+		System.setProperty("coherence.cluster", "spring-ai-native8-" + UUID.randomUUID());
+		System.setProperty("coherence.localhost", "127.0.0.1");
+		System.setProperty("coherence.wka", "127.0.0.1");
+		System.setProperty("coherence.ttl", "0");
+		System.setProperty("coherence.log.level", "2");
+		System.setProperty("coherence.distributed.localstorage", "true");
+		System.setProperty("coherence.serializer", "pof");
+		System.setProperty("coherence.pof.config", "coherence-ai-java8-pof-config.xml");
+		cn.iocoder.ai.compatibility.CoherenceTestPorts.configure();
+	}
 
-	@RegisterExtension
-	static CoherenceClusterExtension cluster = new CoherenceClusterExtension()
-		.with(ClusterName.of("CoherenceVectorStoreIT"), WellKnownAddress.loopback(), LocalHost.only(),
-				IPv4Preferred.autoDetect(), SystemProperty.of("coherence.serializer", "pof"))
-		.include(3, CoherenceClusterMember.class, DisplayName.of("storage"), RoleName.of("storage"), testLogs);
+	@org.junit.jupiter.api.AfterAll
+	static void stopLegacyRuntime() {
+		com.tangosol.net.CacheFactory.shutdown();
+	}
 
 	final List<Document> documents = List.of(
 			new Document(getText("classpath:/test/data/spring.ai.txt"), Map.of("meta1", "meta1")),
@@ -98,7 +97,7 @@ public class CoherenceVectorStoreIT {
 
 	private static void truncateMap(ApplicationContext context, String mapName) {
 		Session session = context.getBean(Session.class);
-		session.getMap(mapName).truncate();
+		session.getCache(mapName).truncate();
 	}
 
 	public static Stream<Arguments> distanceAndIndex() {
@@ -346,6 +345,7 @@ public class CoherenceVectorStoreIT {
 		@Bean
 		public VectorStore vectorStore(EmbeddingModel embeddingModel, Session session) {
 			return CoherenceVectorStore.builder(session, embeddingModel)
+				.mapName("coherence-it-" + UUID.randomUUID())
 				.distanceType(this.distanceType)
 				.indexType(this.indexType)
 				.forcedNormalization(this.distanceType == CoherenceVectorStore.DistanceType.COSINE
@@ -354,19 +354,20 @@ public class CoherenceVectorStoreIT {
 		}
 
 		@Bean
-		public Session session(Coherence coherence) {
-			return coherence.getSession();
-		}
-
-		@Bean
-		public Coherence coherence() {
-			return Coherence.clusterMember().start().join();
+		public Session session() {
+			return Session.create();
 		}
 
 		@Bean
 		public EmbeddingModel embeddingModel() {
 			try {
 				TransformersEmbeddingModel tem = new TransformersEmbeddingModel();
+				tem.setResourceCacheDirectory("target/coherence-model-cache");
+				tem.setTokenizerResource("classpath:/onnx/all-MiniLM-L6-v2/tokenizer.json");
+				String model = System.getProperty("compat.coherence.model");
+				if (model != null) {
+					tem.setModelResource(model);
+				}
 				tem.afterPropertiesSet();
 				return tem;
 			}

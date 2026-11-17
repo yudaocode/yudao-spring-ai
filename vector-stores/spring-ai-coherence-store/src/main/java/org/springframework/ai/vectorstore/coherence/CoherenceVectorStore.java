@@ -32,7 +32,7 @@ import com.oracle.coherence.ai.hnsw.HnswIndex;
 import com.oracle.coherence.ai.index.BinaryQuantIndex;
 import com.oracle.coherence.ai.search.SimilaritySearch;
 import com.oracle.coherence.ai.util.Vectors;
-import com.tangosol.net.NamedMap;
+import com.tangosol.net.NamedCache;
 import com.tangosol.net.Session;
 import com.tangosol.util.Filter;
 
@@ -124,7 +124,7 @@ public class CoherenceVectorStore extends AbstractObservationVectorStore impleme
 	private final Session session;
 
 	@SuppressWarnings("NullAway.Init")
-	private NamedMap<DocumentChunk.Id, DocumentChunk> documentChunks;
+	private NamedCache<DocumentChunk.Id, DocumentChunk> documentChunks;
 
 	/**
 	 * Map name where vectors will be stored.
@@ -201,7 +201,8 @@ public class CoherenceVectorStore extends AbstractObservationVectorStore impleme
 		var search = new SimilaritySearch<DocumentChunk.Id, DocumentChunk, float[]>(DocumentChunk::vector, vector,
 				request.getTopK())
 			.algorithm(getDistanceAlgorithm())
-			.filter(filter);
+			.filter(filter)
+			.withResultSerializer(this.documentChunks.getCacheService().getSerializer());
 
 		var results = this.documentChunks.aggregate(search);
 
@@ -233,11 +234,11 @@ public class CoherenceVectorStore extends AbstractObservationVectorStore impleme
 
 	@Override
 	public void afterPropertiesSet() throws Exception {
-		this.documentChunks = this.session.getMap(this.mapName);
+		this.documentChunks = this.session.getCache(this.mapName);
 		switch (this.indexType) {
-			case HNSW -> this.documentChunks
-				.addIndex(new HnswIndex<>(DocumentChunk::vector, this.distanceType.name(), this.dimensions));
-			case BINARY -> this.documentChunks.addIndex(new BinaryQuantIndex<>(DocumentChunk::vector));
+			case HNSW -> this.documentChunks.addIndex(
+					new HnswIndex<>(DocumentChunk::vector, this.distanceType.name(), this.dimensions), false, null);
+			case BINARY -> this.documentChunks.addIndex(new BinaryQuantIndex<>(DocumentChunk::vector), false, null);
 		}
 	}
 

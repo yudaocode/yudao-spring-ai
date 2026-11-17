@@ -67,8 +67,8 @@ public class CoherenceFilterExpressionConverter {
 			case IN -> Filters.in(extractor(expression.left()), ((List) value(expression.right())).toArray());
 			case NIN ->
 				Filters.not(Filters.in(extractor(expression.left()), ((List) value(expression.right())).toArray()));
-			case AND -> Filters.all(convert(expression.left()), convert(expression.right()));
-			case OR -> Filters.any(convert(expression.left()), convert(expression.right()));
+			case AND -> typedAll(convert(expression.left()), convert(expression.right()));
+			case OR -> typedAny(convert(expression.left()), convert(expression.right()));
 			default -> throw new IllegalStateException("Unexpected value: " + expression.type());
 		};
 	}
@@ -79,6 +79,16 @@ public class CoherenceFilterExpressionConverter {
 
 	private <T> T value(Operand op) {
 		return (T) ((Value) op).value();
+	}
+
+	@SuppressWarnings("unchecked")
+	private static Filter<?> typedAll(Filter<?> left, Filter<?> right) {
+		return Filters.all((Filter<Object>) left, (Filter<Object>) right);
+	}
+
+	@SuppressWarnings("unchecked")
+	private static Filter<?> typedAny(Filter<?> left, Filter<?> right) {
+		return Filters.any((Filter<Object>) left, (Filter<Object>) right);
 	}
 
 }
