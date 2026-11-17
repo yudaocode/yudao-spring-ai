@@ -37,7 +37,7 @@ Maven groupId 使用 `cn.iocoder.spring-ai`；artifactId 和 Java 包名保留�
 
 ## 验证范围
 
-- 上游基准：`4cce4caa9653092624b20ae1113633b3ad97d256`。本分支版本为 `3.0.0-SNAPSHOT`，对应 Boot `3.5.15`，最低目标 JDK `17`，消费验证 JVM `17`。使用 `cn.iocoder.spring-ai`，保留原 artifactId 和 Java 包名。
+- 上游基准：`4cce4caa9653092624b20ae1113633b3ad97d256`。本分支版本为 `2.1.0-jdk17-SNAPSHOT`，对应 Boot `3.5.15`，最低目标 JDK `17`，消费验证 JVM `17`。使用 `cn.iocoder.spring-ai`，保留原 artifactId 和 Java 包名。
 - 默认 reactor：Boot 2 为190模块，Boot 3/4为184模块。默认单元测试、依赖守卫和本地安装通过完整运行及后续按模块/测试类闭合；不冒充每次全量运行都一次通过。Boot 3/4库级全量测试使用JDK17，Java8分支用实际JVM8；实际业务消费另在JDK8/17/25验证。
 - 三套冻结业务快照跑通启动、同步/SSE聊天、Token入库、图片生成下载、知识库解析/异步切片/带元数据过滤检索/删除。AI1另有各301项按最新类结果合并覆盖，包含隔离Redis恢复验证。外部模型和向量服务并非全部在线验证。
 - 三套共同HTTP回归各10项通过，覆盖OpenAI、Azure Embedding、原生Gemini、通义Embedding/图片及应用ObservationRegistry、思考内容增量。相应服务层与工具类回归在实际JVM8/17/25分别51/54/61项通过。
