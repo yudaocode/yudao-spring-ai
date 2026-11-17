@@ -121,13 +121,15 @@ No real AWS account was called; the engine is a local test container and AWS sig
 
 ## Coherence Java8 vector port
 
-The default working reactor contains196 modules, adding the Coherence store and a focused source compatibility SDK.
+The default reactor contains196 modules, adding the Coherence store and a focused source compatibility SDK.
 The runtime is core14.1.1-0-29 with24.09 vector/HNSW source families, not the unmodified24.09 runtime.
 The final component gate passed18 native8 unit cases and28 native8 integrations: six Java/POF × NONE/BINARY/HNSW cases across two JVMs plus22 original real-MiniLM cases.
 All have zero failures/errors/skips and retries disabled.
-The original assertion suite remains intact; each test context gets its own cache, local test storage is explicit, and UDP cluster/WKA ports are selected using DatagramSocket.
+The original assertion suite remains intact; each test context gets its own cache, local test storage is explicit, and matching TCP/UDP cluster/WKA ports are selected outside the usual ephemeral range with automatic port drift disabled.
 The independent Boot2 consumer exercises all three indexes using installed jars, Unicode, filters, threshold, deletion and native Session.
 The two produced jars have54 classes and zero missing JDK/core/Spring member references on the actual consumer classpath.
 Bytecode and whole-dependency API findings are recorded separately; optional Java9 Flow adapters and logging fallbacks are not described as zero findings.
 See [usage and runtime boundaries](compatibility/coherence-ai/README.md) and [source provenance](compatibility/coherence-ai/UPSTREAM.md).
-The previously published194-module full checkpoint remains historical; the196-module full run is tracked separately until it completes.
+The196-module native8 clean install completed with8072 cases, zero failures/errors and17 existing conditional skips.
+Its full-log suite totals agree with the native8 XML totals; the focused Coherence unit/IT gate was also rerun after the final test infrastructure fixes.
+The earlier194/8052 checkpoint is historical.
