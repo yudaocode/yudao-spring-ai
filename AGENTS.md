@@ -36,7 +36,7 @@ Concise extract of [CONTRIBUTING.md](CONTRIBUTING.md), which remains the referen
 - `main` tracks upstream Boot 4; keep it available without a working directory until needed.
 - `main-jdk17` targets Boot 3.5, Spring 6.2, Jackson 2, Spring Retry and Java 17.
 - `main-jdk8` targets Boot 2.7, Spring 5.3 and Java 8; it requires source and SDK backports.
-- Retain `org.springframework.ai` coordinates and Java packages; use distinct compatibility versions.
+- Use the user-approved `cn.iocoder.spring-ai` groupId and distinct compatibility versions; retain artifactId and Java package names.
 - Do not introduce Boot 4 / Spring 7 / Jackson 3 dependencies in `main-jdk17`, including transitives.
 - New Java classes, tests and helpers use `@author 芋道源码`; retain existing authors when modifying upstream classes.
 - Compile success, unit tests, integration tests, dependency audits and consumer acceptance are separate gates.

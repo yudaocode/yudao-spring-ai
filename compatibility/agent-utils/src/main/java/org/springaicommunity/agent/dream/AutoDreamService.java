@@ -35,7 +35,6 @@ import org.springaicommunity.agent.tools.AutoMemoryTools;
 
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.session.SessionService;
-import org.springframework.ai.session.tool.CrossSessionRecallTools;
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.Resource;
 import org.springframework.util.Assert;
@@ -55,7 +54,7 @@ import org.springframework.util.StringUtils;
  * <p>
  * When {@link Builder#sessionService(SessionService)} is configured,
  * {@link #runDreamCycle(String, String)} additionally gives the Dreamer a read-only
- * {@code cross_session_search} tool ({@link CrossSessionRecallTools}) scoped to the given
+ * {@code cross_session_search} tool ({@link DreamSessionRecallTools}) scoped to the given
  * {@code userId}, so it can mine historical conversation signal in addition to
  * self-consolidating the memory store. Without a configured {@code sessionService} (or
  * without a {@code userId}), the Dreamer only ever sees {@code AutoMemoryTools} — this is
@@ -131,7 +130,7 @@ public class AutoDreamService {
 		}
 
 		Optional<DreamLock> lock = DreamLock.tryAcquire(liveMemoriesDir, this.staleLockAfter);
-		if (lock.isEmpty()) {
+		if (!lock.isPresent()) {
 			return DreamResult.skipped("A dream cycle is already running for " + memoriesRootDirectory);
 		}
 
@@ -151,7 +150,7 @@ public class AutoDreamService {
 			.defaultTools(AutoMemoryTools.builder().memoriesDir(dreamTargetDir).build());
 
 		if (crossSessionRecallAvailable) {
-			chatClientBuilder.defaultTools(CrossSessionRecallTools.builder(this.sessionService, userId).build());
+			chatClientBuilder.defaultTools(new DreamSessionRecallTools(this.sessionService, userId));
 		}
 
 		ChatClient dreamerChatClient = chatClientBuilder.build();

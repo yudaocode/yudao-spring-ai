@@ -40,7 +40,7 @@ Java8CompatibilityTests 和 RestClientJava8Tests 会断言实际运行 VM 为 1.
 - 三套冻结业务快照跑通启动、同步/SSE聊天、Token入库、图片生成下载、知识库解析/异步切片/带元数据过滤检索/删除。AI1另有各301项按最新类结果合并覆盖，包含隔离Redis恢复验证。外部模型和向量服务并非全部在线验证。
 - 三套共同HTTP回归各10项通过，覆盖OpenAI、Azure Embedding、原生Gemini、通义Embedding/图片及应用ObservationRegistry、思考内容增量。相应服务层与工具类回归在实际JVM8/17/25分别51/54/61项通过。
 - Tika整族分别为Boot2=2.9.4、Boot3=3.3.1、Boot4=4.0.0；BOM仅管理Tika自身组件，避免父BOM覆盖应用框架依赖。
-- Java8分支不将Coherence、Boot3 devservices等受限可选模块计入默认支持；可选agent-utils源码兼容模块不包含旧Dream子系统。具体依赖、模块和API边界见本文件对应说明及compatibility目录。
+- Java8分支不将Coherence、Boot3 devservices等受限可选模块计入默认支持；Agent Utils 0.13.0的common/tools两模块现纳入默认构建与BOM，Dream已按当前Session API适配，包含官方默认提示词资源；跨会话回忆要求应用写入一致的principal元数据，见[模块说明](compatibility/agent-utils/README.md)。具体依赖、模块和API边界见本文件对应说明及compatibility目录。
 - 消费项目需要适配Spring AI 2.x API。既有平台存储值、业务新增功能及Boot/JDK原生类型仍可不同，不能把“能够编译运行”理解为三个业务仓库源码完全相同。当前为开发兼容分支，后续扩展需补实际目标JVM验收。
 
 ## Redis public API migration
@@ -50,3 +50,15 @@ This older-Boot branch uses `redis.clients.jedis.JedisPooled` in the public buil
 ## ITU duration parsing on Java 8
 
 `spring-ai-commons` supplies `spring-ai-itu-compat` (ITU 1.17.0 sources compiled with `--release 8`). The chat client excludes the original ITU jar. Its original major-52 binaries call a Java 9-only Math overload when parsing durations; native Java 8 regression tests cover duration/date parsing and overflow. See [provenance](compatibility/itu/UPSTREAM.md). Do not include the original `com.ethlo.time:itu` alongside this compatibility artifact.
+
+## Agent Utils and current native8 gate
+
+The default193-module clean install passed8042 XML test cases on native Java8, zero failures/errors and17 conditional skips.
+Agent Utils common/tools account for11 cases including the now-compiled Dream subsystem.
+A separate native Boot2.7.18 consumer passed one end-to-end Dream tool-call case through actual local HTTP, real session storage, principal isolation and persisted state.
+See `compatibility-tests/boot2-agent-utils` for a reproducible source fixture.
+
+The expanded runtime scan covered835 jars /270702 effective base classes, all <=major52.
+Static API scanning remains a separate gate: besides optional modern-VM/Flow/SLF4J fallback branches in third-party libraries, it identified two outstanding pre-existing SDK paths requiring follow-up: MCP's transitive original ITU1.14 duration parser and OpenSearch2.23 PercentCodec's covariant ByteBuffer.flip call.
+They are recorded as open runtime issues; full unit success does not claim those uncovered SDK paths work.
+The new Agent Utils classes introduce no missing Java8 API references in that scan.

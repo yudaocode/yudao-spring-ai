@@ -10,9 +10,14 @@
     <artifactId>spring-ai-agent-utils-common-compat</artifactId>
     <name>Agent Utils 0.13.0 Java 8 compatibility</name>
     <url>https://github.com/spring-ai-community/spring-ai-agent-utils</url>
-    <licenses><license><name>Apache License, Version 2.0</name><url>https://www.apache.org/licenses/LICENSE-2.0</url></license></licenses>
+    <licenses>
+        <license>
+            <name>Apache License, Version 2.0</name>
+            <url>https://www.apache.org/licenses/LICENSE-2.0</url>
+        </license>
+    </licenses>
     <properties>
-        <!-- Preserve the vendored upstream copyright and style. -->
+        <!-- Preserve vendored upstream headers and style; bytecode/dependency guards remain enabled. -->
         <disable.checks>true</disable.checks>
     </properties>
     <dependencies>
@@ -25,6 +30,11 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>

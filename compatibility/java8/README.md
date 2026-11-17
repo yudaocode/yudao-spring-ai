@@ -46,3 +46,10 @@ Generated record constructors carry Boot 2 ConstructorBinding so model-option re
 The reactive transport stack uses Reactor BOM2024.0.18 (core3.7.19 / Reactor Netty1.2.18) and Netty BOM4.1.135.Final, whose base bytecode is Java 8. This supplies the ContextAccessor SPI required by Micrometer context-propagation1.1.3 while Spring 5 / Boot 2 remain native. The full suite and consumer gates, rather than bytecode alone, validate their behavior together.
 
 Vendored MCP/JSpecify modules and individually identified Spring/Neo4j source ports retain upstream formatting and copyright. Project formatting/Checkstyle excludes those original source regions; handwritten compatibility runtime, framework adapters and AI changes remain subject to project checks. Runtime/bytecode/test gates still apply to every built module. Constructor/annotation changes are generated into target copies; original Java record declarations stay readable for upstream maintenance.
+
+## Community Agent Utils
+
+Agent Utils 0.13.0 common/tools are included in the default reactor and compatibility BOM.
+Dream is compiled against the current session API through a private, principal-scoped read-only adapter.
+See [usage and validation](../agent-utils/README.md), including the additional provided session dependency and pagination behavior.
+Default prompt and subagent resources are retained verbatim with binary-artifact provenance.

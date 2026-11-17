@@ -1,1 +1,6 @@
 *.onnx filter=lfs diff=lfs merge=lfs -text
+
+# Preserve exact whitespace in vendored upstream prompts; see upstream-resource-receipt.json.
+compatibility/agent-utils/src/main/resources/prompt/AUTO_MEMORY_FILESYSTEM_TOOLS_SYSTEM_PROMPT.md whitespace=-blank-at-eol
+compatibility/agent-utils/src/main/resources/prompt/MAIN_AGENT_SYSTEM_PROMPT_ORIGINAL.md whitespace=-blank-at-eol
+compatibility/agent-utils/src/main/resources/prompt/MAIN_AGENT_SYSTEM_PROMPT_V2.md whitespace=-blank-at-eol

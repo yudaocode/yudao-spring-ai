@@ -73,6 +73,10 @@ spring:
 
 配置环境变量后，注入 `ChatModel` 或 `ChatClient.Builder` 使用；Java 导入仍为 `org.springframework.ai.*`。例如注入名为 `builder` 的 `ChatClient.Builder` 后，调用 `builder.build().prompt("你好").call().content()`。
 
+Java 8 分支默认构建另包含 Agent Utils 0.13.0 的 common/tools 兼容模块，Dream 已适配当前 Session API，且保留官方默认提示词资源。
+使用 `cn.iocoder.spring-ai:spring-ai-agent-utils-compat`，不要同时引入官方同名类；Dream 需要应用显式提供 `spring-ai-session`。
+依赖示例、principal 隔离与分页约定见 [Agent Utils 使用说明](compatibility/agent-utils/README.md)。
+
 详细构建、源码基线、API 差异及当前支持边界见 [COMPATIBILITY.md](COMPATIBILITY.md)。
 
 下方逐字保留官方项目原始 README，其中的官方 Maven 坐标和发布状态仅针对上游项目；使用本兼容版时，以本节坐标、版本线和支持范围为准。

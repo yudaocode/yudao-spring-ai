@@ -9,6 +9,8 @@
 	<name>Spring AI Parent</name>
 	<description>Building AI applications with Spring Boot</description>
 	<modules>
+		<module>compatibility/agent-utils-common</module>
+		<module>compatibility/agent-utils</module>
 		<module>spring-ai-bom</module>
 		<module>spring-ai-client-chat</module>
 		<module>spring-ai-commons</module>
@@ -1070,7 +1072,7 @@
 				</repository>
 			</repositories>
 		</profile>
-	<profile><id>agent-utils-compat</id><modules><module>compatibility/agent-utils-common</module><module>compatibility/agent-utils</module></modules></profile></profiles>
+	<profile><id>agent-utils-compat</id><!-- Retained as a command-line alias; modules are built by default. --></profile></profiles>
 	<dependencies>
 		<dependency>
 			<groupId>cn.iocoder.spring-ai</groupId>
