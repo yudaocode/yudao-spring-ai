@@ -23,6 +23,7 @@ import org.jspecify.annotations.Nullable;
 
 import org.springframework.ai.vectorstore.properties.CommonVectorStoreProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.util.Assert;
 
 @ConfigurationProperties(prefix = OpenSearchVectorStoreProperties.CONFIG_PREFIX)
 public class OpenSearchVectorStoreProperties extends CommonVectorStoreProperties {
@@ -45,6 +46,12 @@ public class OpenSearchVectorStoreProperties extends CommonVectorStoreProperties
 	private @Nullable Integer dimensions;
 
 	private @Nullable String similarity;
+
+	/**
+	 * Exact cosine score boost. Defaults to 0.5 for older engines; use 1.0 for OpenSearch
+	 * 2.19+ which already normalizes cosine scores.
+	 */
+	private @Nullable Float cosineSimilarityScoreBoost;
 
 	private @Nullable String mappingJson;
 
@@ -122,6 +129,28 @@ public class OpenSearchVectorStoreProperties extends CommonVectorStoreProperties
 
 	public void setDimensions(@Nullable Integer dimensions) {
 		this.dimensions = dimensions;
+	}
+
+	/**
+	 * Return the configured exact cosine score boost.
+	 * @return the boost, or {@code null} to retain the legacy default
+	 * @since 2.1.0
+	 */
+	public @Nullable Float getCosineSimilarityScoreBoost() {
+		return this.cosineSimilarityScoreBoost;
+	}
+
+	/**
+	 * Set the exact cosine score boost.
+	 * @param cosineSimilarityScoreBoost a positive finite multiplier, or {@code null}
+	 * @since 2.1.0
+	 */
+	public void setCosineSimilarityScoreBoost(@Nullable Float cosineSimilarityScoreBoost) {
+		if (cosineSimilarityScoreBoost != null) {
+			Assert.isTrue(Float.isFinite(cosineSimilarityScoreBoost) && cosineSimilarityScoreBoost > 0,
+					"cosineSimilarityScoreBoost must be finite and positive");
+		}
+		this.cosineSimilarityScoreBoost = cosineSimilarityScoreBoost;
 	}
 
 	public @Nullable String getSimilarity() {

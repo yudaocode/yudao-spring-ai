@@ -101,6 +101,7 @@ public class OpenSearchVectorStoreAutoConfiguration {
 		Optional.ofNullable(properties.getUseApproximateKnn()).ifPresent(builder::useApproximateKnn);
 		Optional.ofNullable(properties.getDimensions()).ifPresent(builder::dimensions);
 		Optional.ofNullable(properties.getSimilarity()).ifPresent(builder::similarityFunction);
+		Optional.ofNullable(properties.getCosineSimilarityScoreBoost()).ifPresent(builder::cosineSimilarityScoreBoost);
 
 		return builder.build();
 	}
