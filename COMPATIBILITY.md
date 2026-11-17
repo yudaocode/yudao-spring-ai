@@ -38,11 +38,11 @@ Maven groupId 使用 `cn.iocoder.spring-ai`；artifactId 和 Java 包名保留�
 ## 验证范围
 
 - 上游基准：`4cce4caa9653092624b20ae1113633b3ad97d256`。本分支版本为 `2.1.0-jdk17-SNAPSHOT`，对应 Boot `3.5.15`，最低目标 JDK `17`，消费验证 JVM `17`。使用 `cn.iocoder.spring-ai`，保留原 artifactId 和 Java 包名。
-- 默认 reactor：Boot 2 为190模块，Boot 3/4为184模块。默认单元测试、依赖守卫和本地安装通过完整运行及后续按模块/测试类闭合；不冒充每次全量运行都一次通过。Boot 3/4库级全量测试使用JDK17，Java8分支用实际JVM8；实际业务消费另在JDK8/17/25验证。
+- 默认 reactor：Boot 2 当前为202模块，Boot 3/4为184模块。默认单元测试、依赖守卫和本地安装通过完整运行及后续按模块/测试类闭合；不冒充每次全量运行都一次通过。Boot 3/4库级全量测试使用JDK17，Java8分支用实际JVM8；实际业务消费另在JDK8/17/25验证。
 - 三套冻结业务快照跑通启动、同步/SSE聊天、Token入库、图片生成下载、知识库解析/异步切片/带元数据过滤检索/删除。AI1另有各301项按最新类结果合并覆盖，包含隔离Redis恢复验证。外部模型和向量服务并非全部在线验证。
 - 三套共同HTTP回归各10项通过，覆盖OpenAI、Azure Embedding、原生Gemini、通义Embedding/图片及应用ObservationRegistry、思考内容增量。相应服务层与工具类回归在实际JVM8/17/25分别51/54/61项通过。
 - Tika整族分别为Boot2=2.9.4、Boot3=3.3.1、Boot4=4.0.0；BOM仅管理Tika自身组件，避免父BOM覆盖应用框架依赖。
-- Java8分支不将Coherence、Boot3 devservices等受限可选模块计入默认支持；可选agent-utils源码兼容模块不包含旧Dream子系统。具体依赖、模块和API边界见本文件对应说明及compatibility目录。
+- Java8分支已纳入Agent Utils/Dream、Coherence向量源码兼容模块、Testcontainers和Docker Compose普通JVM开发辅助模块；AOT/native-image不在Java8支持范围。具体依赖及使用边界以[main-jdk8兼容说明](https://github.com/yudaocode/yudao-spring-ai/blob/main-jdk8/COMPATIBILITY.md)为准。
 - 消费项目需要适配Spring AI 2.x API。既有平台存储值、业务新增功能及Boot/JDK原生类型仍可不同，不能把“能够编译运行”理解为三个业务仓库源码完全相同。当前为开发兼容分支，后续扩展需补实际目标JVM验收。
 
 ## Redis public API migration
@@ -83,3 +83,12 @@ The32 OpenSearch module units passed in all three source routes (native8,17,17 r
 An SSE keep-alive test now accepts a comment already queued during graceful close while still asserting the final RPC result and timely completion.
 Its39 cases passed on Boot2/native8 and Boot3/4 ×native17/25 with retry disabled.
 No real AWS account was called; the engine is a local test container and AWS signing uses a dummy-credential local fixture.
+
+
+## Java8 route checkpoint synchronization
+
+The separate Boot2/Java8 route now has202 default modules, including Coherence vector support, Testcontainers and Docker Compose compatibility sources.
+Its native8 clean install passed8121 unit cases, zero failures/errors and17 conditional skips, with retries disabled and frozen Java/POM inputs.
+Focused real service/child-process/installed-consumer integrations are separately recorded on that branch.
+This paragraph synchronizes cross-route documentation; it does not claim a new full184-module run for this modern branch.
+See [main-jdk8 usage, provenance and boundaries](https://github.com/yudaocode/yudao-spring-ai/blob/main-jdk8/COMPATIBILITY.md).

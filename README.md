@@ -84,6 +84,9 @@ OpenSearch2.19.3 的精确余弦评分已补三线统一配置：设置 `spring.
 真实引擎已验证相同向量得分1.0与0.9阈值；Boot2/JDK8消费7项、Boot3/4在JDK17/25各4项均零失败/错误/跳过。
 完整用法、验证边界见 [COMPATIBILITY.md](COMPATIBILITY.md#exact-cosine-scores-with-opensearch-219)。
 
+Boot2/Java8 路线已纳入 Coherence 向量库、Testcontainers、Docker Compose 兼容模块，当前默认202模块原生JDK8完整构建通过8121项单测，零失败/错误、17项条件跳过。
+各模块用法、真实服务分项验证及支持边界见 [main-jdk8 说明](https://github.com/yudaocode/yudao-spring-ai/blob/main-jdk8/COMPATIBILITY.md)；本段仅同步跨分支状态，不代表本现代分支重新全量测试。
+
 <!-- YUDAO-COMPATIBILITY-INTRO-END -->
 
 ---
