@@ -190,6 +190,8 @@ public class OpenSearchVectorStore extends AbstractObservationVectorStore implem
 
 	private String similarityFunction;
 
+	private final float cosineSimilarityScoreBoost;
+
 	private final boolean useApproximateKnn;
 
 	private final int dimensions;
@@ -215,6 +217,7 @@ public class OpenSearchVectorStore extends AbstractObservationVectorStore implem
 		// the potential functions for vector fields at
 		// https://opensearch.org/docs/latest/search-plugins/knn/approximate-knn/#spaces
 		this.similarityFunction = builder.similarityFunction;
+		this.cosineSimilarityScoreBoost = builder.cosineSimilarityScoreBoost;
 		this.initializeSchema = builder.initializeSchema;
 		this.useApproximateKnn = builder.useApproximateKnn;
 		this.dimensions = builder.dimensions;
@@ -418,9 +421,10 @@ public class OpenSearchVectorStore extends AbstractObservationVectorStore implem
 			// https://opensearch.org/docs/latest/search-plugins/knn/knn-score-script
 			// k-NN ensures non-negative scores by adding 1 to cosine similarity,
 			// extending OpenSearch scores to 0-2.
-			// A 0.5 boost normalizes to 0-1.
-			return this.similarityFunction.equals(COSINE_SIMILARITY_FUNCTION) ? scriptScoreQueryBuilder.boost(0.5f)
-					: scriptScoreQueryBuilder;
+			// Older engines need a 0.5 boost; OpenSearch 2.19+ already normalizes
+			// cosine scores. Configure a 1.0 boost for those engines.
+			return this.similarityFunction.equals(COSINE_SIMILARITY_FUNCTION)
+					? scriptScoreQueryBuilder.boost(this.cosineSimilarityScoreBoost) : scriptScoreQueryBuilder;
 		}));
 	}
 
@@ -661,6 +665,8 @@ public class OpenSearchVectorStore extends AbstractObservationVectorStore implem
 
 		private String similarityFunction = COSINE_SIMILARITY_FUNCTION;
 
+		private float cosineSimilarityScoreBoost = 0.5f;
+
 		private boolean useApproximateKnn = false;
 
 		private int dimensions = 0;
@@ -735,6 +741,21 @@ public class OpenSearchVectorStore extends AbstractObservationVectorStore implem
 		public Builder similarityFunction(String similarityFunction) {
 			Assert.hasText(similarityFunction, "similarityFunction must not be null or empty");
 			this.similarityFunction = similarityFunction;
+			return this;
+		}
+
+		/**
+		 * Set the boost applied to exact cosine script scores. The legacy default is
+		 * {@code 0.5}; use {@code 1.0} for OpenSearch 2.19+ engines which already
+		 * normalize cosine scores. Other spaces and approximate queries are unaffected.
+		 * @param scoreBoost a positive finite multiplier
+		 * @return this builder
+		 * @since 2.1.0
+		 */
+		public Builder cosineSimilarityScoreBoost(float scoreBoost) {
+			Assert.isTrue(Float.isFinite(scoreBoost) && scoreBoost > 0,
+					"cosineSimilarityScoreBoost must be finite and positive");
+			this.cosineSimilarityScoreBoost = scoreBoost;
 			return this;
 		}
 

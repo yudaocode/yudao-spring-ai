@@ -249,6 +249,9 @@ class WebFluxMcpTransportTests {
 			.then(transport::closeGracefully)
 			.thenConsumeWhile(event -> event.data() == null)
 			.assertNext(event -> JsonAssertions.assertThatJson(event.data()).inPath("$.result").isObject())
+			// A timer tick already queued during graceful close is a valid SSE comment.
+			// Still require completion so a keep-alive publisher leak fails this test.
+			.thenConsumeWhile(event -> event.data() == null)
 			.expectComplete()
 			.verify(Duration.ofSeconds(5));
 	}

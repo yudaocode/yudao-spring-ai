@@ -258,4 +258,13 @@ class OpenSearchVectorStoreTest {
 		assertThat(result.getScore()).isEqualTo(0.95);
 	}
 
+	@Test
+	void exactCosineBoostRejectsNonPositiveAndNonFiniteValues() {
+		for (float value : new float[] { 0, -1, Float.NaN, Float.POSITIVE_INFINITY, Float.NEGATIVE_INFINITY }) {
+			assertThatThrownBy(() -> OpenSearchVectorStore.builder(this.mockOpenSearchClient, this.mockEmbeddingModel)
+				.cosineSimilarityScoreBoost(value)).isInstanceOf(IllegalArgumentException.class)
+				.hasMessage("cosineSimilarityScoreBoost must be finite and positive");
+		}
+	}
+
 }
