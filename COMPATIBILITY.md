@@ -25,3 +25,12 @@ Progress and validation evidence are maintained in:
 - Tika整族分别为Boot2=2.9.4、Boot3=3.3.1、Boot4=4.0.0；BOM仅管理Tika自身组件，避免父BOM覆盖应用框架依赖。
 - Java8分支不将Coherence、Boot3 devservices等受限可选模块计入默认支持；可选agent-utils源码兼容模块不包含旧Dream子系统。具体依赖、模块和API边界见本文件对应说明及compatibility目录。
 - 消费项目需要适配Spring AI 2.x API。既有平台存储值、业务新增功能及Boot/JDK原生类型仍可不同，不能把“能够编译运行”理解为三个业务仓库源码完全相同。当前为开发兼容分支，后续扩展需补实际目标JVM验收。
+
+## Standalone AWS OpenSearch starter dependency closure
+
+The AWS starter now declares sdk-core/auth/regions/http-auth-aws explicitly.
+Previously its apache-client dependency alone did not supply credentials/region classes; the standalone consumer failed to compile without them.
+The native Boot4.1.2 fixture depends only on the AWS starter and test starter, not on another model provider that could accidentally supply those classes.
+The same installed producer artifacts passed2 tests on native17 and2 on native25, zero failures/errors/skips: actual transport bean creation and local SigV4 signing with mocked HTTP execution.
+No cloud/model service acceptance or new full184-module test run is claimed.
+See [the consumer](compatibility-tests/aws-opensearch) for use and runtime selection.
