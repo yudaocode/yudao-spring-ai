@@ -206,6 +206,8 @@ class HttpBridgeTests {
 				ExecutionException error = assertThrows(ExecutionException.class,
 						() -> future.get(2, TimeUnit.SECONDS));
 				assertTrue(error.getCause() instanceof HttpTimeoutException, error.toString());
+				assertNull(error.getCause().getCause());
+				assertTrue(error.getCause().getMessage().contains("timed out"));
 			}
 		}
 	}
@@ -427,8 +429,8 @@ class HttpBridgeTests {
 			builder.version(HttpClient.Version.HTTP_2).followRedirects(HttpClient.Redirect.NEVER);
 			assertEquals(HttpClient.Version.HTTP_1_1, client.version());
 			assertEquals(HttpClient.Redirect.ALWAYS, client.followRedirects());
-			// The Java8 bridge deliberately defaults to HTTP/1.1.
-			assertEquals(HttpClient.Version.HTTP_1_1, defaults.version());
+			// Match the JDK client default: prefer HTTP/2 and allow HTTP/1.1 fallback.
+			assertEquals(HttpClient.Version.HTTP_2, defaults.version());
 			assertEquals(HttpClient.Redirect.NEVER, defaults.followRedirects());
 		}
 	}

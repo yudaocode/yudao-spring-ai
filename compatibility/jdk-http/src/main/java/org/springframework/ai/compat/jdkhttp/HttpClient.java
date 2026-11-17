@@ -60,6 +60,8 @@ public final class HttpClient implements AutoCloseable {
 
 	private static final AtomicInteger THREAD_IDS = new AtomicInteger();
 
+	private static final String EXCHANGE_ATTRIBUTE = HttpClient.class.getName() + ".exchange";
+
 	private final CloseableHttpAsyncClient client;
 
 	private final CookieHandler cookies;
@@ -144,6 +146,14 @@ public final class HttpClient implements AutoCloseable {
 					builder.version == Version.HTTP_1_1 ? HttpVersionPolicy.FORCE_HTTP_1 : HttpVersionPolicy.NEGOTIATE)
 			.disableAutomaticRetries()
 			.disableCookieManagement();
+		http.addExecInterceptorLast("java8-cancellation", (outgoing, entity, scope, chain, callback) -> {
+			Object state = scope.clientContext.getAttribute(EXCHANGE_ATTRIBUTE);
+			if (state instanceof Exchange && !((Exchange) state).attach(scope.execRuntime)) {
+				callback.failed(new java.util.concurrent.CancellationException("HTTP exchange cancelled"));
+				return;
+			}
+			chain.proceed(outgoing, entity, scope, callback);
+		});
 		ProxySelector proxy = this.configuration.proxy;
 		if (proxy != null) {
 			http.setRoutePlanner(new SystemDefaultRoutePlanner(proxy));
@@ -302,6 +312,7 @@ public final class HttpClient implements AutoCloseable {
 		org.apache.hc.core5.http.nio.support.BasicRequestProducer producer = new org.apache.hc.core5.http.nio.support.BasicRequestProducer(
 				outgoing, entity);
 		Exchange exchange = new Exchange();
+		context.setAttribute(EXCHANGE_ATTRIBUTE, exchange);
 		Mono<org.apache.hc.core5.http.Message<org.apache.hc.core5.http.HttpResponse, org.reactivestreams.Publisher<ByteBuffer>>> headers = Mono
 			.create(sink -> {
 				sink.onCancel(exchange::cancel);
@@ -403,13 +414,15 @@ public final class HttpClient implements AutoCloseable {
 	private static Throwable timeoutError(Throwable error) {
 		for (Throwable cause = error; cause != null; cause = cause.getCause()) {
 			if (cause instanceof org.apache.hc.client5.http.ConnectTimeoutException) {
-				HttpConnectTimeoutException timeout = new HttpConnectTimeoutException(cause.getMessage());
-				timeout.initCause(error);
+				HttpConnectTimeoutException timeout = new HttpConnectTimeoutException(
+						"HTTP connect timed out: " + cause.getMessage());
+				timeout.addSuppressed(error);
 				return timeout;
 			}
 			if (cause instanceof TimeoutException || cause instanceof java.net.SocketTimeoutException) {
-				HttpTimeoutException timeout = new HttpTimeoutException(cause.getMessage());
-				timeout.initCause(error);
+				HttpTimeoutException timeout = new HttpTimeoutException(
+						"HTTP request timed out: " + cause.getMessage());
+				timeout.addSuppressed(error);
 				return timeout;
 			}
 		}
@@ -448,17 +461,47 @@ public final class HttpClient implements AutoCloseable {
 
 		private boolean cancelled;
 
+		private org.apache.hc.client5.http.async.AsyncExecRuntime runtime;
+
 		synchronized void attach(java.util.concurrent.Future<?> value) {
 			this.future = value;
 			if (this.cancelled) {
 				value.cancel(true);
+				// A connection can be acquired before execute() returns its future.
+				// Recheck ownership after attaching a request cancelled in that window.
+				abortHttp1Endpoint();
 			}
 		}
 
+		synchronized boolean attach(org.apache.hc.client5.http.async.AsyncExecRuntime value) {
+			this.runtime = value;
+			if (this.cancelled) {
+				abortHttp1Endpoint();
+				return false;
+			}
+			return true;
+		}
+
 		synchronized void cancel() {
+			if (this.cancelled) {
+				return;
+			}
 			this.cancelled = true;
 			if (this.future != null) {
 				this.future.cancel(true);
+			}
+			abortHttp1Endpoint();
+		}
+
+		private void abortHttp1Endpoint() {
+			if (this.runtime != null) {
+				org.apache.hc.client5.http.EndpointInfo endpoint = this.runtime.getEndpointInfo();
+				// HTTP/1 cancellation must close a stalled socket instead of waiting to
+				// drain its response. HTTP/2 uses the normal per-stream cancellation
+				// path so that unrelated multiplexed requests keep their connection.
+				if (endpoint == null || endpoint.getProtocol() == null || endpoint.getProtocol().getMajor() < 2) {
+					this.runtime.discardEndpoint();
+				}
 			}
 		}
 
@@ -499,7 +542,7 @@ public final class HttpClient implements AutoCloseable {
 
 		private Executor executor;
 
-		private Version version = Version.HTTP_1_1;
+		private Version version = Version.HTTP_2;
 
 		private Redirect redirects = Redirect.NEVER;
 
