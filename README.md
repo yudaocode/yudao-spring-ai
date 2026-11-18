@@ -120,6 +120,10 @@ Java8 HTTP 兼容库现可处理空响应体的 HTTP/1 307、308 跳转。继续
 
 <!-- YUDAO-COMPATIBILITY-INTRO-END -->
 
+## Java 8 HTTP 响应与流式文本
+
+Boot 2 路线的 `cn.iocoder.spring-ai:spring-ai-jdk-http-compat` 提供请求复制、按 HTTP 状态和响应头选择处理器，以及 UTF-8 流式文本订阅，用于本分支与 Java 8 上的 Watsonx 等 SDK。普通 HTTP 调用仍使用原响应处理器。
+
 ---
 
 # Spring AI [![build status](https://github.com/spring-projects/spring-ai/actions/workflows/build-and-deploy-snapshot.yml/badge.svg)](https://github.com/spring-projects/spring-ai/actions/workflows/build-and-deploy-snapshot.yml) [![Maven Central](https://img.shields.io/maven-central/v/org.springframework.ai/spring-ai-model?label=Maven%20Central&versionPrefix=2.0)](https://central.sonatype.com/artifact/org.springframework.ai/spring-ai-model)

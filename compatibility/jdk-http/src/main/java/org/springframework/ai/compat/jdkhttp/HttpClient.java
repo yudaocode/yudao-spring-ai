@@ -369,11 +369,12 @@ public final class HttpClient implements AutoCloseable {
 				Version protocol = context.getProtocolVersion() != null && context.getProtocolVersion().getMajor() >= 2
 						? Version.HTTP_2 : Version.HTTP_1_1;
 				URI responseUri = context.getRequest().getUri();
-				return Mono.fromCompletionStage(handler.apply(body))
-					.<HttpResponse<T>>map(value -> new Response<>(request, response.getHead().getCode(),
+				Response<T> emptyResponse = new Response<>(request, response.getHead().getCode(),
+						responseHeaders, null, protocol, responseUri);
+				return Mono.fromCompletionStage(handler.apply(emptyResponse, body))
+					.<HttpResponse<T>>map(value -> new Response<>(request, emptyResponse.statusCode(),
 							responseHeaders, value, protocol, responseUri))
-					.defaultIfEmpty(new Response<>(request, response.getHead().getCode(), responseHeaders, null,
-							protocol, responseUri));
+					.defaultIfEmpty(emptyResponse);
 			}
 			catch (Throwable error) {
 				exchange.cancel();
@@ -659,7 +660,7 @@ public final class HttpClient implements AutoCloseable {
 	/**
 	 * @author 芋道源码
 	 */
-	private static final class Response<T> implements HttpResponse<T> {
+	private static final class Response<T> implements HttpResponse<T>, HttpResponse.ResponseInfo {
 
 		private final HttpRequest request;
 

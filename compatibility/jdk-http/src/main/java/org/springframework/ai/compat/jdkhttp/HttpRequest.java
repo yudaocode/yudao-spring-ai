@@ -29,6 +29,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.BiPredicate;
 
 /**
  * @author 芋道源码
@@ -95,6 +96,23 @@ public final class HttpRequest {
 		return new Builder().uri(uri);
 	}
 
+	public static Builder newBuilder(HttpRequest request, BiPredicate<String, String> headerFilter) {
+		Objects.requireNonNull(request);
+		Objects.requireNonNull(headerFilter);
+		Builder builder = new Builder().uri(request.uri);
+		builder.method = request.method;
+		builder.body = request.body;
+		builder.version = request.version;
+		builder.timeout = request.timeout;
+		builder.expectContinue = request.expectContinue;
+		request.headers.map().forEach((name, values) -> values.forEach(value -> {
+			if (headerFilter.test(name, value)) {
+				builder.header(name, value);
+			}
+		}));
+		return builder;
+	}
+
 	public interface BodyPublisher extends Flow.Publisher<ByteBuffer> {
 
 		long contentLength();
@@ -147,6 +165,7 @@ public final class HttpRequest {
 
 		public Builder setHeader(String name, String value) {
 			validate(name, value);
+			this.headers.keySet().removeIf(previous -> previous.equalsIgnoreCase(name));
 			this.headers.put(name, new ArrayList<>(Collections.singletonList(value)));
 			return this;
 		}

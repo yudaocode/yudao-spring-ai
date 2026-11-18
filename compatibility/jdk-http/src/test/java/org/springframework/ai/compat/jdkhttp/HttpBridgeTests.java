@@ -22,7 +22,10 @@ import java.net.ProxySelector;
 import java.net.SocketAddress;
 import java.net.URI;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -87,6 +90,81 @@ class HttpBridgeTests {
 			okhttp3.mockwebserver.RecordedRequest sent = this.server.takeRequest();
 			assertEquals("request", sent.getBody().readUtf8());
 			assertEquals("second", sent.getHeader("X-Mode"));
+		}
+	}
+
+
+	@Test
+	void copiesRequestWithCaseInsensitiveHeaderReplacementAndFilteredValues() throws Exception {
+		this.server.enqueue(new MockResponse().setBody("ok"));
+		HttpRequest request = HttpRequest.newBuilder(this.server.url("/copy").uri())
+			.header("Authorization", "old")
+			.header("X-Keep", "one")
+			.header("X-Keep", "two")
+			.header("X-Discard", "unused")
+			.timeout(Duration.ofSeconds(8))
+			.version(HttpClient.Version.HTTP_1_1)
+			.POST(HttpRequest.BodyPublishers.ofString("芋道"))
+			.build();
+		HttpRequest copy = HttpRequest.newBuilder(request, (name, value) -> !name.equalsIgnoreCase("X-Discard"))
+			.setHeader("authorization", "new")
+			.build();
+		assertEquals(request.timeout(), copy.timeout());
+		assertEquals(request.version(), copy.version());
+		assertEquals(Collections.singletonList("old"), request.headers().allValues("Authorization"));
+		try (HttpClient client = HttpClient.newHttpClient()) {
+			assertEquals("ok", client.send(copy, HttpResponse.BodyHandlers.ofString()).body());
+		}
+		okhttp3.mockwebserver.RecordedRequest sent = this.server.takeRequest(5, TimeUnit.SECONDS);
+		assertNotNull(sent);
+		assertEquals("POST", sent.getMethod());
+		assertEquals("芋道", sent.getBody().readUtf8());
+		assertEquals(Collections.singletonList("new"), sent.getHeaders().values("Authorization"));
+		assertEquals(Arrays.asList("one", "two"), sent.getHeaders().values("X-Keep"));
+		assertNull(sent.getHeader("X-Discard"));
+	}
+
+	@Test
+	void suppliesStatusAndHeadersBeforeSelectingResponseBodyMapping() throws Exception {
+		this.server.enqueue(new MockResponse().setResponseCode(422).setHeader("X-Reason", "validation").setBody("中文"));
+		HttpRequest request = HttpRequest.newBuilder(this.server.url("/metadata").uri()).build();
+		try (HttpClient client = HttpClient.newHttpClient()) {
+			HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofResponseInfo(info ->
+					HttpResponse.BodySubscribers.mapping(HttpResponse.BodySubscribers.ofString(StandardCharsets.UTF_8),
+							body -> info.statusCode() + ":" + info.headers().firstValue("X-Reason").get() + ":" + body)));
+			assertEquals("422:validation:中文", response.body());
+		}
+	}
+
+	@Test
+	void deliversUtf8LinesAndCompletesAfterTheSubscriber() throws Exception {
+		this.server.enqueue(new MockResponse().setChunkedBody("数据一\r\n\r\n数据二", 2));
+		HttpRequest request = HttpRequest.newBuilder(this.server.url("/lines").uri()).build();
+		List<String> lines = new ArrayList<>();
+		AtomicReference<Flow.Subscription> demand = new AtomicReference<>();
+		try (HttpClient client = HttpClient.newHttpClient()) {
+			HttpResponse<Void> response = client.sendAsync(request,
+					HttpResponse.BodySubscribers.fromLineSubscriber(new Flow.Subscriber<String>() {
+						public void onSubscribe(Flow.Subscription value) {
+							demand.set(value);
+							value.request(1);
+						}
+
+						public void onNext(String line) {
+							lines.add(line);
+							demand.get().request(1);
+						}
+
+						public void onError(Throwable error) {
+							throw new AssertionError(error);
+						}
+
+						public void onComplete() {
+							lines.add("complete");
+						}
+					})).get(5, TimeUnit.SECONDS);
+			assertEquals(200, response.statusCode());
+			assertEquals(Arrays.asList("数据一", "", "数据二", "complete"), lines);
 		}
 	}
 
