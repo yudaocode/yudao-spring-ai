@@ -153,22 +153,7 @@
 			<!-- Spring AI Tool SearchTool -->
 			<dependency>
 				<groupId>cn.iocoder.spring-ai</groupId>
-				<artifactId>spring-ai-tool-search-tool-advisor</artifactId>
-				<version>${project.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>cn.iocoder.spring-ai</groupId>
 				<artifactId>spring-ai-tool-search-tool</artifactId>
-				<version>${project.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>cn.iocoder.spring-ai</groupId>
-				<artifactId>spring-ai-tool-search-tool-lucene</artifactId>
-				<version>${project.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>cn.iocoder.spring-ai</groupId>
-				<artifactId>spring-ai-tool-search-tool-vectorstore</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 			<!-- Spring AI retry -->
