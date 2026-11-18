@@ -13,6 +13,8 @@
       <url>https://www.apache.org/licenses/LICENSE-2.0</url>
     </license>
   </licenses>
+  <developers><developer><id>yudaocode</id><name>芋道源码</name><url>https://github.com/yudaocode</url></developer></developers>
+  <scm><connection>scm:git:https://github.com/yudaocode/yudao-spring-ai.git</connection><developerConnection>scm:git:ssh://git@github.com/yudaocode/yudao-spring-ai.git</developerConnection><url>https://github.com/yudaocode/yudao-spring-ai/tree/main-jdk8</url></scm>
   <build>
     <plugins>
       <plugin>
@@ -30,6 +32,19 @@
         <configuration>
           <skip>true</skip>
         </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-source-plugin</artifactId>
+        <version>3.4.0</version>
+        <executions><execution><id>attach-sources</id><goals><goal>jar-no-fork</goal></goals></execution></executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>3.12.0</version>
+        <configuration><doclint>none</doclint><detectJavaApiLink>false</detectJavaApiLink></configuration>
+        <executions><execution><id>attach-javadoc</id><goals><goal>jar</goal></goals></execution></executions>
       </plugin>
     </plugins>
   </build>

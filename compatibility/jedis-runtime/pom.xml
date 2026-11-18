@@ -4,6 +4,15 @@
 	<groupId>cn.iocoder.spring-ai</groupId>
 	<artifactId>spring-ai-jedis-runtime-compat</artifactId>
 	<version>2.1.0-jdk8-SNAPSHOT</version>
+	<name>Isolated Jedis 6 runtime for Spring Boot 2</name>
+	<description>Relocated Jedis 6 and runtime dependencies for Redis Stack access on Java 8.</description>
+	<url>https://github.com/yudaocode/yudao-spring-ai</url>
+	<licenses>
+		<license><name>MIT (upstream Jedis)</name><url>https://opensource.org/license/mit</url></license>
+		<license><name>Apache License, Version 2.0 (compatibility build)</name><url>https://www.apache.org/licenses/LICENSE-2.0</url></license>
+	</licenses>
+	<developers><developer><id>yudaocode</id><name>芋道源码</name><url>https://github.com/yudaocode</url></developer></developers>
+	<scm><connection>scm:git:https://github.com/yudaocode/yudao-spring-ai.git</connection><developerConnection>scm:git:ssh://git@github.com/yudaocode/yudao-spring-ai.git</developerConnection><url>https://github.com/yudaocode/yudao-spring-ai/tree/main-jdk8</url></scm>
 	<dependencies>
 		<dependency>
 			<groupId>redis.clients</groupId>

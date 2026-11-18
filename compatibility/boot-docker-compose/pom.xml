@@ -8,6 +8,7 @@
         <relativePath>../../pom.xml</relativePath>
     </parent>
     <artifactId>spring-ai-boot-docker-compose-compat</artifactId>
+    <name>Docker Compose support for Spring Boot 2</name>
     <properties>
         <disable.checks>true</disable.checks>
     </properties>

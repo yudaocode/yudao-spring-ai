@@ -8,6 +8,7 @@
         <relativePath>../../pom.xml</relativePath>
     </parent>
     <artifactId>spring-ai-opensearch-testcontainers-compat</artifactId>
+    <name>OpenSearch Testcontainers for Spring Boot 2</name>
     <properties>
         <disable.checks>true</disable.checks>
     </properties>
