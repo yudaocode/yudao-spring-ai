@@ -36,12 +36,16 @@ import javax.net.ssl.SSLParameters;
 
 import org.apache.hc.client5.http.config.ConnectionConfig;
 import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.impl.DefaultClientConnectionReuseStrategy;
 import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
 import org.apache.hc.client5.http.impl.async.HttpAsyncClients;
 import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManagerBuilder;
 import org.apache.hc.client5.http.impl.routing.SystemDefaultRoutePlanner;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
+import org.apache.hc.core5.http.Header;
+import org.apache.hc.core5.http.HttpStatus;
+import org.apache.hc.core5.http.ProtocolVersion;
 import org.apache.hc.core5.http2.HttpVersionPolicy;
 import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.reactor.IOReactorConfig;
@@ -173,6 +177,21 @@ public final class HttpClient implements AutoCloseable {
 			});
 		}
 		final Redirect policy = this.redirects;
+		if (policy != Redirect.NEVER) {
+			http.setConnectionReuseStrategy((request, response, context) -> {
+				ProtocolVersion version = response.getVersion();
+				int status = response.getCode();
+				Header length = response.getFirstHeader("Content-Length");
+				// Start a fresh HTTP/1 connection for a bodyless method-preserving
+				// redirect. Some servers close a zero-length response before reuse.
+				if (version != null && version.getMajor() == 1
+						&& (status == HttpStatus.SC_TEMPORARY_REDIRECT || status == HttpStatus.SC_PERMANENT_REDIRECT)
+						&& length != null && "0".equals(length.getValue())) {
+					return false;
+				}
+				return DefaultClientConnectionReuseStrategy.INSTANCE.keepAlive(request, response, context);
+			});
+		}
 		http.setRedirectStrategy(new org.apache.hc.client5.http.impl.DefaultRedirectStrategy() {
 
 			@Override

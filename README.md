@@ -110,9 +110,13 @@ Java8 版本线已恢复最后的 `spring-ai-spring-boot-docker-compose`，默�
 兼容底座从 Boot3.1.12 core/SPI 源码回迁，并补充3.5.15镜像别名匹配；运行依赖保持 Boot2/Spring5/Jackson2，不携带原 Boot3 Compose 二进制。
 23项定向单测、2项真实Compose子进程生命周期测试、1项独立Boot2/OpenSearch消费测试均在原生JDK8零失败/错误/跳过。
 应用退出时按配置停止自己启动的服务，并保留此前已运行的服务；不额外承诺每次 `context.close()` 均停止共享服务。
-202模块原生JDK8完整 clean install：8121项测试，零失败/错误，17项条件跳过；测试重试关闭，运行期间Java/POM输入哈希保持一致。
+Compose 批次 202 模块原生 JDK8 完整 clean install：8121 项测试，零失败/错误，17项条件跳过；测试重试关闭，运行期间Java/POM输入哈希保持一致。
 真实服务验收覆盖本批 nginx/OpenSearch，其他后端工厂有SPI/属性映射单测，全部云账号/平台组合及AOT未作为通过项。
 使用配置、实际子进程验证与边界见 [Docker Compose 使用说明](compatibility/boot-docker-compose/README.md)。
+
+Java8 HTTP 兼容库现可处理空响应体的 HTTP/1 307、308 跳转。继续由本分支 BOM 管理 `spring-ai-jdk-http-compat`。
+原生 JDK8 的 HTTP 31 项、MCP 368 项，以及 AgentScope Kubernetes 原有 65 项和独立 Boot2 消费 2 项均通过。
+本次 202 模块完整构建共 8,123 项，0 失败、0 错误、17 项条件跳过。
 
 <!-- YUDAO-COMPATIBILITY-INTRO-END -->
 

@@ -17,6 +17,7 @@
 package org.springframework.ai.compat.jdkhttp;
 
 import java.io.ByteArrayInputStream;
+import java.io.OutputStream;
 import java.net.CookieManager;
 import java.net.CookiePolicy;
 import java.net.InetSocketAddress;
@@ -31,6 +32,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.sun.net.httpserver.HttpServer;
 import okhttp3.Credentials;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
@@ -52,6 +54,52 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 @Timeout(15)
 class HttpBridgeReplayTests {
+
+	@ParameterizedTest
+	@ValueSource(ints = { 307, 308 })
+	void followsBodylessRedirectFromJdkHttpServer(int status) throws Exception {
+		HttpServer server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
+		AtomicInteger redirectRequests = new AtomicInteger();
+		AtomicInteger completedRequests = new AtomicInteger();
+		server.createContext("/", exchange -> {
+			try {
+				if ("/files/folder%2Fdata".equals(exchange.getRequestURI().getRawPath())) {
+					redirectRequests.incrementAndGet();
+					exchange.getResponseHeaders().set("Location", "/files/folder/data");
+					exchange.sendResponseHeaders(status, -1);
+					return;
+				}
+				if (!"/files/folder/data".equals(exchange.getRequestURI().getRawPath())) {
+					exchange.sendResponseHeaders(404, -1);
+					return;
+				}
+				completedRequests.incrementAndGet();
+				byte[] body = "downloaded".getBytes(StandardCharsets.UTF_8);
+				exchange.sendResponseHeaders(200, body.length);
+				try (OutputStream output = exchange.getResponseBody()) {
+					output.write(body);
+				}
+			}
+			finally {
+				exchange.close();
+			}
+		});
+		server.start();
+		URI root = URI.create("http://127.0.0.1:" + server.getAddress().getPort());
+		try (HttpClient client = HttpClient.newBuilder().followRedirects(HttpClient.Redirect.NORMAL).build()) {
+			HttpResponse<String> response = client.sendAsync(
+					HttpRequest.newBuilder(root.resolve("/files/folder%2Fdata")).GET().build(),
+					HttpResponse.BodyHandlers.ofString()).get(5, TimeUnit.SECONDS);
+			assertEquals(200, response.statusCode());
+			assertEquals(root.resolve("/files/folder/data"), response.uri());
+			assertEquals("downloaded", response.body());
+			assertEquals(1, redirectRequests.get());
+			assertEquals(1, completedRequests.get());
+		}
+		finally {
+			server.stop(0);
+		}
+	}
 
 	@ParameterizedTest
 	@ValueSource(ints = { 307, 308 })
