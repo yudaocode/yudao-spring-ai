@@ -1,6 +1,6 @@
 <!-- YUDAO-COMPATIBILITY-INTRO-BEGIN -->
 
-> 版本命名：保留当前源码基线的官方版本号；共用现代制品不加 JDK 后缀，隔离维护的兼容路线添加 `jdk8` / `jdk17` / `jdk25`。SNAPSHOT 尚未发布 Maven Central。JDK 路线后缀不等于最低字节码版本，框架依赖仍按 Boot 版本选择。
+> 版本命名：保留当前源码基线的官方版本号；共用现代制品不加 JDK 后缀，隔离维护的兼容路线添加 `jdk8` / `jdk17` / `jdk25`。开发版本使用 SNAPSHOT。JDK 路线后缀不等于最低字节码版本，框架依赖仍按 Boot 版本选择。
 > 完整版本规则与预览命名见 [VERSIONING.md](VERSIONING.md)。
 
 # yudao-spring-ai
@@ -14,17 +14,17 @@ yudao-spring-ai 是 [Spring AI](https://github.com/spring-projects/spring-ai) �
 | Gitee | [yudao-spring-ai](https://gitee.com/yudaocode/yudao-spring-ai) |
 | GitHub | [yudao-spring-ai](https://github.com/yudaocode/yudao-spring-ai) |
 
-| 分支 | 已验证 Spring Boot | 运行 JDK | 源码开发版本 | 发布规则 |
+| 分支 | 已验证 Spring Boot | 运行 JDK | 源码开发版本 | Maven Central |
 | --- | --- | --- | --- | --- |
-| [`main`](https://github.com/yudaocode/yudao-spring-ai/tree/main) | 4.1.2 | 17+（业务消费使用25） | `2.1.0-jdk25-SNAPSHOT` | 官方版本 + 路线 + 日期 |
-| [`main-jdk17`](https://github.com/yudaocode/yudao-spring-ai/tree/main-jdk17) | 3.5.15 | 17+ | `2.1.0-jdk17-SNAPSHOT` | 官方版本 + 日期 |
-| [`main-jdk8`](https://github.com/yudaocode/yudao-spring-ai/tree/main-jdk8) | 2.7.18 | 8+ | `2.1.0-jdk8-SNAPSHOT` | 官方版本 + 路线 + 日期 |
+| [`main`](https://github.com/yudaocode/yudao-spring-ai/tree/main) | 4.1.2 | 17+（业务消费使用25） | `2.1.0-jdk25-SNAPSHOT` | 待发布 |
+| [`main-jdk17`](https://github.com/yudaocode/yudao-spring-ai/tree/main-jdk17) | 3.5.15 | 17+ | `2.1.0-jdk17-SNAPSHOT` | [2.1.0-jdk17-preview-20261118](https://central.sonatype.com/artifact/cn.iocoder.spring-ai/spring-ai-bom/2.1.0-jdk17-preview-20261118) |
+| [`main-jdk8`](https://github.com/yudaocode/yudao-spring-ai/tree/main-jdk8) | 2.7.18 | 8+ | `2.1.0-jdk8-SNAPSHOT` | 待发布 |
 
 版本保留上游源码基线编号，以 JDK 路线隔离 Boot 依赖；发布时追加北京时间日期，不增加同日序号。当前分支：**`main`**。
 
 Maven groupId 为 **`cn.iocoder.spring-ai`**，artifactId 和 Java 包名沿用官方。同一个应用只选择一条版本线，同一项目的模块使用同一版本；替换已有依赖时，也要移除对应官方 groupId 下的同类模块，避免重复类。
 
-**当前仅提供源码开发版，尚未发布这些坐标到 Maven Central 或远端 SNAPSHOT 仓库。** 下面的 SNAPSHOT 示例须先从源码安装到本地仓库。发布版本按 `官方版本[-jdk数字][-preview]-YYYYMMDD` 命名；共用制品省略 JDK，未发布上游基线增加 preview，无同日序号。
+Boot 3 / JDK 17 已发布 [2.1.0-jdk17-preview-20261118](https://central.sonatype.com/artifact/cn.iocoder.spring-ai/spring-ai-bom/2.1.0-jdk17-preview-20261118)，使用方式见 [main-jdk17](https://github.com/yudaocode/yudao-spring-ai/tree/main-jdk17)。本分支的 Boot 4 示例使用源码开发版，需先安装到本地仓库。发布版本按 `官方版本[-jdk数字][-preview]-YYYYMMDD` 命名；共用制品省略 JDK，未发布上游基线增加 preview，无同日序号。
 
 ## 如何使用
 
