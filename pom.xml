@@ -278,6 +278,7 @@
 		<djl.version>0.36.0</djl.version>
 		<!-- Vector store clients -->
 		<coherence.version>24.09</coherence.version>
+		<elasticsearch-client.version>8.18.8</elasticsearch-client.version>
 		<milvus.version>2.6.21</milvus.version>
 		<neo4j-cypher-dsl-bom.version>2024.5.1</neo4j-cypher-dsl-bom.version>
 		<opensearch-client.version>3.11.0</opensearch-client.version>
@@ -1234,7 +1235,12 @@
 			<dependency>
 				<groupId>co.elastic.clients</groupId>
 				<artifactId>elasticsearch-java</artifactId>
-				<version>8.18.8</version>
+				<version>${elasticsearch-client.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.elasticsearch.client</groupId>
+				<artifactId>elasticsearch-rest-client</artifactId>
+				<version>${elasticsearch-client.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>org.apache.cassandra</groupId>

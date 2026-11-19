@@ -25,6 +25,11 @@
 			<artifactId>elasticsearch-java</artifactId>
 		</dependency>
 
+		<dependency>
+			<groupId>org.elasticsearch.client</groupId>
+			<artifactId>elasticsearch-rest-client</artifactId>
+		</dependency>
+
 		<!-- TESTING -->
 		<dependency>
 			<groupId>cn.iocoder.spring-ai</groupId>

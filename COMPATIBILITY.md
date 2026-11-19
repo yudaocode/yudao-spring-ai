@@ -203,3 +203,10 @@ Chroma collection dimensions are inferred. The shared test for a configured dime
 The test fixtures accept compatible image names through `-Dspring.ai.test.<backend>.image` for `pgvector`, `chroma`, `qdrant`, `milvus`, `couchbase`, `opensearch`, `weaviate`, and `oracle`. For the OpenSearch upsert suite on 2.19.3, also set `-Dspring.ai.test.opensearch.cosine-score-boost=1.0`. Run Maven with JDK 17, use `-Pintegration-tests` with `-Dit.test` to select the suites, and point `-Djvm` at Java 8.
 
 The Weaviate adapter uses Gson 2.12.1, matching Weaviate Java client 5.3.0. Applications using the Boot 2.7.18 parent should set `<gson.version>2.12.1</gson.version>` to align the consuming classpath. A standalone Boot 2.7.18 project ran the installed JAR on JDK 8, verified the Gson version on the runtime classpath, and passed vector write, search and delete against Weaviate 1.40.5.
+
+## Elasticsearch 9.2.0 on Boot 2 / Java 8
+
+The Elasticsearch vector adapter pins both `elasticsearch-java` and `elasticsearch-rest-client` to 8.18.8.
+All 20 `ElasticsearchVectorStoreUpsertIT` cases passed on Corretto 8u472 against Elasticsearch 9.2.0.
+Applications using the Boot 2.7.18 parent should set `elasticsearch.version=8.18.8` and `jakarta-json.version=2.0.1`.
+A separate Boot 2.7.18 project verified those settings on the runtime classpath with the locally installed JAR and a live Elasticsearch container.
