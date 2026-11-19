@@ -138,6 +138,8 @@ GemFire VectorDB 10.2 的 ARM64 Docker 冒烟测试在 Boot 2 / 原生 JDK 8 通
 
 MongoDB Atlas Local 8.0.0 的 ARM64 Docker 测试在 Boot 2.7.18 / 原生 JDK 8 通过 44 项，覆盖单条和批量向量写入、更新、检索及删除。公共契约中要求存储适配器能显式配置维度的 2 项按既有能力条件跳过。
 
+Boot 2.7.18 / 原生 JDK 8 的聊天记忆 Docker 补验通过 50 项，其中 Cassandra 5.0 为 9 项、MongoDB 8.0.6 为 10 项、Neo4j 5 为 31 项，零跳过。MongoDB 集成测试使用 Boot 2 的 `spring.data.mongodb.uri` 连接测试容器。
+
 <!-- YUDAO-COMPATIBILITY-INTRO-END -->
 
 ## Java 8 HTTP 响应与流式文本
