@@ -130,6 +130,8 @@ Weaviate 客户端沿用 5.3.0，Gson 对齐到客户端声明的 2.12.1。使�
 
 Neo4j 5.24 的 Docker 向量库测试在 Boot 2.7.18 / 原生 JDK 8 通过 25 项，覆盖索引、向量写入更新、相似度检索、过滤和删除。
 
+Typesense 27.1 的 Docker 向量库测试在 Boot 2.7.18 / 原生 JDK 8 通过 32 项，覆盖 MiniLM 向量检索、观测及向量更新。
+
 <!-- YUDAO-COMPATIBILITY-INTRO-END -->
 
 ## Java 8 HTTP 响应与流式文本
