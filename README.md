@@ -128,6 +128,8 @@ Boot 2.7.18 / 原生 JDK 8 新增 11 个 Docker 向量后端的真库覆盖，24
 
 Weaviate 客户端沿用 5.3.0，Gson 对齐到客户端声明的 2.12.1。使用 Boot 2 parent 的应用应设置 `<gson.version>2.12.1</gson.version>`。独立 Boot 2 项目已从本地安装的 JAR 连接 Weaviate 1.40.5，完成写入、检索和删除。[后端版本及复验参数](COMPATIBILITY.md#boot-2-docker-backend-checks)
 
+Neo4j 5.24 的 Docker 向量库测试在 Boot 2.7.18 / 原生 JDK 8 通过 25 项，覆盖索引、向量写入更新、相似度检索、过滤和删除。
+
 <!-- YUDAO-COMPATIBILITY-INTRO-END -->
 
 ## Java 8 HTTP 响应与流式文本
