@@ -91,6 +91,8 @@ Boot2/Java8 路线已纳入 Coherence 向量库、Testcontainers、Docker Compos
 
 Docker 真库补验在 Spring Boot 3.5.15 的 JDK 17 和 25 上各通过 236 项，均零失败、零跳过。JDBC Session 覆盖 MySQL、PostgreSQL 和 MariaDB 共 178 项，Redis Stack Chat Memory 覆盖 58 项。
 
+SQL Server 2017 Docker 复验在本分支 JDK 17 和 25 各通过 74 项，覆盖 JDBC Session 70 项和自动配置 4 项。测试可通过 `-Dspring.ai.test.sqlserver.image` 覆盖镜像，默认仍为 SQL Server 2022。
+
 <!-- YUDAO-COMPATIBILITY-INTRO-END -->
 
 ---
