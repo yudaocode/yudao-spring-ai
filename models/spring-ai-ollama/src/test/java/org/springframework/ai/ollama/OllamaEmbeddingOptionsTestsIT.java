@@ -16,6 +16,7 @@
 
 package org.springframework.ai.ollama;
 
+import java.util.Collections;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
@@ -26,12 +27,14 @@ import org.springframework.ai.embedding.EmbeddingResponse;
 import org.springframework.ai.ollama.api.OllamaApi;
 import org.springframework.ai.ollama.api.OllamaEmbeddingOptions;
 import org.springframework.ai.ollama.api.OllamaModel;
+import org.springframework.ai.retry.NonTransientAiException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Bean;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * @author Yokior
@@ -41,6 +44,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class OllamaEmbeddingOptionsTestsIT extends BaseOllamaIT {
 
 	private static final String MODEL = OllamaModel.QWEN3_EMBED_8B.getName();
+
+	private static final int CONTEXT_LENGTH = 512;
+
+	private static final String LONG_INPUT = String.join("", Collections.nCopies(800, " hello"));
 
 	@Autowired
 	private OllamaEmbeddingModel embeddingModel;
@@ -195,6 +202,42 @@ public class OllamaEmbeddingOptionsTestsIT extends BaseOllamaIT {
 		// qwen3-embedding:8b default dimension is 4096
 		assertThat(vectorWithoutDimensions.length).isEqualTo(4096);
 		assertThat(vectorWithDimensions.length).isEqualTo(1024);
+	}
+
+	@Test
+	@EnabledIfEnvironmentVariable(named = "OLLAMA_WITH_REUSE", matches = "true")
+	void testTruncateLongInputWhenEnabled() {
+		var options = OllamaEmbeddingOptions.builder()
+			.model(MODEL)
+			.numCtx(CONTEXT_LENGTH)
+			.dimensions(512)
+			.truncate(true)
+			.build();
+
+		var response = this.embeddingModel.call(new EmbeddingRequest(List.of(LONG_INPUT), options));
+
+		assertThat(response.getResults()).hasSize(1);
+		assertThat(response.getResult().getOutput()).hasSize(512);
+		assertThat(response.getMetadata().getUsage().getPromptTokens()).isBetween(1, CONTEXT_LENGTH);
+	}
+
+	@Test
+	@EnabledIfEnvironmentVariable(named = "OLLAMA_WITH_REUSE", matches = "true")
+	void testRejectLongInputWhenTruncationDisabled() {
+		var options = OllamaEmbeddingOptions.builder()
+			.model(MODEL)
+			.numCtx(CONTEXT_LENGTH)
+			.dimensions(512)
+			.truncate(false)
+			.build();
+
+		var response = this.embeddingModel.call(new EmbeddingRequest(List.of("hello"), options));
+		assertThat(response.getResult().getOutput()).hasSize(512);
+
+		assertThatThrownBy(() -> this.embeddingModel.call(new EmbeddingRequest(List.of(LONG_INPUT), options)))
+			.isInstanceOf(NonTransientAiException.class)
+			.hasMessageContaining("400")
+			.hasMessageContaining("context length");
 	}
 
 	@SpringBootConfiguration

@@ -99,6 +99,10 @@ Boot 3.5.15 / JDK 17.0.21、25.0.3 的 MCP WebFlux Docker 回归每种 JVM 通�
 
 Ollama 0.40.9 的 ARM64 Docker 服务在 Boot 3.5.15 / JDK 17.0.21、25.0.3 每种 JVM 通过 2 项向量用例，使用 `nomic-embed-text` 和 `all-minilm`，覆盖批量向量、维度和附加模型管理，零跳过。
 
+Ollama 0.40.9 的 ARM64 Docker 容器使用 `qwen3-embedding:8b`，在 Boot 3.5.15 / JDK 17.0.21、25.0.3 每种 JVM 通过 9 项集成测试。
+向量默认返回 4096 维，`dimensions` 可指定为 512 或 1024。
+使用 512 token 上下文时，`truncate=true` 对超长输入返回向量，`truncate=false` 返回 HTTP 400，短输入可正常编码。
+
 <!-- YUDAO-COMPATIBILITY-INTRO-END -->
 
 ---
