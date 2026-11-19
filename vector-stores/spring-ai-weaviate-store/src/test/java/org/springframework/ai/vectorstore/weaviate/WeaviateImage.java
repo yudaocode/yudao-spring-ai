@@ -23,7 +23,9 @@ import org.testcontainers.utility.DockerImageName;
  */
 public final class WeaviateImage {
 
-	public static final DockerImageName DEFAULT_IMAGE = DockerImageName.parse("semitechnologies/weaviate:1.31.22");
+	public static final DockerImageName DEFAULT_IMAGE = DockerImageName
+		.parse(System.getProperty("spring.ai.test.weaviate.image", "semitechnologies/weaviate:1.31.22"))
+		.asCompatibleSubstituteFor("semitechnologies/weaviate");
 
 	private WeaviateImage() {
 

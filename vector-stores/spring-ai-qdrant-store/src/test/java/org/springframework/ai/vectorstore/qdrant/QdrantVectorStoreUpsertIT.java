@@ -63,7 +63,8 @@ public class QdrantVectorStoreUpsertIT extends AbstractVectorStoreUpsertTests {
 	private static final String CONFIGURED_COLLECTION_NAME = "test_collection_upsert_configured";
 
 	@Container
-	static QdrantContainer qdrantContainer = new QdrantContainer(QdrantImage.DEFAULT_IMAGE);
+	static QdrantContainer qdrantContainer = new QdrantContainer(QdrantImage.DEFAULT_IMAGE)
+		.withTmpFs(Map.of("/qdrant/storage", "rw,size=512m"));
 
 	private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
 		.withUserConfiguration(TestApplication.class);

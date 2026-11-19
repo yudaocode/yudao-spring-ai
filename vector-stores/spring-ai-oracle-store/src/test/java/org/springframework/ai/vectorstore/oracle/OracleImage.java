@@ -23,7 +23,8 @@ import org.testcontainers.utility.DockerImageName;
  */
 public final class OracleImage {
 
-	public static final DockerImageName DEFAULT_IMAGE = DockerImageName.parse("gvenzl/oracle-free:23-slim");
+	public static final DockerImageName DEFAULT_IMAGE = DockerImageName
+		.parse(System.getProperty("spring.ai.test.oracle.image", "gvenzl/oracle-free:23-slim"));
 
 	private OracleImage() {
 

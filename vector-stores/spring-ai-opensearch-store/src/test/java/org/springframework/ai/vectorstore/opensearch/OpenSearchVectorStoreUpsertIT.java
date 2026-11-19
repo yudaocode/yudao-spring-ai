@@ -76,6 +76,10 @@ public class OpenSearchVectorStoreUpsertIT extends AbstractVectorStoreUpsertTest
 	private static final OpensearchContainer opensearchContainer = new OpensearchContainer(
 			OpenSearchImage.DEFAULT_IMAGE);
 
+	static {
+		opensearchContainer.withEnv("cluster.routing.allocation.disk.threshold_enabled", "false");
+	}
+
 	private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
 		.withUserConfiguration(TestApplication.class);
 
@@ -265,7 +269,11 @@ public class OpenSearchVectorStoreUpsertIT extends AbstractVectorStoreUpsertTest
 
 		@Bean
 		public OpenSearchVectorStore vectorStore(OpenSearchClient openSearchClient, EmbeddingModel embeddingModel) {
-			return OpenSearchVectorStore.builder(openSearchClient, embeddingModel).initializeSchema(true).build();
+			return OpenSearchVectorStore.builder(openSearchClient, embeddingModel)
+				.cosineSimilarityScoreBoost(
+						Float.parseFloat(System.getProperty("spring.ai.test.opensearch.cosine-score-boost", "0.5")))
+				.initializeSchema(true)
+				.build();
 		}
 
 		@Bean

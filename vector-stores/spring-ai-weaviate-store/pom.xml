@@ -35,6 +35,13 @@
 			</exclusions>
 		</dependency>
 
+		<!-- Keep the Gson version used by the Weaviate client on the Boot 2 classpath. -->
+		<dependency>
+			<groupId>com.google.code.gson</groupId>
+			<artifactId>gson</artifactId>
+			<version>2.12.1</version>
+		</dependency>
+
 		<!-- TESTING -->
 		<dependency>
 			<groupId>cn.iocoder.spring-ai</groupId>

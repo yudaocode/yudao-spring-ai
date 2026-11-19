@@ -61,7 +61,7 @@ class JdbcSessionRepositorySqlServerIT {
 
 	@Container
 	static final MSSQLServerContainer sqlServer = new MSSQLServerContainer<>(
-			"mcr.microsoft.com/mssql/server:2022-latest")
+			System.getProperty("spring.ai.test.sqlserver.image", "mcr.microsoft.com/mssql/server:2022-latest"))
 		.acceptLicense();
 
 	/** SQL Server allows at most 2100 parameters in a statement. */

@@ -179,3 +179,27 @@ Both producer jars have105 classes and no missing JDK/Boot/Spring/Jackson member
 The actual installed consumer's82 related classes also have zero missing references; its test/runtime closure has123 jars/32584 effective base classes, all <=major52.
 Whole-dependency static findings remain14 optional branches (12 Flow and two SLF4J fallback references); these are not reported as an all-dependency zero-findings scan.
 See [Docker Compose usage and boundaries](compatibility/boot-docker-compose/README.md) and its source provenance receipt.
+
+## Boot 2 Docker backend checks
+
+The targeted integration tests ran on Corretto 8u472 with Spring Boot 2.7.18 dependencies. SQL Server 2017 passed 70 JDBC Session tests and four auto-configuration tests. The test fixture defaults to SQL Server 2022, which can be overridden with `-Dspring.ai.test.sqlserver.image`. The SQL Server 2022 run is pending.
+
+| Vector backend | Passed | Skipped |
+| --- | ---: | ---: |
+| Redis Stack | 35 | 0 |
+| Cassandra 5.0 | 31 | 0 |
+| PGVector on PostgreSQL 17 | 26 | 0 |
+| MariaDB 11.7-rc | 23 | 0 |
+| Chroma 1.1.0 | 27 | 1 |
+| Qdrant 1.20.0 | 18 | 0 |
+| Milvus 2.6.27 | 1 | 0 |
+| Couchbase Server Enterprise 8.0.3 | 25 | 0 |
+| OpenSearch 2.19.3 | 22 | 0 |
+| Weaviate 1.40.5 | 13 | 0 |
+| Oracle Free 23.7 | 28 | 0 |
+
+Chroma collection dimensions are inferred. The shared test for a configured dimension without an embedding model is skipped for this backend. The local runs used the identical upstream MiniLM weights and tokenizer from disk where a suite required a real embedding model.
+
+The test fixtures accept compatible image names through `-Dspring.ai.test.<backend>.image` for `pgvector`, `chroma`, `qdrant`, `milvus`, `couchbase`, `opensearch`, `weaviate`, and `oracle`. For the OpenSearch upsert suite on 2.19.3, also set `-Dspring.ai.test.opensearch.cosine-score-boost=1.0`. Run Maven with JDK 17, use `-Pintegration-tests` with `-Dit.test` to select the suites, and point `-Djvm` at Java 8.
+
+The Weaviate adapter uses Gson 2.12.1, matching Weaviate Java client 5.3.0. Applications using the Boot 2.7.18 parent should set `<gson.version>2.12.1</gson.version>` to align the consuming classpath. A standalone Boot 2.7.18 project ran the installed JAR on JDK 8, verified the Gson version on the runtime classpath, and passed vector write, search and delete against Weaviate 1.40.5.

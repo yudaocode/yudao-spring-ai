@@ -23,7 +23,8 @@ import org.testcontainers.utility.DockerImageName;
  */
 public final class QdrantImage {
 
-	public static final DockerImageName DEFAULT_IMAGE = DockerImageName.parse("qdrant/qdrant:v1.18.0");
+	public static final DockerImageName DEFAULT_IMAGE = DockerImageName
+		.parse(System.getProperty("spring.ai.test.qdrant.image", "qdrant/qdrant:v1.18.0"));
 
 	private QdrantImage() {
 

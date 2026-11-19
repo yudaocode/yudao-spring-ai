@@ -23,7 +23,9 @@ import org.testcontainers.utility.DockerImageName;
  */
 public final class ChromaImage {
 
-	public static final DockerImageName DEFAULT_IMAGE = DockerImageName.parse("ghcr.io/chroma-core/chroma:1.0.0");
+	public static final DockerImageName DEFAULT_IMAGE = DockerImageName
+		.parse(System.getProperty("spring.ai.test.chroma.image", "ghcr.io/chroma-core/chroma:1.0.0"))
+		.asCompatibleSubstituteFor("ghcr.io/chroma-core/chroma");
 
 	private ChromaImage() {
 

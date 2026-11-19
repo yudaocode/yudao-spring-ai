@@ -124,6 +124,10 @@ Spring Boot 2.7.18 / 原生 JDK 8 用 Docker 通过 236 项仓库集成测试，
 JDBC Session 的 MySQL 8.0、PostgreSQL 16、MariaDB 11.4 共通过 178 项，Redis Stack 的 7 组 Chat Memory 用例共通过 58 项。
 本地 PostgreSQL 测试连接使用明文模式，Redis 测试通过明确的 Redis Stack 镜像名启动容器。
 
+Boot 2.7.18 / 原生 JDK 8 新增 11 个 Docker 向量后端的真库覆盖，249 项通过、1 项按 Chroma 集合能力跳过。SQL Server 2017 通过 JDBC Session 70 项和自动配置 4 项。
+
+Weaviate 客户端沿用 5.3.0，Gson 对齐到客户端声明的 2.12.1。使用 Boot 2 parent 的应用应设置 `<gson.version>2.12.1</gson.version>`。独立 Boot 2 项目已从本地安装的 JAR 连接 Weaviate 1.40.5，完成写入、检索和删除。[后端版本及复验参数](COMPATIBILITY.md#boot-2-docker-backend-checks)
+
 <!-- YUDAO-COMPATIBILITY-INTRO-END -->
 
 ## Java 8 HTTP 响应与流式文本

@@ -64,6 +64,8 @@ public class WeaviateVectorStoreIT extends BaseVectorStoreTests {
 
 	@Container
 	static WeaviateContainer weaviateContainer = new WeaviateContainer(WeaviateImage.DEFAULT_IMAGE)
+		.withEnv("PERSISTENCE_DATA_PATH", "/var/lib/weaviate")
+		.withTmpFs(Map.of("/var/lib/weaviate", "rw,size=512m"))
 		.waitingFor(Wait.forHttp("/v1/.well-known/ready").forPort(8080));
 
 	private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()

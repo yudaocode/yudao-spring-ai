@@ -23,7 +23,8 @@ import org.testcontainers.utility.DockerImageName;
  */
 public final class MilvusImage {
 
-	public static final DockerImageName DEFAULT_IMAGE = DockerImageName.parse("milvusdb/milvus:v2.6.18");
+	public static final DockerImageName DEFAULT_IMAGE = DockerImageName
+		.parse(System.getProperty("spring.ai.test.milvus.image", "milvusdb/milvus:v2.6.18"));
 
 	private MilvusImage() {
 
