@@ -118,6 +118,12 @@ Java8 HTTP 兼容库现可处理空响应体的 HTTP/1 307、308 跳转。继续
 原生 JDK8 的 HTTP 31 项、MCP 368 项，以及 AgentScope Kubernetes 原有 65 项和独立 Boot2 消费 2 项均通过。
 本次 202 模块完整构建共 8,123 项，0 失败、0 错误、17 项条件跳过。
 
+## Boot 2 会话与聊天记忆验收
+
+Spring Boot 2.7.18 / 原生 JDK 8 用 Docker 通过 236 项仓库集成测试，零失败、零跳过。
+JDBC Session 的 MySQL 8.0、PostgreSQL 16、MariaDB 11.4 共通过 178 项，Redis Stack 的 7 组 Chat Memory 用例共通过 58 项。
+本地 PostgreSQL 测试连接使用明文模式，Redis 测试通过明确的 Redis Stack 镜像名启动容器。
+
 <!-- YUDAO-COMPATIBILITY-INTRO-END -->
 
 ## Java 8 HTTP 响应与流式文本
