@@ -140,6 +140,10 @@ MongoDB Atlas Local 8.0.0 的 ARM64 Docker 测试在 Boot 2.7.18 / 原生 JDK 8 
 
 Boot 2.7.18 / 原生 JDK 8 的聊天记忆 Docker 补验通过 50 项，其中 Cassandra 5.0 为 9 项、MongoDB 8.0.6 为 10 项、Neo4j 5 为 31 项，零跳过。MongoDB 集成测试使用 Boot 2 的 `spring.data.mongodb.uri` 连接测试容器。
 
+Boot 2.7.18 / 原生 JDK 8u472 的 MCP WebFlux Docker 回归每种 JVM 通过 200 项，覆盖 SSE 和 Streamable HTTP 的同步及异步客户端。2 项请求定制公共测试按原有能力条件跳过。测试服务器使用 Node 26 与 MCP server-everything 2025.12.18。
+
+Ollama 0.40.9 的 ARM64 Docker 服务在 Boot 2.7.18 / 原生 JDK 8u472 每种 JVM 通过 2 项向量用例，使用 `nomic-embed-text` 和 `all-minilm`，覆盖批量向量、维度和附加模型管理，零跳过。
+
 <!-- YUDAO-COMPATIBILITY-INTRO-END -->
 
 ## Java 8 HTTP 响应与流式文本
