@@ -21,10 +21,11 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 
-import com.redis.testcontainers.RedisContainer;
+import com.redis.testcontainers.RedisStackContainer;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.utility.DockerImageName;
 import redis.clients.jedis.JedisPooled;
 
 import org.springframework.ai.chat.messages.AssistantMessage;
@@ -50,7 +51,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 class RedisChatMemoryAdvancedQueryIT {
 
 	@Container
-	static RedisContainer redisContainer = new RedisContainer("redis/redis-stack:latest");
+	static RedisStackContainer redisContainer = new RedisStackContainer(
+			DockerImageName.parse("redis/redis-stack:latest"));
 
 	private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
 		.withUserConfiguration(TestApplication.class);

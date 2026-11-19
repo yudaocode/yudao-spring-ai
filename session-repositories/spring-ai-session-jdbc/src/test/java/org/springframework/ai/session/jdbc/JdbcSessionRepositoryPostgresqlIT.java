@@ -60,7 +60,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 class JdbcSessionRepositoryPostgresqlIT {
 
 	@Container
-	static final PostgreSQLContainer postgres = new PostgreSQLContainer<>("postgres:16-alpine");
+	static final PostgreSQLContainer postgres = new PostgreSQLContainer<>("postgres:16-alpine").withUrlParam("sslmode",
+			"disable");
 
 	private static PGSimpleDataSource dataSource;
 

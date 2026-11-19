@@ -24,12 +24,13 @@ import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.stream.Collectors;
 
-import com.redis.testcontainers.RedisContainer;
+import com.redis.testcontainers.RedisStackContainer;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.utility.DockerImageName;
 import redis.clients.jedis.JedisPooled;
 
 import org.springframework.ai.chat.messages.Message;
@@ -54,7 +55,8 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 class RedisChatMemoryErrorHandlingIT {
 
 	@Container
-	static RedisContainer redisContainer = new RedisContainer("redis/redis-stack:latest");
+	static RedisStackContainer redisContainer = new RedisStackContainer(
+			DockerImageName.parse("redis/redis-stack:latest"));
 
 	private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
 		.withUserConfiguration(TestApplication.class);
