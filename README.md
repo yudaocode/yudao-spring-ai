@@ -87,6 +87,8 @@ OpenSearch2.19.3 的精确余弦评分已补三线统一配置：设置 `spring.
 Boot2/Java8 路线已纳入 Coherence 向量库、Testcontainers、Docker Compose 兼容模块，当前默认202模块原生JDK8完整构建通过8121项单测，零失败/错误、17项条件跳过。
 各模块用法、真实服务分项验证及支持边界见 [main-jdk8 说明](https://github.com/yudaocode/yudao-spring-ai/blob/main-jdk8/COMPATIBILITY.md)；本段仅同步跨分支状态，不代表本现代分支重新全量测试。
 
+Docker 真库补验在 Spring Boot 4.1.2 的 JDK 17 和 25 上各通过 236 项，均零失败、零跳过。JDBC Session 覆盖 MySQL、PostgreSQL 和 MariaDB 共 178 项，Redis Stack Chat Memory 覆盖 58 项。
+
 <!-- YUDAO-COMPATIBILITY-INTRO-END -->
 
 ---
