@@ -182,7 +182,7 @@ See [Docker Compose usage and boundaries](compatibility/boot-docker-compose/READ
 
 ## Boot 2 Docker backend checks
 
-The targeted integration tests ran on Corretto 8u472 with Spring Boot 2.7.18 dependencies. SQL Server 2017 passed 70 JDBC Session tests and four auto-configuration tests. The test fixture defaults to SQL Server 2022, which can be overridden with `-Dspring.ai.test.sqlserver.image`. The SQL Server 2022 run is pending.
+The targeted integration tests ran on Corretto 8u472 with Spring Boot 2.7.18 dependencies. SQL Server 2017 and 2022 each passed 70 JDBC Session tests and four auto-configuration tests. The test fixture defaults to SQL Server 2022, which can be overridden with `-Dspring.ai.test.sqlserver.image`.
 
 | Vector backend | Passed | Skipped |
 | --- | ---: | ---: |
