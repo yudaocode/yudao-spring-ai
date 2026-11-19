@@ -91,6 +91,8 @@ Docker 真库补验在 Spring Boot 4.1.2 的 JDK 17 和 25 上各通过 236 项�
 
 SQL Server 2017 和 2022 的 Docker 复验在本分支 JDK 17 和 25 分别通过 74 项，覆盖 JDBC Session 70 项和自动配置 4 项。测试可通过 `-Dspring.ai.test.sqlserver.image` 覆盖镜像，默认仍为 SQL Server 2022。
 
+Boot 4.1.2 在 JDK 17.0.21 和 25.0.3 各通过 50 项聊天记忆 Docker 测试。Cassandra 5.0 为 9 项、MongoDB 8.0.6 为 10 项、Neo4j 5 为 31 项，均零跳过。Cassandra 集成夹具为 schema 初始化提供 10 秒请求超时。
+
 <!-- YUDAO-COMPATIBILITY-INTRO-END -->
 
 ---

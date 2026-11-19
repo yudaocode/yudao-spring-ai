@@ -22,6 +22,8 @@ import java.util.UUID;
 
 import com.datastax.oss.driver.api.core.CqlSession;
 import com.datastax.oss.driver.api.core.CqlSessionBuilder;
+import com.datastax.oss.driver.api.core.config.DefaultDriverOption;
+import com.datastax.oss.driver.api.core.config.DriverConfigLoader;
 import com.datastax.oss.driver.api.core.cql.ResultSet;
 import com.datastax.oss.driver.api.core.data.UdtValue;
 import org.junit.jupiter.api.Assertions;
@@ -291,6 +293,9 @@ class CassandraChatMemoryRepositoryIT {
 				// comment next two lines out to connect to a local C* cluster
 				.addContactPoint(cassandraContainer.getContactPoint())
 				.withLocalDatacenter(cassandraContainer.getLocalDatacenter())
+				.withConfigLoader(DriverConfigLoader.programmaticBuilder()
+					.withDuration(DefaultDriverOption.REQUEST_TIMEOUT, Duration.ofSeconds(10))
+					.build())
 				.build();
 		}
 
