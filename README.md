@@ -95,6 +95,10 @@ SQL Server 2017 和 2022 的 Docker 复验在本分支 JDK 17 和 25 分别通�
 
 Boot 3.5.15 在 JDK 17.0.21 和 25.0.3 各通过 50 项聊天记忆 Docker 测试。Cassandra 5.0 为 9 项、MongoDB 8.0.6 为 10 项、Neo4j 5 为 31 项，均零跳过。MongoDB 集成测试使用 Boot 3 的 `spring.data.mongodb.uri`，Cassandra 测试夹具为 schema 初始化提供 10 秒请求超时。
 
+Boot 3.5.15 / JDK 17.0.21、25.0.3 的 MCP WebFlux Docker 回归每种 JVM 通过 200 项，覆盖 SSE 和 Streamable HTTP 的同步及异步客户端。2 项请求定制公共测试按原有能力条件跳过。测试服务器使用 Node 26 与 MCP server-everything 2025.12.18。
+
+Ollama 0.40.9 的 ARM64 Docker 服务在 Boot 3.5.15 / JDK 17.0.21、25.0.3 每种 JVM 通过 2 项向量用例，使用 `nomic-embed-text` 和 `all-minilm`，覆盖批量向量、维度和附加模型管理，零跳过。
+
 <!-- YUDAO-COMPATIBILITY-INTRO-END -->
 
 ---
