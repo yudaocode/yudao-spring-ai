@@ -16,7 +16,7 @@ yudao-spring-ai 是 [Spring AI](https://github.com/spring-projects/spring-ai) �
 
 | 分支 | 已验证 Spring Boot | 运行 JDK | 源码开发版本 | Maven Central |
 | --- | --- | --- | --- | --- |
-| [`main`](https://github.com/yudaocode/yudao-spring-ai/tree/main) | 4.1.2 | 17+（业务消费使用25） | `2.1.0-jdk25-SNAPSHOT` | 待发布 |
+| [`main`](https://github.com/yudaocode/yudao-spring-ai/tree/main) | 4.1.2 | 17+（业务消费使用25） | `2.1.0-jdk25-SNAPSHOT` | [2.1.0-jdk25-preview-20261119](https://central.sonatype.com/artifact/cn.iocoder.spring-ai/spring-ai-bom/2.1.0-jdk25-preview-20261119) |
 | [`main-jdk17`](https://github.com/yudaocode/yudao-spring-ai/tree/main-jdk17) | 3.5.15 | 17+ | `2.1.0-jdk17-SNAPSHOT` | [2.1.0-jdk17-preview-20261118](https://central.sonatype.com/artifact/cn.iocoder.spring-ai/spring-ai-bom/2.1.0-jdk17-preview-20261118) |
 | [`main-jdk8`](https://github.com/yudaocode/yudao-spring-ai/tree/main-jdk8) | 2.7.18 | 8+ | `2.1.0-jdk8-SNAPSHOT` | [2.1.0-jdk8-preview-20261119](https://central.sonatype.com/artifact/cn.iocoder.spring-ai/spring-ai-bom/2.1.0-jdk8-preview-20261119) |
 
@@ -24,11 +24,11 @@ yudao-spring-ai 是 [Spring AI](https://github.com/spring-projects/spring-ai) �
 
 Maven groupId 为 **`cn.iocoder.spring-ai`**，artifactId 和 Java 包名沿用官方。同一个应用只选择一条版本线，同一项目的模块使用同一版本；替换已有依赖时，也要移除对应官方 groupId 下的同类模块，避免重复类。
 
-Boot 3 / JDK 17 已发布 [2.1.0-jdk17-preview-20261118](https://central.sonatype.com/artifact/cn.iocoder.spring-ai/spring-ai-bom/2.1.0-jdk17-preview-20261118)，使用方式见 [main-jdk17](https://github.com/yudaocode/yudao-spring-ai/tree/main-jdk17)。本分支的 Boot 4 示例使用源码开发版，需先安装到本地仓库。发布版本按 `官方版本[-jdk数字][-preview]-YYYYMMDD` 命名；共用制品省略 JDK，未发布上游基线增加 preview，无同日序号。
+Boot 4 / JDK 25 路线已发布 [2.1.0-jdk25-preview-20261119](https://central.sonatype.com/artifact/cn.iocoder.spring-ai/spring-ai-bom/2.1.0-jdk25-preview-20261119)。宿主可以直接使用下面的 Maven 坐标，也可以按需安装源码开发版 `2.1.0-jdk25-SNAPSHOT`。 发布版本按 `官方版本[-jdk数字][-preview]-YYYYMMDD` 命名；共用制品省略 JDK，未发布上游基线增加 preview，无同日序号。
 
 ## 如何使用
 
-使用 JDK 17.0.19+ 构建源码；Java 8 分支同样使用 JDK 17 构建，产物供 JDK 8 运行。
+Maven 示例直接使用公开制品。需要构建 `2.1.0-jdk25-SNAPSHOT` 时，使用 JDK 17.0.19+ 执行以下源码安装命令。
 
 ```bash
 git clone -b main https://github.com/yudaocode/yudao-spring-ai.git
@@ -40,7 +40,7 @@ bash ./mvnw -DskipTests -Dmaven.javadoc.skip=true install
 
 ```xml
 <properties>
-    <yudao-spring-ai.version>2.1.0-jdk25-SNAPSHOT</yudao-spring-ai.version>
+    <yudao-spring-ai.version>2.1.0-jdk25-preview-20261119</yudao-spring-ai.version>
 </properties>
 <dependencyManagement>
     <dependencies>
