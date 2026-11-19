@@ -134,6 +134,8 @@ Typesense 27.1 的 Docker 向量库测试在 Boot 2.7.18 / 原生 JDK 8 通过 3
 
 Elasticsearch 9.2.0 的 Docker 向量用例在 Boot 2 / 原生 JDK 8 通过 20 项。适配器使用 Elasticsearch Java 与 REST 客户端 8.18.8。使用 Boot 2 parent 时设置 `elasticsearch.version=8.18.8` 和 `jakarta-json.version=2.0.1`，已用独立 Boot 2 项目连接真库验证本地安装的 JAR。
 
+GemFire VectorDB 10.2 的 ARM64 Docker 冒烟测试在 Boot 2 / 原生 JDK 8 通过，覆盖建索引、写入、检索及删除。可通过 `-Pintegration-tests -Dit.test=GemFireDockerSmokeIT` 定向复验。
+
 <!-- YUDAO-COMPATIBILITY-INTRO-END -->
 
 ## Java 8 HTTP 响应与流式文本
