@@ -136,6 +136,8 @@ Elasticsearch 9.2.0 的 Docker 向量用例在 Boot 2 / 原生 JDK 8 通过 20 �
 
 GemFire VectorDB 10.2 的 ARM64 Docker 冒烟测试在 Boot 2 / 原生 JDK 8 通过，覆盖建索引、写入、检索及删除。可通过 `-Pintegration-tests -Dit.test=GemFireDockerSmokeIT` 定向复验。
 
+MongoDB Atlas Local 8.0.0 的 ARM64 Docker 测试在 Boot 2.7.18 / 原生 JDK 8 通过 44 项，覆盖单条和批量向量写入、更新、检索及删除。公共契约中要求存储适配器能显式配置维度的 2 项按既有能力条件跳过。
+
 <!-- YUDAO-COMPATIBILITY-INTRO-END -->
 
 ## Java 8 HTTP 响应与流式文本
