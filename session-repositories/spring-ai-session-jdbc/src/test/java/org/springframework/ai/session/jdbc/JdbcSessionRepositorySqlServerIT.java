@@ -60,7 +60,8 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 class JdbcSessionRepositorySqlServerIT {
 
 	@Container
-	static final MSSQLServerContainer sqlServer = new MSSQLServerContainer("mcr.microsoft.com/mssql/server:2022-latest")
+	static final MSSQLServerContainer sqlServer = new MSSQLServerContainer(
+			System.getProperty("spring.ai.test.sqlserver.image", "mcr.microsoft.com/mssql/server:2022-latest"))
 		.acceptLicense();
 
 	/** SQL Server allows at most 2100 parameters in a statement. */

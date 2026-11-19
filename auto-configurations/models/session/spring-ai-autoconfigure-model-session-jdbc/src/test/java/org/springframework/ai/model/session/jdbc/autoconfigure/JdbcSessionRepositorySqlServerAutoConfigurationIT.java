@@ -51,7 +51,8 @@ class JdbcSessionRepositorySqlServerAutoConfigurationIT {
 	// through a file on the classpath. One database for all tests, so every context
 	// after the first starts against the existing schema.
 	@Container
-	static final MSSQLServerContainer sqlServer = new MSSQLServerContainer("mcr.microsoft.com/mssql/server:2022-latest")
+	static final MSSQLServerContainer sqlServer = new MSSQLServerContainer(
+			System.getProperty("spring.ai.test.sqlserver.image", "mcr.microsoft.com/mssql/server:2022-latest"))
 		.acceptLicense();
 
 	// continue-on-error is true by default and would hide a statement that fails, on the
