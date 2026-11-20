@@ -17,16 +17,29 @@
 package cn.iocoder.ai.compatibility;
 
 import java.time.Duration;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import org.springframework.ai.chat.messages.SystemMessage;
+import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.prompt.Prompt;
+import org.springframework.ai.model.tool.ToolCallingManager;
+import org.springframework.ai.model.tool.ToolExecutionResult;
 import org.springframework.ai.openai.OpenAiChatModel;
+import org.springframework.ai.openai.OpenAiChatModel.ResponseFormat;
+import org.springframework.ai.openai.OpenAiChatOptions;
+import org.springframework.ai.tool.ToolCallback;
+import org.springframework.ai.tool.function.FunctionToolCallback;
+import org.springframework.ai.util.json.JsonParser;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.SpringBootVersion;
 import org.springframework.boot.WebApplicationType;
@@ -104,6 +117,58 @@ class DockerModelRunnerTest {
 			assertThat(chunk.getMetadata().getUsage().getPromptTokens()).isPositive();
 			assertThat(chunk.getMetadata().getUsage().getCompletionTokens()).isPositive();
 		});
+	}
+
+	@Test
+	void executesJavaToolAndUsesItsResult() {
+		AtomicInteger calls = new AtomicInteger();
+		ToolCallback tool = FunctionToolCallback.builder("get_code", () -> {
+			calls.incrementAndGet();
+			return "RAIN42";
+		}).description("Returns the current code.").build();
+		OpenAiChatOptions options = qwenOptions().toolCallbacks(Collections.singletonList(tool)).build();
+		Prompt prompt = new Prompt(
+				Arrays.asList(new SystemMessage("When asked for a code you must call get_code before answering."),
+						new UserMessage("Call get_code to find the code, then report that code.")),
+				options);
+
+		ChatResponse toolResponse = chatModel.call(prompt);
+		assertThat(toolResponse.getResult().getOutput().getToolCalls()).singleElement()
+			.satisfies(call -> assertThat(call.name()).isEqualTo("get_code"));
+		assertThat(calls).hasValue(0);
+
+		ToolCallingManager manager = context.getBean(ToolCallingManager.class);
+		ToolExecutionResult execution = manager.executeToolCalls(prompt, toolResponse);
+		ChatResponse finalResponse = chatModel.call(new Prompt(execution.conversationHistory(), options));
+
+		assertThat(calls).hasValue(1);
+		assertThat(finalResponse.hasToolCalls()).isFalse();
+		assertThat(finalResponse.getResult().getOutput().getText()).contains("RAIN42");
+	}
+
+	@Test
+	void returnsJsonMatchingStrictSchema() {
+		String schema = "{\"type\":\"object\",\"properties\":{\"city\":{\"type\":\"string\"},"
+				+ "\"count\":{\"type\":\"integer\"}},\"required\":[\"city\",\"count\"],\"additionalProperties\":false}";
+		OpenAiChatOptions options = qwenOptions()
+			.responseFormat(ResponseFormat.builder().jsonSchema(schema).strict(true).build())
+			.build();
+
+		ChatResponse response = chatModel.call(new Prompt("Report the city Paris and a count of 2.", options));
+		Map<?, ?> result = JsonParser.fromJson(response.getResult().getOutput().getText(), Map.class);
+
+		assertThat(result).hasSize(2);
+		assertThat(result.get("city")).isEqualTo("Paris");
+		assertThat(result.get("count")).isEqualTo(2);
+	}
+
+	private static OpenAiChatOptions.Builder qwenOptions() {
+		return OpenAiChatOptions.builder()
+			.model(System.getProperty("dmr.tool-model", "ai/qwen3-compat:0.6b"))
+			.temperature(0.0)
+			.maxTokens(128)
+			.extraBody(Collections.singletonMap("chat_template_kwargs",
+					Collections.singletonMap("enable_thinking", false)));
 	}
 
 	/**

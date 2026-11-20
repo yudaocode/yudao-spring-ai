@@ -30,3 +30,13 @@ curl --fail "$DMR_BASE_URL/models"
 | `main` | 4.1.2 | `17` 或 `25` |
 
 用例使用本地占位 API key，实际核对 Boot 和 JVM 版本。上游 `DockerModelRunnerWithOpenAiChatModelIT` 沿用原有停用配置。
+
+## 工具回合和 JSON Schema 复验
+
+在同一 Runner 导入一个支持工具调用的 Qwen3 0.6B GGUF。独立版 DMR 可以这样导入：
+
+```bash
+dmr package --gguf /path/to/qwen3.gguf --context-size 2048 ai/qwen3-compat:0.6b
+```
+
+保持文本模型可用，并给上面的 Maven 命令增加 `-Ddmr.tool-model=ai/qwen3-compat:0.6b`。工具用例读出模型返回的 `get_code` 调用，由 Spring AI 的 `ToolCallingManager` 执行 Java 工具，再把工具结果交回模型检查最终回答。结构化用例通过 `response_format=json_schema` 启用 strict 模式，检查字段名、字段类型和值。两个用例均使用非流式 Chat Completions。
