@@ -101,6 +101,10 @@ Ollama 0.40.9 的 ARM64 Docker 容器使用 `qwen3-embedding:8b`，在 Boot 4.1.
 向量默认返回 4096 维，`dimensions` 可指定为 512 或 1024。
 使用 512 token 上下文时，`truncate=true` 对超长输入返回向量，`truncate=false` 返回 HTTP 400，短输入可正常编码。
 
+## Docker Model Runner 真服务验收
+
+在隔离的 Linux ARM64 Docker 容器内启动官方 Docker Model Runner 独立版，使用 `ai/smollm2:135M-Q4_K_M`，通过 OpenAI starter 自动配置验证 Chat Completions。Boot 2.7.18 / JDK 8、Boot 3.5.15 与 Boot 4.1.2 / JDK 17、25 共 5 组，每组 2 项，全部通过。覆盖同步聊天、SSE 流式聊天、结束原因和 token 用量。上游停用套件沿用原配置。[复验步骤](compatibility-tests/docker-model-runner/README.md)
+
 <!-- YUDAO-COMPATIBILITY-INTRO-END -->
 
 ---
