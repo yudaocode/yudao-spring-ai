@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>cn.iocoder.spring-ai</groupId>
   <artifactId>spring-ai-itu-compat</artifactId>
-  <version>2.1.0-jdk8-SNAPSHOT</version>
+  <version>2.1.1-jdk8-SNAPSHOT</version>
   <name>ITU 1.17 Java 8 runtime compatibility</name>
   <description>Upstream ITU compiled against the Java 8 platform API</description>
   <url>https://github.com/yudaocode/yudao-spring-ai</url>

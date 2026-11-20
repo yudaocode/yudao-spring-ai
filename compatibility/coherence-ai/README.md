@@ -6,7 +6,7 @@ The public Spring AI `Session` builder and native-client contract remain availab
 
 ## Use
 
-Import `cn.iocoder.spring-ai:spring-ai-bom:2.1.0-jdk8-SNAPSHOT`, then depend on `cn.iocoder.spring-ai:spring-ai-coherence-store`.
+Import `cn.iocoder.spring-ai:spring-ai-bom:2.1.1-jdk8-SNAPSHOT`, then depend on `cn.iocoder.spring-ai:spring-ai-coherence-store`.
 The store transitively supplies `spring-ai-coherence-ai-compat` and the pinned Java8 core.
 The coordinates are source snapshots; install them locally before use, as they are not yet published to Maven Central.
 Do not add the original `coherence-hnsw:24.09` or a Coherence24.09 core alongside these jars: they would introduce duplicate classes or Java17 bytecode.

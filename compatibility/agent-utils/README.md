@@ -11,7 +11,7 @@ Vendored formatting/header checks are disabled to preserve upstream content; Boo
 
 ## Usage
 
-Import `cn.iocoder.spring-ai:spring-ai-bom:2.1.0-jdk8-SNAPSHOT` as described in the repository README, then add:
+Import `cn.iocoder.spring-ai:spring-ai-bom:2.1.1-jdk8-SNAPSHOT` as described in the repository README, then add:
 
 ```xml
 <dependency>

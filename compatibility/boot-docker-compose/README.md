@@ -9,7 +9,7 @@ AOT/native-image support is not provided by this Java8 route.
 ## Use
 
 Install the `main-jdk8` source tree with JDK17 first; these source snapshots have not been released to Maven Central.
-Keep the application's Boot2 parent and import `cn.iocoder.spring-ai:spring-ai-bom:2.1.0-jdk8-SNAPSHOT`.
+Keep the application's Boot2 parent and import `cn.iocoder.spring-ai:spring-ai-bom:2.1.1-jdk8-SNAPSHOT`.
 Add the development library in the appropriate development/test scope:
 
 ```xml

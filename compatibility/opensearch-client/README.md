@@ -8,7 +8,7 @@ Build uses JDK17, while tests and consumers run on native JDK8.
 
 ## Coordinates and usage
 
-The Java8 Spring AI BOM manages `cn.iocoder.spring-ai:spring-ai-opensearch-client-compat:2.1.0-jdk8-SNAPSHOT`.
+The Java8 Spring AI BOM manages `cn.iocoder.spring-ai:spring-ai-opensearch-client-compat:2.1.1-jdk8-SNAPSHOT`.
 The OpenSearch vector-store starters select it automatically; ordinary SDK consumers may also depend on this artifact without adding a Spring Boot runtime.
 Its provided original SDK dependency is used for compilation and does not propagate to consumers.
 Do not add `org.opensearch.client:opensearch-java` alongside it, because the same Java packages would occur twice.

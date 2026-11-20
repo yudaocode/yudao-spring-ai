@@ -8,7 +8,7 @@ Native-image/AOT support is outside this Java8 route; the ordinary JVM lifecycle
 ## Use with Spring AI
 
 Install the `main-jdk8` source tree locally using JDK17 first; these snapshots have not been deployed to Maven Central.
-Keep the application's Boot2.7 parent and import `cn.iocoder.spring-ai:spring-ai-bom:2.1.0-jdk8-SNAPSHOT`.
+Keep the application's Boot2.7 parent and import `cn.iocoder.spring-ai:spring-ai-bom:2.1.1-jdk8-SNAPSHOT`.
 Then add the Spring AI module and whichever container implementation is needed in test scope:
 
 ```xml

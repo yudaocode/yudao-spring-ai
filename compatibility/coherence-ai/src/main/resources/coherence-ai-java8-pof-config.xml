@@ -1,6 +1,7 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <pof-config xmlns="http://xmlns.oracle.com/coherence/coherence-pof-config">
     <user-type-list>
+    <include>spring-ai-coherence-pof-config.xml</include>
         <include>coherence-pof-config.xml</include>
         <include>coherence-hnsw-pof-config.xml</include>
         <user-type>
