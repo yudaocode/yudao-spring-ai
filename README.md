@@ -1,6 +1,6 @@
 <!-- YUDAO-COMPATIBILITY-INTRO-BEGIN -->
 
-上游参考文档已同步至 `ac4a28e5e`。构建文档时使用上游版本生成页面路径，Maven 制品沿用各 JDK 路线的版本号。
+上游参考文档已同步至 `51ce70ecf`。构建文档时使用上游版本生成页面路径，Maven 制品沿用各 JDK 路线的版本号。
 
 > 版本命名：保留当前源码基线的官方版本号；共用现代制品不加 JDK 后缀，隔离维护的兼容路线添加 `jdk8` / `jdk17` / `jdk25`。开发版本使用 SNAPSHOT。JDK 路线后缀不等于最低字节码版本，框架依赖仍按 Boot 版本选择。
 > 完整版本规则与预览命名见 [VERSIONING.md](VERSIONING.md)。
