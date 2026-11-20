@@ -477,6 +477,85 @@ Anthropic's `Usage.getTotalTokens()` also includes the cached input tokens; Bedr
 The separate cache read and cache write usage fields remain available.
 If your application manually adds cache tokens to the prompt token count to compensate for the previous behavior, remove that adjustment to avoid counting them twice.
 
+=== TikaDocumentReader Text Extraction Limit
+
+`TikaDocumentReader` now extracts at most `TikaDocumentReader.DEFAULT_MAX_CHARACTERS` (10,000,000) characters from a document.
+Previously the whole document was extracted into memory, so the memory used by a read was bounded only by the size of the document.
+
+==== Impact
+
+Reading a document whose text exceeds 10,000,000 characters now throws an `IllegalStateException` instead of returning a `Document`.
+That is roughly a few thousand pages of text, so typical documents are unaffected.
+
+The constructor taking a `ContentHandler` is not affected, as the handler keeps controlling its own write limit.
+
+==== Migration
+
+Pass an explicit limit to read larger documents, or `-1` to restore the previous behavior.
+Because the extracted text is held in memory, disabling the limit is only safe for documents from trusted sources.
+
+[source,java]
+----
+// Before
+new TikaDocumentReader(resource, ExtractedTextFormatter.defaults());
+
+// After, reading documents of up to 50,000,000 characters
+new TikaDocumentReader(resource, 50_000_000, ExtractedTextFormatter.defaults());
+
+// After, without any limit
+new TikaDocumentReader(resource, -1, ExtractedTextFormatter.defaults());
+----
+
+=== Typesense Vector Store Filter Value Escaping Hardened
+
+`TypesenseFilterExpressionConverter` no longer serializes filter values as JSON.
+The `filter_by` grammar is not JSON: only backticks delimit string literals, and a double quote is matched as part of the value rather than as a delimiter.
+Values are now emitted as backtick literals, values containing a backtick are rejected, and `java.util.Date` values are emitted as epoch milliseconds.
+
+==== Impact
+
+* The generated `filter_by` string for string-valued filters changed format, delimiting values with backticks instead of double quotes:
+
+[source]
+----
+# Before
+metadata.country: "BG"
+
+# After
+metadata.country: `BG`
+----
+
+Typesense evaluates both forms identically for values that do not contain a backtick, double quote, parenthesis, square bracket, comma, `&&`, or `||`, so most applications will see no behavior change beyond the wire format.
+Values containing any of those characters were matched incorrectly before this change.
+* Filter values containing a literal backtick character are now rejected with `IllegalArgumentException` at conversion time.
+Typesense's `filter_by` parser has no escape mechanism for an embedded backtick, so such values could not be represented safely and were already unreliable before this change.
+* Values that are neither `Number`, `Boolean` nor `Date` are converted with `String#valueOf` and emitted as backtick literals.
+Previously such values were JSON-serialized, which quoted them with double quotes.
+For example, an enum filter value now produces ``metadata.day: `MONDAY` `` instead of `metadata.day: "MONDAY"`.
+* `java.util.Date` filter values are now emitted as epoch milliseconds, matching the representation the Typesense client uses when storing them:
+
+[source]
+----
+# Before
+metadata.activationDate: "1970-01-01T00:00:02.000Z"
+
+# After
+metadata.activationDate: 2000
+----
+
+Date filters could not match any document before this change, because the stored value is a number while the filter compared against a quoted string.
+
+==== Migration
+
+No code changes are required unless your application:
+
+* Asserts the exact string produced by `TypesenseFilterExpressionConverter#convertExpression()`, for example in tests.
+Update expectations to the backtick-delimited format.
+* Passes metadata values containing a backtick character into `SearchRequest.filterExpression()` for a Typesense-backed vector store.
+Remove or replace the backtick, as such values are no longer accepted.
+* Works around the previously broken date filtering, for example by passing epoch milliseconds as a number instead of a `Date`.
+Such filters keep working, and `Date` values can now be passed directly.
+
 [[upgrading-to-2-0-2]]
 == Upgrading to 2.0.2
 
@@ -515,6 +594,91 @@ Remove them manually after upgrading:
 DROP INDEX session_conversation_id_index IF EXISTS;
 DROP INDEX message_index_index IF EXISTS;
 ----
+
+=== Mandatory Scope Resolver for `SemanticCacheAdvisor`
+
+`SemanticCacheAdvisor` now requires a `SemanticCacheScopeResolver` that returns the scope of each request, such as a tenant or user identifier.
+Cached responses are only shared between requests that resolve to the same scope, so a response generated for one user is no longer returned to another user asking a similar question.
+See xref:api/vectordbs/redis.adoc#semantic-cache-scope[Cache Scope].
+
+==== Impact
+
+* The `SemanticCacheAdvisor` constructors take a `SemanticCacheScopeResolver` as second argument, and `SemanticCacheAdvisor.Builder.build()` fails if no `scopeResolver` is set.
+* When the resolver returns `null` or a blank string, the request bypasses the cache: nothing is read from or written to it.
+* The auto-configuration only registers a `SemanticCacheAdvisor` bean when the application defines a `SemanticCacheScopeResolver` bean.
+* The scope replaces the system prompt as isolation boundary: requests with different system prompts share cached responses within a scope, unless the resolver includes the system prompt in the scope.
+* Custom `SemanticCache` implementations must implement the context hash methods, see <<semantic-cache-interface-changes>>.
+* `SemanticCacheAdvisor` accepts an optional time-to-live for cached responses through `SemanticCacheAdvisor.Builder.ttl(Duration)`, or the `spring.ai.vectorstore.redis.semantic-cache.ttl` property for the auto-configured advisor.
+Without it, cached responses never expire, as before.
+* The context hash stored with each cache entry is now the hash of the scope, so entries cached by a previous version are no longer returned; remove them with `SemanticCache.clear()` or let them expire if they were stored with a TTL.
+
+==== Migration
+
+Provide a scope resolver deriving the scope from a trusted source, for example an advisor parameter set by the application from the authenticated principal:
+
+[source,java]
+----
+SemanticCacheAdvisor cacheAdvisor = SemanticCacheAdvisor.builder()
+    .cache(semanticCache)
+    .scopeResolver(request -> (String) request.context().get("tenantId"))
+    .build();
+
+chatClient.prompt()
+    .user(question)
+    .advisors(a -> a.param("tenantId", tenantId))
+    .call();
+----
+
+When relying on the auto-configuration, declare the resolver as a bean:
+
+[source,java]
+----
+@Bean
+SemanticCacheScopeResolver semanticCacheScopeResolver() {
+    return request -> (String) request.context().get("tenantId");
+}
+----
+
+To keep the previous behavior of a single cache shared by all users and isolated by system prompt, include the system prompt in a constant scope, such as `request -> "shared|" + request.prompt().getSystemMessage().getText()`.
+
+[[semantic-cache-interface-changes]]
+=== `SemanticCache` Interface Changes
+
+The `SemanticCacheAdvisor` isolates cached responses by passing the hash of the scope as context hash to the `SemanticCache`.
+The context hash methods of `SemanticCache` used to be default methods that ignored the context hash, so a custom implementation that did not override them shared cached responses across all scopes.
+
+==== Impact
+
+* `set(String query, ChatResponse response, @Nullable String contextHash)` and `get(String query, @Nullable String contextHash)` are now abstract.
+* The new abstract method `set(String query, ChatResponse response, @Nullable String contextHash, Duration ttl)` stores a cached response that expires after the given time-to-live.
+It is used by the `SemanticCacheAdvisor` when a TTL is configured.
+* Custom `SemanticCache` implementations no longer compile until they implement these methods.
+`DefaultSemanticCache` implements them; its TTL variant requires the underlying vector store to be a `RedisVectorStore` and throws `UnsupportedOperationException` otherwise.
+
+==== Migration
+
+Implement the three methods in custom `SemanticCache` implementations.
+Store the context hash with each entry and only return entries stored with the same context hash:
+
+[source,java]
+----
+@Override
+public void set(String query, ChatResponse response, @Nullable String contextHash) {
+    // store the entry together with the context hash
+}
+
+@Override
+public void set(String query, ChatResponse response, @Nullable String contextHash, Duration ttl) {
+    // store the entry together with the context hash, expiring after the TTL
+}
+
+@Override
+public Optional<ChatResponse> get(String query, @Nullable String contextHash) {
+    // only match entries stored with the same context hash
+}
+----
+
+Do not delegate to `set(String, ChatResponse)` or `get(String)` while ignoring the context hash, as this shares cached responses across scopes.
 
 [[upgrading-to-2-0-1]]
 == Upgrading to 2.0.1
